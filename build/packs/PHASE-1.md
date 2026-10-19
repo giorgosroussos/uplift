@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-1 — Walking skeleton: project, CI and all checks, modules, tenancy, organisation registration and login
 
-_design v1.0.0 · cc071f14078f_
+_design v1.1.0 · c01395b7b2ab_
 
 Depends on: none · environment: development · components: CMP-Tenancy, CMP-Identity, CMP-Audit
 
@@ -168,6 +168,9 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST run composer audit and npm audit in CI  (SEC-010)
 - MUST run every operations.ci stage on each pull request and push to main  (OPS-004)
 - MUST NOT merge a pull request whose CI fails  (OPS-004)
+- MUST NOT install @laravel/passkeys or laravel/chisel; remove the starter kit features that use them  (ARCH-007)
+- MUST lint and format with ESLint and Prettier; MUST NOT use vite-plus  (ARCH-007)
+- MUST list every dev-only package added in phase 1 in the P1-T1 handoff  (ARCH-007)
 - MUST reject ENT-Organization state transitions that are not listed in its state model
 - MUST NOT write ENT-User fields name, nickname, email, password, date_of_birth, is_minor to logs or error messages
 - MUST encrypt ENT-User fields password at rest

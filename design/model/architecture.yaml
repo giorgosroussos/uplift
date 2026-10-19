@@ -54,7 +54,21 @@ approved_dependencies:
   - {name: vue-draggable-plus, version: "^0.6", scope: runtime}
   - {name: eslint, version: "^9.0", scope: dev}
   - {name: prettier, version: "^3.0", scope: dev}
-  - {name: vitest, version: "^3.0", scope: dev}
+  - {name: vitest, version: "^4.0", scope: dev}
+  # Added by ARCH-007 (CR-P1-T1-1): packages of the official Vue starter kit and shadcn-vue.
+  - {name: laravel/tinker, version: "^3.0", scope: runtime}
+  - {name: laravel/wayfinder, version: "^0.1", scope: runtime}
+  - {name: reka-ui, version: "^2.0", scope: runtime}
+  - {name: "@lucide/vue", version: "^1.0", scope: runtime}
+  - {name: "@vueuse/core", version: "^12.0", scope: runtime}
+  - {name: class-variance-authority, version: "^0.7", scope: runtime}
+  - {name: clsx, version: "^2.0", scope: runtime}
+  - {name: tailwind-merge, version: "^3.0", scope: runtime}
+  - {name: tw-animate-css, version: "^1.0", scope: runtime}
+  - {name: vue-sonner, version: "^2.0", scope: runtime}
+  - {name: vue-input-otp, version: "^0.3", scope: runtime}
+  - {name: laravel-vite-plugin, version: "^2.0", scope: dev}
+  - {name: "@inertiajs/vite", version: "^3.0", scope: dev}
 
 conventions:
   - "Modules live in app/Modules/<Name>/ with Actions, Models, Policies, Events, Listeners, Http; each registers its own routes, broadcast channels and listeners in its service provider"
@@ -68,7 +82,7 @@ conventions:
   - "The few JSON endpoints (wizard autosave, subdomain check) return errors as RFC 9457 problem details"
   - "Logs are structured JSON on stdout and contain no personal data"
   - "Migrations are timestamped and live in their module"
-  - "All packages are installed in phase 1; later tasks do not add dependencies without a change request"
+  - "All runtime packages are installed in phase 1; during phase 1 dev-only packages (build, test, lint, types) may be added without a decision and are listed in the P1-T1 handoff; after phase 1 any new package, runtime or dev, needs a change request (ARCH-007)"
 
 hotspots:
   - "composer.json"

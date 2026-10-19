@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Architecture and stack
 
-_Generated document · design v1.0.0 · source cc071f14078f_
+_Generated document · design v1.1.0 · source c01395b7b2ab_
 
 
 **Style:** modular-monolith · **database:** postgresql
@@ -161,7 +161,20 @@ flowchart TB
 | vue-draggable-plus | ^0.6 | runtime | False |
 | eslint | ^9.0 | dev | False |
 | prettier | ^3.0 | dev | False |
-| vitest | ^3.0 | dev | False |
+| vitest | ^4.0 | dev | False |
+| laravel/tinker | ^3.0 | runtime | False |
+| laravel/wayfinder | ^0.1 | runtime | False |
+| reka-ui | ^2.0 | runtime | False |
+| @lucide/vue | ^1.0 | runtime | False |
+| @vueuse/core | ^12.0 | runtime | False |
+| class-variance-authority | ^0.7 | runtime | False |
+| clsx | ^2.0 | runtime | False |
+| tailwind-merge | ^3.0 | runtime | False |
+| tw-animate-css | ^1.0 | runtime | False |
+| vue-sonner | ^2.0 | runtime | False |
+| vue-input-otp | ^0.3 | runtime | False |
+| laravel-vite-plugin | ^2.0 | dev | False |
+| @inertiajs/vite | ^3.0 | dev | False |
 
 ## Conventions
 
@@ -176,7 +189,7 @@ flowchart TB
 - The few JSON endpoints (wizard autosave, subdomain check) return errors as RFC 9457 problem details
 - Logs are structured JSON on stdout and contain no personal data
 - Migrations are timestamped and live in their module
-- All packages are installed in phase 1; later tasks do not add dependencies without a change request
+- All runtime packages are installed in phase 1; during phase 1 dev-only packages (build, test, lint, types) may be added without a decision and are listed in the P1-T1 handoff; after phase 1 any new package, runtime or dev, needs a change request (ARCH-007)
 
 ## Hotspots (shared files)
 
@@ -195,3 +208,4 @@ flowchart TB
 | ARCH-004 | Modular monolith | decided (inferred) | One deployable Laravel application split into 11 modules (see components) with dependencies enforced by deptrac; activity types plug into Activities through an ActivityType contract |
 | ARCH-005 | Versions and frontend language | decided | PHP 8.3, Laravel 13, Inertia 3 (or the version the starter kit ships), Vue 3.5 with TypeScript, Tailwind 4, PostgreSQL 18, Redis 8, Reverb 1. Exact versions are pinned by lockfiles in phase 1 |
 | ARCH-006 | Real-time and integration policies | decided (default) | Live answers go over HTTP, never websocket client events; the server alone decides time; Reverb outage falls back to HTTP polling every 2 seconds for students and teacher; integration logs carry ids only; email is queued with 5 retries |
+| ARCH-007 | Starter kit dependencies and dev tooling | decided | Keep the official Vue starter kit and shadcn-vue and approve their runtime packages (tinker, wayfinder, reka-ui, lucide, vueuse, class-variance-authority, clsx, tailwind-merge, tw-animate-css, vue-sonner, vue-input-otp); remove the kit's passkeys and chisel; use vitest ^4 to match the kit's vite 8; lint and format with ESLint and Prettier instead of the kit's vite-plus; during phase 1 dev-only packages may be added without a decision |

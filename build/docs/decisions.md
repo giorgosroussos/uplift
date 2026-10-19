@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v1.0.0 · source cc071f14078f_
+_Generated document · design v1.1.0 · source c01395b7b2ab_
 
 
 ## Scope
@@ -548,6 +548,26 @@ _since v0.1.0_
 - `MUST log external calls with ids only, never emails or names`
 
 _affects CMP-Live, CMP-Notifications, INT-001 · since v0.1.0_
+
+### ARCH-007 — Starter kit dependencies and dev tooling · decided
+
+> Engineer: “1 A, 2 αφαίρεσε τα, 3 vitest ^4, 4 παμε με τα πακέτα του design (ESLint και Prettier), 5 οκ”
+
+**Decision:** Keep the official Vue starter kit and shadcn-vue and approve their runtime packages (tinker, wayfinder, reka-ui, lucide, vueuse, class-variance-authority, clsx, tailwind-merge, tw-animate-css, vue-sonner, vue-input-otp); remove the kit's passkeys and chisel; use vitest ^4 to match the kit's vite 8; lint and format with ESLint and Prettier instead of the kit's vite-plus; during phase 1 dev-only packages may be added without a decision
+
+**Why:** The starter kit and shadcn-vue were chosen in ARCH-005/SEC-011 but their dependencies were missing from the approved list (CR-P1-T1-1)
+
+**Rejected:**
+- Minimal skeleton without starter kit UI or shadcn-vue: rewrites auth screens and every UI component by hand
+- Pin vite to 7 for vitest 3: diverges from the kit
+- vite-plus: new and less known tool; the design already mandates ESLint and Prettier
+
+**Constraints for implementation:**
+- `MUST NOT install @laravel/passkeys or laravel/chisel; remove the starter kit features that use them`
+- `MUST lint and format with ESLint and Prettier; MUST NOT use vite-plus`
+- `MUST list every dev-only package added in phase 1 in the P1-T1 handoff`
+
+_affects P1-T1 · since v1.1.0_
 
 ## Operations
 

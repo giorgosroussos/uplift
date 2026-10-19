@@ -1,0 +1,52 @@
+id: CR-P1-T1-1
+raised_by: implementation-agent
+task: P1-T1
+status: accepted
+problem: >
+  P1-T1 requires "the official Vue starter kit" and the conventions require
+  "shared UI components come from shadcn-vue", but the global constraint allows
+  only the approved runtime dependencies. The current official
+  laravel/vue-starter-kit (main, commit d282e81, 2026-09-21; Laravel ^13.17,
+  Inertia ^3) ships these runtime dependencies that are NOT approved:
+  composer: laravel/tinker ^3.0, laravel/wayfinder ^0.1.14, laravel/chisel ^0.1.0;
+  npm (shipped in the bundle): reka-ui, @lucide/vue, @vueuse/core,
+  class-variance-authority, clsx, tailwind-merge, tw-animate-css,
+  vue-input-otp, vue-sonner, @laravel/passkeys;
+  npm (build-time, listed as dependencies by the kit): laravel-vite-plugin,
+  @inertiajs/vite. shadcn-vue components themselves require reka-ui, clsx,
+  tailwind-merge, class-variance-authority and an icon library, so the
+  shadcn-vue convention cannot be met with the approved list either.
+  Secondary gaps in the same area: (a) the approved list names no build/test
+  tooling the checks need (vite, @vitejs/plugin-vue, @tailwindcss/vite,
+  vue-tsc, typescript-eslint, eslint-plugin-vue, @vue/test-utils, jsdom,
+  playwright for pestphp/pest-plugin-browser); it is unclear whether unlisted
+  dev-only packages are allowed. (b) the kit uses vite ^8, while the approved
+  vitest ^3.0 supports vite only up to 7 (vitest 4 is needed for vite 8).
+  (c) the kit replaces ESLint/Prettier with vite-plus (vp check), while the
+  design mandates ESLint and Prettier.
+affects:
+  - design/model/architecture.yaml (approved_dependencies, conventions)
+  - build/CLAUDE.design.md (global constraint on runtime dependencies)
+  - P1-T1 and every later task that builds Vue UI (shadcn-vue components)
+proposal: >
+  Option A (recommended): keep the official starter kit and shadcn-vue, and add
+  to approved_dependencies as runtime: laravel/tinker ^3.0, laravel/wayfinder
+  ^0.1, reka-ui ^2.0, @lucide/vue ^1.0, @vueuse/core ^12.0,
+  class-variance-authority ^0.7, clsx ^2.0, tailwind-merge ^3.0,
+  tw-animate-css ^1.0, vue-sonner ^2.0, vue-input-otp ^0.3 (needed for the TOTP
+  MFA screens of SEC-011); drop laravel/chisel and @laravel/passkeys (passkeys
+  are not in the design) by removing those kit features; declare laravel-vite-plugin
+  and @inertiajs/vite as dev. State explicitly that dev-only build/test tooling
+  (vite, @vitejs/plugin-vue, @tailwindcss/vite, vue-tsc, typescript-eslint,
+  eslint-plugin-vue, eslint-config-prettier, @vue/test-utils, jsdom,
+  playwright, nunomaduro/collision, mockery/mockery, fakerphp/faker,
+  laravel/pail) may be added in phase 1 without a decision, and either bump
+  vitest to ^4.0 or pin vite to ^7. Use ESLint + Prettier instead of vite-plus.
+  Option B: do not use the starter kit's UI; build a minimal Inertia/Vue/
+  Fortify skeleton with only approved packages and drop the shadcn-vue
+  convention (all UI components hand-written with Tailwind).
+resolution: >
+  Accepted as option A in design v1.1.0 (ARCH-007): starter-kit and shadcn-vue
+  runtime packages approved; passkeys and chisel removed; vitest ^4.0; ESLint
+  and Prettier kept (no vite-plus); dev-only packages allowed without a decision
+  during phase 1 and listed in the P1-T1 handoff.

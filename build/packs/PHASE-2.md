@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-2 — Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications
 
-_design v1.0.0 · cc071f14078f_
+_design v1.1.0 · c01395b7b2ab_
 
 Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit
 

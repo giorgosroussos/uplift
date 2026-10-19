@@ -67,3 +67,18 @@ decisions:
       - "MUST log external calls with ids only, never emails or names"
     affects: [CMP-Live, CMP-Notifications, INT-001]
     since: 0.1.0
+  - id: ARCH-007
+    area: architecture
+    title: Starter kit dependencies and dev tooling
+    status: decided
+    source: user
+    user_statement: "1 A, 2 αφαίρεσε τα, 3 vitest ^4, 4 παμε με τα πακέτα του design (ESLint και Prettier), 5 οκ"
+    decision: "Keep the official Vue starter kit and shadcn-vue and approve their runtime packages (tinker, wayfinder, reka-ui, lucide, vueuse, class-variance-authority, clsx, tailwind-merge, tw-animate-css, vue-sonner, vue-input-otp); remove the kit's passkeys and chisel; use vitest ^4 to match the kit's vite 8; lint and format with ESLint and Prettier instead of the kit's vite-plus; during phase 1 dev-only packages may be added without a decision"
+    rationale: "The starter kit and shadcn-vue were chosen in ARCH-005/SEC-011 but their dependencies were missing from the approved list (CR-P1-T1-1)"
+    alternatives_rejected: ["Minimal skeleton without starter kit UI or shadcn-vue: rewrites auth screens and every UI component by hand", "Pin vite to 7 for vitest 3: diverges from the kit", "vite-plus: new and less known tool; the design already mandates ESLint and Prettier"]
+    constraints:
+      - "MUST NOT install @laravel/passkeys or laravel/chisel; remove the starter kit features that use them"
+      - "MUST lint and format with ESLint and Prettier; MUST NOT use vite-plus"
+      - "MUST list every dev-only package added in phase 1 in the P1-T1 handoff"
+    affects: [P1-T1]
+    since: 1.1.0

@@ -1,5 +1,5 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
-# Design rules — Uplift (design v1.0.0 · cc071f14078f)
+# Design rules — Uplift (design v1.1.0 · c01395b7b2ab)
 
 Multi-tenant SaaS educational platform where organisations (universities, schools, tutoring centres, companies) run course spaces with interactive activities: quizzes, polls, assignment-topic selection and proposal, and presentation/exam slot booking. Its flagship is a real-time live quiz with gamification, backed by analytics for teachers and organisations.
 
@@ -50,7 +50,7 @@ Multi-tenant SaaS educational platform where organisations (universities, school
 - MUST NOT hardcode UI strings; every UI string comes from a translation key with Greek and English values  (SCOPE-020)
 - MUST give every user exactly one organization_id and one role  (SEC-004)
 - MUST NOT let a user act in an organisation other than their own  (SEC-004)
-- MUST NOT add runtime dependencies outside the approved list: laravel/framework@^13.0, inertiajs/inertia-laravel@^3.0, laravel/fortify@^1.0, laravel/reverb@^1.0, vue@^3.5, @inertiajs/vue3@^3.0, laravel-echo@^2.0, pusher-js@^8.0, laravel-vue-i18n@^2.0, chart.js@^4.0, vue-chartjs@^5.0, vue-draggable-plus@^0.6. New ones need a change request.
+- MUST NOT add runtime dependencies outside the approved list: laravel/framework@^13.0, inertiajs/inertia-laravel@^3.0, laravel/fortify@^1.0, laravel/reverb@^1.0, vue@^3.5, @inertiajs/vue3@^3.0, laravel-echo@^2.0, pusher-js@^8.0, laravel-vue-i18n@^2.0, chart.js@^4.0, vue-chartjs@^5.0, vue-draggable-plus@^0.6, laravel/tinker@^3.0, laravel/wayfinder@^0.1, reka-ui@^2.0, @lucide/vue@^1.0, @vueuse/core@^12.0, class-variance-authority@^0.7, clsx@^2.0, tailwind-merge@^3.0, tw-animate-css@^1.0, vue-sonner@^2.0, vue-input-otp@^0.3. New ones need a change request.
 - MUST read every external endpoint and credential from configuration; never hardcode them
 - MUST NOT perform live payments, send real emails or call live external systems outside production
 - Shared hotspot files (touch only when your task lists them): `composer.json`, `package.json`, `bootstrap/providers.php`, `routes/channels.php`
@@ -67,4 +67,4 @@ Multi-tenant SaaS educational platform where organisations (universities, school
 - The few JSON endpoints (wizard autosave, subdomain check) return errors as RFC 9457 problem details
 - Logs are structured JSON on stdout and contain no personal data
 - Migrations are timestamped and live in their module
-- All packages are installed in phase 1; later tasks do not add dependencies without a change request
+- All runtime packages are installed in phase 1; during phase 1 dev-only packages (build, test, lint, types) may be added without a decision and are listed in the P1-T1 handoff; after phase 1 any new package, runtime or dev, needs a change request (ARCH-007)
