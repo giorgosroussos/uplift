@@ -1,0 +1,8 @@
+id: P1-T5
+status: blocked
+commit: 4a73f61
+handoff: |
+  audit_entries table (uuid pk, nullable organization_id without FK, actor_type check, jsonb changes, timestamptz occurred_at) in app/Modules/Audit/Database/Migrations.
+  AuditEntry model (append-only: update/delete throw AppendOnlyViolation; MassPrunable 2 years, model:prune scheduled daily from AuditServiceProvider).
+  Actions/RecordAuditEntry::handle(AuditRecord) writes entries in UTC; Listeners/AuditListener is the base for event->entry listeners registered in AuditServiceProvider::$listen.
+  Blocked: organisation-registration entry needs an Identity event that P1-T4 has not defined (CR-P1-T5-1). Tests: tests/Feature/Audit/AuditLogTest.php.
