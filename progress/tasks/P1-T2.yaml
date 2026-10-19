@@ -1,0 +1,9 @@
+id: P1-T2
+status: ready_to_merge
+commit: e1a0795
+handoff: |
+  app/Modules/Tenancy: Organization model (UUID, enums in Enums/, transitionTo() enforces the state model), organizations migration, OrganizationFactory (->suspended()).
+  ResolveTenant is prepended to the web group (host <sub>.<config tenancy.domain = TENANCY_DOMAIN or APP_URL host>; apex/reserved/foreign host = no tenant; unknown sub = 404); route middleware alias `tenant` requires one.
+  Support/TenantContext (scoped; current(), id(), run()); Concerns/BelongsToOrganization adds OrganizationScope (fails closed without a tenant) and fills/guards organization_id.
+  Support/Subdomain: RESERVED (www, app, api, admin, mail), PATTERN (3-30 a-z0-9, inner hyphens), normalize/isAllowed for registration.
+  Tests: Tests\TestCase uses tests/Support/Tenancy/InteractsWithTenancy (createOrganization, actingAsTenant, asTenant, tenantUrl, apexUrl, assertTenantIsolated); tests/Architecture/TenantIsolationTest fails on a tenant-owned table/model without the scope.
