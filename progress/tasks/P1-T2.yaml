@@ -1,6 +1,6 @@
 id: P1-T2
 status: ready_to_merge
-commit: e1a0795
+commit: f3a5f6b
 handoff: |
   app/Modules/Tenancy: Organization model (UUID, enums in Enums/, transitionTo() enforces the state model), organizations migration, OrganizationFactory (->suspended()).
   ResolveTenant is prepended to the web group (host <sub>.<config tenancy.domain = TENANCY_DOMAIN or APP_URL host>; apex/reserved/foreign host = no tenant; unknown sub = 404); route middleware alias `tenant` requires one.
