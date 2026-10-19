@@ -11,9 +11,12 @@ use Illuminate\Foundation\Testing\WithCachedConfig;
 use Illuminate\Foundation\Testing\WithCachedRoutes;
 use Laravel\Fortify\Features;
 use Tests\Support\LoadEnvironmentVariablesIfPresent;
+use Tests\Support\Tenancy\InteractsWithTenancy;
 
 abstract class TestCase extends BaseTestCase
 {
+    use InteractsWithTenancy;
+
     /**
      * Same as the framework's createApplication(), but a missing .env file is
      * skipped silently: tests get their environment from phpunit.xml.
