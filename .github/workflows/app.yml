@@ -153,11 +153,29 @@ jobs:
   architecture:
     name: architecture tests (deptrac)
     runs-on: ubuntu-latest
+    # The tenant-isolation architecture test inspects the migrated schema.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: sail
+          POSTGRES_PASSWORD: password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sail -d testing"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: sail
+      DB_PASSWORD: password
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_pgsql
           coverage: none
       - run: composer install --no-interaction --no-progress --prefer-dist
       - name: deptrac rules match may_depend_on
