@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v1.1.0 · source c01395b7b2ab_
+_Generated document · design v1.2.0 · source fda7b69da42e_
 
 
 ## Entity–relationship diagram
@@ -904,7 +904,7 @@ Owned by CMP-Platform · retention: While the admin account exists · audit: no
 | email | email | string(254) | required, unique, personal |
 | password | string | string(255) | required, sensitive |
 
-#### ENT-AuditEntry — Append-only record of security-relevant actions (SEC-010)
+#### ENT-AuditEntry — Append-only record of security-relevant actions (SEC-010). organization_id is null for platform-level actions. Exempt from the organisation global scope: only platform admins read it (SEC-006); the exemption is listed in the tenant-isolation test
 
 Owned by CMP-Audit · retention: 2 years, then deleted · audit: no
 

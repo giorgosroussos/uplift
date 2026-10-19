@@ -548,7 +548,7 @@ entities:
 
   # ---------- Audit ----------
   - id: ENT-AuditEntry
-    description: "Append-only record of security-relevant actions (SEC-010)"
+    description: "Append-only record of security-relevant actions (SEC-010). organization_id is null for platform-level actions. Exempt from the organisation global scope: only platform admins read it (SEC-006); the exemption is listed in the tenant-isolation test"
     source: inferred
     confirmed: true
     attributes:

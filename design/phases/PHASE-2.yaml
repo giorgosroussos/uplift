@@ -44,6 +44,7 @@ tasks:
     use_cases: [UC-007]
     touches: {writes: [CMP-Notifications], reads: [CMP-Identity, CMP-Courses], migrations: true}
   - id: P2-T7
-    title: Audit entries for users and settings
+    title: Audit entries for registration, users and settings
+    description: "Listeners writing audit entries for organisation registration (OrganizationRegistered: action organization.registered, actor_type user with actor_id = new admin, subject organization, changes {subdomain}; one entry), role changes, user deactivation and organisation settings changes; foreign key audit_entries.organization_id -> organizations.id (on delete restrict)"
     depends_on: [P2-T1, P2-T3]
-    touches: {writes: [CMP-Audit], reads: [CMP-Identity, CMP-Tenancy]}
+    touches: {writes: [CMP-Audit], reads: [CMP-Identity, CMP-Tenancy], migrations: true}

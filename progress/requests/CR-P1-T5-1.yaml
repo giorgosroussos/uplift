@@ -1,7 +1,7 @@
 id: CR-P1-T5-1
 raised_by: implementation-agent
 task: P1-T5
-status: open
+status: accepted
 problem: >
   P1-T5 asks for "first entries for organisation registration", but nothing
   this task may use produces or describes that event. Organisation
@@ -45,4 +45,14 @@ proposal: >
   audit_entries.organization_id -> organizations.id (on delete restrict) and
   record that AuditEntry is exempt from the organisation global scope
   (platform-admin reads only), listed as an exception in the
+  tenant-isolation test.
+resolution: >
+  Accepted in design v1.2.0 with one change to the proposal: no new task.
+  P1-T5 is the audit infrastructure only (what is on branch P1-T5 covers it).
+  P1-T4 dispatches OrganizationRegistered(organizationId, adminUserId) after
+  commit. P2-T7 writes the organization.registered entry (actor_type user,
+  actor_id = new admin, subject organization, changes {subdomain}) and adds
+  the audit_entries.organization_id foreign key. SEC-010 now lists
+  organisation registration. ENT-AuditEntry: organization_id nullable and
+  exempt from the organisation global scope, listed as an exception in the
   tenant-isolation test.

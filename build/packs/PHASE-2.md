@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-2 — Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications
 
-_design v1.1.0 · c01395b7b2ab_
+_design v1.2.0 · fda7b69da42e_
 
 Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit
 
@@ -15,7 +15,7 @@ Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP
 | P2-T4 | Course spaces and enrolment | — | CMP-Courses |
 | P2-T5 | Announcements | P2-T4 | CMP-Courses |
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications |
-| P2-T7 | Audit entries for users and settings | P2-T1, P2-T3 | CMP-Audit |
+| P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3 | CMP-Audit |
 
 Execution waves: [P2-T1, P2-T3, P2-T4] → [P2-T2, P2-T5, P2-T7] → [P2-T6]
 
@@ -262,7 +262,7 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST rate-limit login to 5 attempts per minute per email  (SEC-010)
 - MUST rate-limit enrolment key attempts to 10 per minute per user  (SEC-010)
 - MUST rate-limit organisation registration to 3 per hour per IP  (SEC-010)
-- MUST write an audit entry for grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
+- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
 - MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory  (SEC-010)
 - MUST run composer audit and npm audit in CI  (SEC-010)
 - MUST require TOTP MFA for ROLE-PlatformAdmin  (SEC-011)
