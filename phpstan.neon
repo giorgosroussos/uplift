@@ -12,3 +12,11 @@ parameters:
         - scripts/
 
     level: 6
+
+    ignoreErrors:
+        # Used by the tenant-owned models of later tasks; until then PHPStan
+        # reports it as unused.
+        -
+            identifier: trait.unused
+            path: app/Modules/Tenancy/Concerns/BelongsToOrganization.php
+            reportUnmatched: false
