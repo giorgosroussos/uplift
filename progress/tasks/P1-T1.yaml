@@ -1,0 +1,6 @@
+id: P1-T1
+status: blocked
+commit: null
+handoff: |
+  Blocked by progress/requests/CR-P1-T1-1.yaml: the official Vue starter kit and
+  shadcn-vue need runtime dependencies outside the approved list. Nothing built yet.
