@@ -1,0 +1,8 @@
+# Only the development environment exists (SCOPE-004). RPO, RTO, availability
+# and backup policy are deferred with hosting (OPS-003) and must be set before
+# the hosting choice (OPS-001).
+operations:
+  alerts_to: "Engineer's email"
+  release: "Deploy never while a live quiz session is running (OPS-002)"
+  ci:
+    stages: [lint and format (Pint, ESLint, Prettier), static analysis (Larastan), unit and feature tests (Pest, Vitest), browser tests (Pest browser), architecture tests (deptrac), design check (tools/design/ci_check.py), dependency audit (composer audit, npm audit)]

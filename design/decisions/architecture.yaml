@@ -1,0 +1,69 @@
+decisions:
+  - id: ARCH-001
+    area: architecture
+    title: Technology stack
+    status: decided
+    source: user
+    user_statement: |
+      Backend: Laravel
+      Frontend: Inertia.js + Vue 3
+      Βάση: PostgreSQL (Class Table Inheritance, JSONB μόνο για άμορφα δεδομένα)
+      Real-time: Laravel Reverb + Laravel Echo
+      Async: Laravel Queues + Jobs + Scheduler
+      Cache / queue / broadcast: Redis
+    decision: "Laravel backend, Inertia.js + Vue 3 frontend, PostgreSQL database, Laravel Reverb + Echo for real-time, Laravel Queues/Jobs/Scheduler for async work, Redis for cache, queue and broadcasting"
+    rationale: "Engineer's choice; continuation of a simpler thesis system"
+    global: true
+    since: 0.1.0
+  - id: ARCH-002
+    area: architecture
+    title: Multi-tenancy model
+    status: decided
+    source: user
+    user_statement: "Tenancy: row-level με organization_id και global scope, subdomain ανά οργανισμό"
+    decision: "Single database, row-level tenancy: every tenant-owned table has organization_id, enforced by an Eloquent global scope; each organisation is reached on its own subdomain"
+    global: true
+    since: 0.1.0
+  - id: ARCH-003
+    area: architecture
+    title: Code structure
+    status: decided
+    source: user
+    user_statement: "Αρχιτεκτονική: Actions/Services με λεπτούς controllers, event-driven κορμός (domain events → listeners)"
+    decision: "Thin controllers delegate to Actions/Services; side effects are driven by domain events handled by listeners"
+    global: true
+    since: 0.1.0
+  - id: ARCH-004
+    area: architecture
+    title: Modular monolith
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "One deployable Laravel application split into 11 modules (see components) with dependencies enforced by deptrac; activity types plug into Activities through an ActivityType contract"
+    constraints: ["MUST respect component may_depend_on rules; deptrac fails the build otherwise", "MUST add new activity types by implementing the ActivityType contract, not by editing the Activities module"]
+    global: true
+    since: 0.1.0
+  - id: ARCH-005
+    area: architecture
+    title: Versions and frontend language
+    status: decided
+    source: user
+    user_statement: "2 TypeScript | 4 έχω 8.3 php στο παρόν μηχάνημα τα υπόλοιπα ειναι οκ (σε docker δεν υπάρχει θέμα), προεπιλογές oκ"
+    decision: "PHP 8.3, Laravel 13, Inertia 3 (or the version the starter kit ships), Vue 3.5 with TypeScript, Tailwind 4, PostgreSQL 18, Redis 8, Reverb 1. Exact versions are pinned by lockfiles in phase 1"
+    constraints: ["MUST write frontend code in TypeScript", "MUST keep code compatible with PHP 8.3"]
+    global: true
+    since: 0.1.0
+  - id: ARCH-006
+    area: architecture
+    title: Real-time and integration policies
+    status: decided
+    source: default
+    confirmed: true
+    decision: "Live answers go over HTTP, never websocket client events; the server alone decides time; Reverb outage falls back to HTTP polling every 2 seconds for students and teacher; integration logs carry ids only; email is queued with 5 retries"
+    constraints:
+      - "MUST submit live answers through HTTP endpoints, never websocket client events (whisper)"
+      - "MUST derive client countdowns from server-sent ends_at and server_now"
+      - "MUST fall back to HTTP polling every 2 seconds when the websocket connection is lost"
+      - "MUST log external calls with ids only, never emails or names"
+    affects: [CMP-Live, CMP-Notifications, INT-001]
+    since: 0.1.0

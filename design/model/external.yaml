@@ -1,0 +1,40 @@
+external_systems:
+  - id: EXT-001
+    name: Single sign-on identity providers
+    purpose: Organisation SSO login (future)
+    direction: both
+    owner: third-party
+    status: deferred
+    vendor: null
+    source: user
+    user_statement: "με προετοιμασμένο σημείο για SSO αργότερα μέσω Socialite | 2 γ"
+    deferred_to: "after the first production release (no phase yet; future amendment)"
+    requirements: ["Providers not chosen yet (OAuth such as Google/Microsoft, possibly SAML)", "Per-organisation configuration", "Works through Laravel Socialite"]
+    prepare_now:
+      - "MUST allow a user without a password (nullable password column) so SSO-only accounts are possible"
+      - "MUST resolve the organisation from the subdomain before authentication so login methods can be configured per organisation"
+      - "MUST NOT put provider-specific identity fields on the users table; external identities will live in their own table"
+    bindings:
+      development: {mode: tbd}
+    used_by: [UC-003]
+  - id: EXT-002
+    name: Email delivery
+    purpose: "Invitations, password reset, email verification and notifications"
+    direction: outbound
+    owner: third-party
+    status: deferred
+    vendor: null
+    source: inferred
+    confirmed: true
+    deferred_to: PHASE-9
+    requirements: ["Free tier or very low cost (SCOPE-002)", "SMTP or a Laravel mail driver", "Deliverability for transactional email (SPF/DKIM)"]
+    prepare_now: ["MUST send email only through Laravel Mail/Notifications, never a provider SDK directly", "MUST send email from queued jobs"]
+    bindings:
+      development: {mode: catcher, tool: Mailpit, config: "MAIL_*"}
+    used_by: [UC-001, UC-004, UC-005, UC-032, UC-008, UC-022, UC-026, UC-027, UC-019]
+
+org_constraints:
+  - id: ORG-001
+    text: "τα δεδομένα να μένουν σε ΕΕ (λογικό για ανηλίκους και GDPR)"
+    constraint: "MUST store and process all application data, backups and logs within the EU"
+    source: user

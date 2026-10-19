@@ -1,0 +1,11 @@
+decisions:
+  - id: DEC-001
+    area: external
+    title: Email notifications
+    status: decided
+    source: user
+    user_statement: "ανακοινώσεις, νέα δραστηριότητα (για χώρο μαθήματος που είναι εγγεγραμμένος, νέα βαθμολόγηση, έγγριση/απόρριψη θέματος, πρόσκληση σε ομάδα (δεν μου έρχεται κατι άλλο προς το παρόν)"
+    decision: "Besides account emails (invitation, password reset, verification), email is sent for: new announcement, new activity in an enrolled course space, new or final grade, topic approved or rejected, group invitation. Everything else is in-app only"
+    constraints: ["MUST NOT send email for notification kinds other than those listed in DEC-001"]
+    affects: [EXT-002, UC-007, UC-008, UC-022, UC-026, UC-027, UC-019]
+    since: 0.1.0

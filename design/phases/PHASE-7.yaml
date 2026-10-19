@@ -1,0 +1,25 @@
+id: PHASE-7
+goal: "Analytics and dashboards for students, teachers and organisation admins"
+depends_on: [PHASE-6]
+use_cases: [UC-029, UC-010, UC-020, UC-031, UC-034]
+entities: []
+components: [CMP-Analytics]
+decisions: [SEC-007, DATA-002, DATA-005, SEC-009]
+environment: development
+out_of_scope:
+  - "Platform dashboard (PHASE-8)"
+tasks:
+  - id: P7-T1
+    title: Teacher analytics and CSV export
+    use_cases: [UC-029]
+    touches: {writes: [CMP-Analytics], reads: [CMP-Assessment, CMP-Activities, CMP-Live, CMP-Courses]}
+  - id: P7-T2
+    title: Student and teacher dashboards
+    depends_on: [P7-T1]
+    use_cases: [UC-010, UC-020]
+    touches: {writes: [CMP-Analytics], reads: [CMP-Gamification, CMP-Courses, CMP-Activities]}
+  - id: P7-T3
+    title: Organisation dashboard and aggregate analytics
+    depends_on: [P7-T1]
+    use_cases: [UC-031, UC-034]
+    touches: {writes: [CMP-Analytics], reads: [CMP-Identity, CMP-Courses]}

@@ -1,0 +1,89 @@
+# Semantic type catalog.
+#
+# Model attributes declare what a field MEANS (type: money), not how it is
+# stored. Storage comes from this catalog, so the choice is the same in every
+# project and never improvised by an agent.
+#
+# storage:    logical storage, used when no database is chosen yet
+# db:         physical mapping per database (key = lowercase stack.database)
+# forbidden:  storage types that must never be used for this meaning
+# requires:   policy decisions (decision `topic`) that must exist when the type is used
+# rule:       one-line rule copied into implementation packs
+#
+# Projects extend the catalog by editing the vendored copy under tools/design/
+# (through an amendment, recorded in the design changelog). There is exactly
+# one catalog per project, so there are never two definitions of `money`.
+
+types:
+  money:
+    storage: decimal(19,4)
+    db: { postgresql: "numeric(19,4)", mysql: "decimal(19,4)", sqlite: "integer (minor units)" }
+    forbidden: [float, double, real]
+    requires: [money_representation, currency, rounding]
+    rule: "Monetary values MUST use exact arithmetic (decimal or integer minor units), never floating point."
+  tax_rate:
+    storage: decimal(7,4)
+    db: { postgresql: "numeric(7,4)", mysql: "decimal(7,4)" }
+    forbidden: [float, double, real]
+    requires: [rounding]
+    rule: "Tax rates MUST use exact decimal arithmetic; apply the project rounding policy."
+  percentage:
+    storage: decimal(7,4)
+    forbidden: [float, double, real]
+    rule: "Percentages MUST use exact decimal arithmetic."
+  quantity:
+    storage: integer
+    rule: "Quantities are integers unless the entity explicitly allows fractions."
+  currency:
+    storage: char(3)
+    rule: "Currency codes are ISO 4217 (e.g. EUR)."
+  uuid:
+    storage: uuid
+    db: { postgresql: uuid, mysql: "binary(16) or char(36)", sqlite: text }
+  email:
+    storage: string(254)
+    rule: "Emails are validated and compared case-insensitively."
+  phone:
+    storage: string(32)
+    rule: "Phone numbers are stored in E.164 format."
+  url:
+    storage: string(2048)
+  string:
+    storage: string(255)
+  text:
+    storage: text
+  integer:
+    storage: integer
+  decimal:
+    storage: decimal
+  float:
+    storage: float
+  boolean:
+    storage: boolean
+  date:
+    storage: date
+  timestamp:
+    storage: timestamp with time zone
+    db: { postgresql: timestamptz, mysql: "datetime (UTC)" }
+    rule: "Timestamps are stored in UTC."
+  duration:
+    storage: integer (seconds)
+  json:
+    storage: json
+    db: { postgresql: jsonb }
+  enum:
+    storage: string
+  afm:
+    storage: char(9)
+    rule: "Greek tax ID (ΑΦΜ): 9 digits, validated with the official check digit."
+
+# Attribute names that almost always carry money or tax meaning. An attribute
+# whose name matches but whose type is not listed in `expected` is an error,
+# unless the attribute sets `type_confirmed: true`.
+name_heuristics:
+  - pattern: "(price|amount|total|subtotal|cost|fee|balance|discount_value|payment|refund|charge)"
+    expected: [money]
+  - pattern: "(vat|tax)(_rate)?$"
+    expected: [tax_rate, money]
+  - pattern: "(rate|percent|percentage|ratio)$"
+    expected: [percentage, tax_rate]

@@ -1,0 +1,56 @@
+decisions:
+  - id: OPS-001
+    area: operations
+    topic: hosting
+    title: Production hosting
+    status: deferred
+    source: inferred
+    confirmed: true
+    deferred_to: PHASE-9
+    trigger: "Core features work and the system is about to host real users (together with SEC-003)"
+    requirements:
+      - "Data, backups and logs inside the EU (ORG-001)"
+      - "Free or very low cost (SCOPE-002)"
+      - "One server of ~2 vCPU / 4 GB RAM is enough for web, queue worker, scheduler, Reverb, PostgreSQL 18 and Redis 8 at the target scale"
+      - "Long-lived WebSocket connections allowed (rules out serverless and most shared hosting)"
+      - "Wildcard DNS (*.domain) and a wildcard TLS certificate (Let's Encrypt DNS-01 challenge, so a DNS provider with an API)"
+      - "Off-site EU storage for backups"
+      - "Meets the RPO, RTO and availability targets set by OPS-003"
+    prepare_now:
+      - "MUST read all configuration from environment variables"
+      - "MUST log structured JSON to stdout"
+      - "MUST access files only through Laravel Storage disks so an S3-compatible disk can replace the local one"
+      - "MUST NOT depend on provider-specific services in application code"
+      - "MUST keep live quiz state in PostgreSQL so a restart of Reverb or the queue worker loses no session"
+      - "MUST expose the Laravel health endpoint /up"
+      - "MUST NOT keep state on the server's local disk or memory: sessions, cache and queues in Redis, files through Storage disks"
+    since: 0.1.0
+  - id: OPS-002
+    area: operations
+    title: Deploys and live quizzes
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "A deploy waits until no live session is running"
+    constraints: ["MUST make the deploy script refuse or wait while any live session has status running"]
+    since: 0.1.0
+  - id: OPS-003
+    area: operations
+    title: Operational targets (RPO, RTO, availability, backups)
+    status: deferred
+    source: user
+    user_statement: "ίσως να αφήσουμε deferred και τους στόχους λειτουργίας μέχρι το πρώτο production τι λες ;"
+    deferred_to: PHASE-9
+    trigger: "Planning the first production deploy"
+    requirements: ["RPO (acceptable data loss)", "RTO (acceptable recovery time)", "Availability target", "Backup frequency, retention and restore-test cadence, consistent with the RPO"]
+    prepare_now: ["MUST NOT keep state on the server's local disk or memory: sessions, cache and queues in Redis, files through Storage disks"]
+    since: 0.1.0
+  - id: OPS-004
+    area: operations
+    title: Repository and CI
+    status: decided
+    source: user
+    user_statement: "α, GitHub με GitHub Actions"
+    decision: "The repository lives on GitHub; CI runs on GitHub Actions (free tier). The design gate (.github/workflows/design.yml) exists from now; the application pipeline with the stages in operations.ci is created in the first phase"
+    constraints: ["MUST run every operations.ci stage on each pull request and push to main", "MUST NOT merge a pull request whose CI fails"]
+    since: 0.1.0

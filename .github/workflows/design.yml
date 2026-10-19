@@ -1,0 +1,25 @@
+# Design gate: validation, build freshness and version/changelog discipline.
+name: design
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+jobs:
+  design:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml==6.0.2
+      - name: Check design
+        run: |
+          BASE="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if git cat-file -e "$BASE" 2>/dev/null; then
+            python tools/design/ci_check.py --base "$BASE"
+          else
+            python tools/design/ci_check.py
+          fi

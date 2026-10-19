@@ -1,0 +1,45 @@
+id: PHASE-4
+goal: "The other four activity types and groups: polls, topic selection, topic proposals with approval, slot booking, group activities"
+depends_on: [PHASE-3]
+use_cases: [UC-019, UC-013, UC-014, UC-015, UC-027, UC-016]
+entities: [ENT-Group, ENT-GroupMembership, ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote, ENT-TopicActivity, ENT-Topic, ENT-TopicChoice, ENT-TopicProposal, ENT-SlotActivity, ENT-Slot, ENT-Booking]
+components: [CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications]
+decisions: [SCOPE-011, SCOPE-012, SCOPE-013, SCOPE-017, SEC-009, DATA-006]
+environment: development
+out_of_scope:
+  - "Live quizzes (PHASE-5)"
+  - "XP and badges (PHASE-6)"
+  - "Analytics (PHASE-7)"
+tasks:
+  - id: P4-T1
+    title: Groups
+    use_cases: [UC-019]
+    touches: {writes: [CMP-Courses], migrations: true}
+  - id: P4-T2
+    title: Polls
+    use_cases: [UC-013]
+    touches: {writes: [CMP-Activities], migrations: true}
+  - id: P4-T3
+    title: Topic selection
+    depends_on: [P4-T1, P4-T2]
+    use_cases: [UC-014]
+    touches: {writes: [CMP-Activities], reads: [CMP-Courses], migrations: true}
+  - id: P4-T4
+    title: Topic proposals and approval
+    depends_on: [P4-T3]
+    use_cases: [UC-015, UC-027]
+    touches: {writes: [CMP-Activities], migrations: true}
+  - id: P4-T5
+    title: Slot booking
+    depends_on: [P4-T1, P4-T4]
+    use_cases: [UC-016]
+    touches: {writes: [CMP-Activities], reads: [CMP-Courses], migrations: true}
+  - id: P4-T6
+    title: Group quiz attempts
+    description: "One member submits for the group; all members see the attempt and get the same grade (SCOPE-012)"
+    depends_on: [P4-T1]
+    touches: {writes: [CMP-Assessment], reads: [CMP-Courses], migrations: true}
+  - id: P4-T7
+    title: Notifications for topic decisions and group invitations
+    depends_on: [P4-T1, P4-T4]
+    touches: {writes: [CMP-Notifications], reads: [CMP-Activities, CMP-Courses]}

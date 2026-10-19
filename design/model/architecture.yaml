@@ -1,0 +1,77 @@
+# Proposed by the assistant from ARCH-001..003 and areas 1-5; confirmed by the
+# engineer (ARCH-005). Exact patch versions are pinned by lockfiles in phase 1.
+stack:
+  style: modular-monolith
+  database: postgresql
+  items:
+    - {role: backend, name: PHP, version: "8.3", why: "Laravel 13 minimum; matches the engineer's machine (ARCH-005)", source: user}
+    - {role: backend, name: Laravel, version: "13", why: "ARCH-001", source: user}
+    - {role: frontend, name: Inertia.js, version: "3", why: "ARCH-001", source: user}
+    - {role: frontend, name: Vue, version: "3.5", why: "ARCH-001", source: user}
+    - {role: frontend, name: TypeScript, version: "5", why: "Official Vue starter kit; safer complex UI (ARCH-005)", source: user}
+    - {role: frontend, name: Tailwind CSS, version: "4", why: "Token-driven design system with per-organisation accent and dark mode (design brief)", source: inferred, confirmed: true}
+    - {role: database, name: PostgreSQL, version: "18", why: "ARCH-001; CTI and JSONB (DATA-001)", source: user}
+    - {role: cache, name: Redis, version: "8", why: "ARCH-001: cache, queue and broadcasting", source: user}
+    - {role: other, name: Laravel Reverb, version: "1", why: "ARCH-001: real-time live quiz, self-hosted and free", source: user}
+    - {role: worker, name: Laravel queue worker and scheduler, version: "13", why: "ARCH-001: async jobs, emails (EXT-002), reminders (UC-038)", source: user}
+    - {role: storage, name: Local filesystem (Laravel Storage), version: "13", why: "Logos and CSV uploads; S3-compatible disk later without code changes", source: inferred, confirmed: true}
+
+components:
+  - {id: CMP-Tenancy, responsibility: "Organisations, subdomain resolution, current-tenant context and the organization_id global scope; organisation settings", owns: [ENT-Organization], implements: [UC-002, UC-033], may_depend_on: [], source: inferred, confirmed: true}
+  - {id: CMP-Identity, responsibility: "Users, roles, authentication, organisation registration with its first admin (through Tenancy actions), invitations, profile, MFA, data export/erasure", owns: [ENT-User, ENT-Invitation], implements: [UC-001, UC-003, UC-004, UC-005, UC-006, UC-032, UC-039], may_depend_on: [CMP-Tenancy], source: inferred, confirmed: true}
+  - {id: CMP-Platform, responsibility: "Platform admins and cross-tenant administration (separate guard, SEC-006)", owns: [ENT-PlatformAdmin], implements: [UC-035, UC-036], may_depend_on: [CMP-Tenancy, CMP-Identity], source: inferred, confirmed: true}
+  - {id: CMP-Courses, responsibility: "Course spaces, enrolment, announcements, groups", owns: [ENT-CourseSpace, ENT-Enrolment, ENT-Announcement, ENT-Group, ENT-GroupMembership], implements: [UC-008, UC-011, UC-019, UC-021], may_depend_on: [CMP-Tenancy, CMP-Identity], source: inferred, confirmed: true}
+  - {id: CMP-Activities, responsibility: "Activity base and lifecycle, creation wizard, submissions overview, polls, topics, proposals, slots; type-specific behaviour through an ActivityType contract that other modules register", owns: [ENT-Activity, ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote, ENT-TopicActivity, ENT-Topic, ENT-TopicChoice, ENT-TopicProposal, ENT-SlotActivity, ENT-Slot, ENT-Booking], implements: [UC-013, UC-014, UC-015, UC-016, UC-022, UC-027, UC-028], may_depend_on: [CMP-Tenancy, CMP-Identity, CMP-Courses], source: inferred, confirmed: true}
+  - {id: CMP-Assessment, responsibility: "Quizzes, question bank, CSV question import, self-paced attempts, auto and manual grading, results", owns: [ENT-Quiz, ENT-Question, ENT-ChoiceOption, ENT-MatchingPair, ENT-QuizQuestion, ENT-QuizAttempt, ENT-Answer, ENT-AnswerSelection, ENT-AnswerMatch], implements: [UC-012, UC-017, UC-023, UC-026, UC-030], may_depend_on: [CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities], source: inferred, confirmed: true}
+  - {id: CMP-Live, responsibility: "Live quiz sessions: state machine, server-side timers, broadcasting over Reverb, scoring, reconnection", owns: [ENT-LiveSession, ENT-LiveParticipant, ENT-LiveAnswer], implements: [UC-024, UC-025], may_depend_on: [CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment], source: inferred, confirmed: true}
+  - {id: CMP-Gamification, responsibility: "XP ledger, levels, badges, per-course-space leaderboards; reacts to domain events", owns: [ENT-XpEvent, ENT-Badge, ENT-UserBadge], implements: [UC-018, UC-037], may_depend_on: [CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Live], source: inferred, confirmed: true}
+  - {id: CMP-Analytics, responsibility: "Read-only dashboards and analytics, CSV export", owns: [], implements: [UC-010, UC-020, UC-029, UC-031, UC-034], may_depend_on: [CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Live, CMP-Gamification], source: inferred, confirmed: true}
+  - {id: CMP-Notifications, responsibility: "In-app and email notifications from domain events (DEC-001), deadline reminders", owns: [ENT-Notification], implements: [UC-007, UC-038], may_depend_on: [CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment], source: inferred, confirmed: true}
+  - {id: CMP-Audit, responsibility: "Append-only audit log written from domain events", owns: [ENT-AuditEntry], implements: [], may_depend_on: [CMP-Tenancy, CMP-Identity, CMP-Platform, CMP-Courses, CMP-Activities, CMP-Assessment], source: inferred, confirmed: true}
+
+approved_dependencies:
+  # Majors confirmed; exact versions are pinned by composer.lock / package-lock.json in phase 1.
+  - {name: laravel/framework, version: "^13.0", scope: runtime}
+  - {name: inertiajs/inertia-laravel, version: "^3.0", scope: runtime}
+  - {name: laravel/fortify, version: "^1.0", scope: runtime}
+  - {name: laravel/reverb, version: "^1.0", scope: runtime}
+  - {name: laravel/sail, version: "^1.0", scope: dev}
+  - {name: pestphp/pest, version: "^4.0", scope: dev}
+  - {name: pestphp/pest-plugin-laravel, version: "^4.0", scope: dev}
+  - {name: pestphp/pest-plugin-browser, version: "^4.0", scope: dev}
+  - {name: larastan/larastan, version: "^3.0", scope: dev}
+  - {name: laravel/pint, version: "^1.0", scope: dev}
+  - {name: deptrac/deptrac, version: "^2.0", scope: dev}
+  - {name: vue, version: "^3.5", scope: runtime}
+  - {name: "@inertiajs/vue3", version: "^3.0", scope: runtime}
+  - {name: typescript, version: "^5.0", scope: dev}
+  - {name: tailwindcss, version: "^4.0", scope: dev}
+  - {name: laravel-echo, version: "^2.0", scope: runtime}
+  - {name: pusher-js, version: "^8.0", scope: runtime}
+  - {name: laravel-vue-i18n, version: "^2.0", scope: runtime}
+  - {name: chart.js, version: "^4.0", scope: runtime}
+  - {name: vue-chartjs, version: "^5.0", scope: runtime}
+  - {name: vue-draggable-plus, version: "^0.6", scope: runtime}
+  - {name: eslint, version: "^9.0", scope: dev}
+  - {name: prettier, version: "^3.0", scope: dev}
+  - {name: vitest, version: "^3.0", scope: dev}
+
+conventions:
+  - "Modules live in app/Modules/<Name>/ with Actions, Models, Policies, Events, Listeners, Http; each registers its own routes, broadcast channels and listeners in its service provider"
+  - "Vue pages live in resources/js/Pages/<Module>/; shared UI components come from shadcn-vue"
+  - "Controllers only validate, authorise and call one Action; business logic lives in Actions/Services (ARCH-003)"
+  - "Cross-module side effects go through domain events and listeners, never direct calls (ARCH-003)"
+  - "UI strings live in lang/el and lang/en and reach Vue through laravel-vue-i18n (SCOPE-020)"
+  - "Tests: Pest unit and feature tests; Pest browser tests for core flows including a multi-player live quiz; every ownership and tenant-isolation rule has a dedicated test"
+  - "Static checks: Pint, Larastan level 6, deptrac rules generated from may_depend_on, ESLint, Prettier, Vitest"
+  - "Development runs on Laravel Sail (PostgreSQL, Redis, Mailpit, Reverb)"
+  - "The few JSON endpoints (wizard autosave, subdomain check) return errors as RFC 9457 problem details"
+  - "Logs are structured JSON on stdout and contain no personal data"
+  - "Migrations are timestamped and live in their module"
+  - "All packages are installed in phase 1; later tasks do not add dependencies without a change request"
+
+hotspots:
+  - "composer.json"
+  - "package.json"
+  - "bootstrap/providers.php"
+  - "routes/channels.php"

@@ -1,0 +1,128 @@
+decisions:
+  - id: SEC-001
+    area: security
+    title: Authentication
+    status: superseded
+    source: user
+    user_statement: "Auth: Laravel Breeze (preset Inertia + Vue), με προετοιμασμένο σημείο για SSO αργότερα μέσω Socialite | MFA: 1 συμφωνώ"
+    decision: "Email and password authentication via Laravel Breeze (Inertia + Vue preset); SSO via Socialite is deferred but the integration point is prepared. TOTP MFA is required for platform admins, optional for org admins, not offered to teachers and students"
+    constraints: ["MUST require TOTP MFA for ROLE-PlatformAdmin", "MUST offer optional TOTP MFA to ROLE-OrgAdmin"]
+    since: 0.1.0
+  - id: SEC-002
+    area: security
+    title: Authorisation model
+    status: decided
+    source: user
+    user_statement: "Ρόλοι: enum + Laravel Policies"
+    decision: "User role is an enum; authorisation is enforced through Laravel Policies"
+    since: 0.1.0
+  - id: SEC-003
+    area: security
+    title: GDPR and minors' data hardening
+    status: deferred
+    source: user
+    user_statement: "ο στόχος είναι οι χρήστες να είναι σχολεία, πανεπιστήμια, φροντιστήρια με ανήλικους χρήστες, μπορούμε ίσως όμως αυτό το hardening σε επίπεδο sensitive data και GDPR να το κάνουμε αργότερα, θέλω να το κρατήσουμε καταγεγραμμένο ώς στόχο"
+    deferred_to: PHASE-9
+    trigger: "Core features work and the system is about to host real users"
+    requirements: ["Lawful basis and parental consent handling for minors", "Data export and erasure per user", "Retention periods per entity", "Audit log of access to personal data"]
+    prepare_now:
+      - "MUST mark every attribute holding personal data with sensitivity: personal in the model"
+      - "MUST NOT write personal data (emails, names, answers) to logs"
+      - "MUST reference users only by user_id in results, grades and analytics so users can be anonymised without breaking them"
+      - "MUST store a date of birth or minor flag per user"
+    since: 0.1.0
+  - id: SEC-004
+    area: security
+    title: User, role and organisation cardinality
+    status: decided
+    source: user
+    user_statement: "ένας χρήστης ένας ρόλος και 1-1 και στους χρήστες των οργανισμών δηλαδή κάθε χρήστης αντιστοιχεί σε έναν οργανισμός και όχι σε περισσότερους"
+    decision: "Each user belongs to exactly one organisation and has exactly one role"
+    constraints: ["MUST give every user exactly one organization_id and one role", "MUST NOT let a user act in an organisation other than their own"]
+    global: true
+    since: 0.1.0
+  - id: SEC-005
+    area: security
+    title: Live quiz participation
+    status: decided
+    source: user
+    user_statement: "νάι μόνο συνδεδεμένοι φοιτητές που είναι εγγεγραμμένοι στο χώρο μαθήματος"
+    decision: "Only authenticated students enrolled in the course space can join its live quizzes; no anonymous PIN join"
+    constraints: ["MUST reject a live quiz join from a user who is not enrolled in the quiz's course space", "MUST NOT offer anonymous or PIN-only participation"]
+    affects: [UC-025]
+    since: 0.1.0
+  - id: SEC-006
+    area: security
+    title: Platform super-admins outside tenancy
+    status: decided
+    source: user
+    user_statement: "το 1 ειναι σωστό έχεις δίκιο"
+    decision: "Super-admins live in a separate platform_admins table with their own guard, log in on the apex domain and are never members of an organisation"
+    constraints: ["MUST authenticate platform admins with a separate guard on the apex domain", "MUST NOT store platform admins in the organisation users table"]
+    affects: [ACT-SuperAdmin, UC-035, UC-036]
+    since: 0.1.0
+  - id: SEC-007
+    area: security
+    title: Organisation admin oversight
+    status: decided
+    source: user
+    user_statement: "οχι ο OrgAdmin βλέπει τους οργανισμούς, analytics, διαχειρίζεται τους οργανισμούς και γενικότερα έχει high level εποπτεία του συστήματος | με συγνωρείς έκανα λάθος ο OrgAdmin ναι πρέπει να βλέπει χώρους μαθημάτων και καθηγητές και φοιτητές"
+    decision: "Org admins have high-level oversight of their own organisation: they see its course spaces, teachers and students, manage users and settings, and see aggregate analytics; they never see individual grades, answers or submissions"
+    constraints: ["MUST NOT show individual grades, answers or submissions to ROLE-OrgAdmin", "MUST show ROLE-OrgAdmin only aggregated analytics"]
+    affects: [ROLE-OrgAdmin, UC-031, UC-034, UC-021]
+    since: 0.1.0
+  - id: SEC-008
+    area: security
+    title: Leaderboard identity
+    status: decided
+    source: user
+    user_statement: "3 γ ανα χώρο μαθήματος | οκ"
+    decision: "Leaderboards are per course space and show only a nickname and avatar chosen by the student, never real names. A nickname is auto-generated until the student changes it, is unique within the organisation, and teachers see it next to the real name"
+    constraints: ["MUST show only nickname and avatar on leaderboards", "MUST scope leaderboards to one course space"]
+    affects: [UC-018, UC-024, UC-025, ENT-User]
+    since: 0.1.0
+  - id: SEC-009
+    area: security
+    title: Poll anonymity for teachers
+    status: decided
+    source: user
+    user_statement: "οχι θέλω ανωνυμότητα στην ψηφοφορία, θέλω να βλέπει ψήφους χωρίς να ξέρει ποιος ψήφισε και τι ψήφισε"
+    decision: "Teachers see vote counts per option only; never who voted or what any student voted"
+    constraints: ["MUST NOT expose the list of participants of a poll to teachers or admins"]
+    affects: [UC-013, ENT-PollParticipation]
+    since: 0.1.0
+  - id: SEC-010
+    area: security
+    title: Security baseline
+    status: decided
+    source: default
+    confirmed: true
+    decision: "argon2id passwords (min 8, uncompromised check); host-only session cookie per subdomain with CSRF; private/presence Reverb channels authorised by the same Policies; rate limits; audit log; restricted uploads; security headers; dependency audits; OWASP Top 10 baseline; GDPR in scope, no PCI"
+    constraints:
+      - "MUST hash passwords with argon2id"
+      - "MUST require passwords of at least 8 characters that pass Password::uncompromised()"
+      - "MUST scope session cookies to the organisation subdomain (host-only)"
+      - "MUST invalidate other sessions when a password changes"
+      - "MUST use only private or presence broadcast channels, authorised by the same Policies, with the organisation id in the channel name"
+      - "MUST NOT send correct answers or correctness to students before the live session finishes"
+      - "MUST NOT broadcast personal data other than nickname and avatar"
+      - "MUST rate-limit login to 5 attempts per minute per email"
+      - "MUST rate-limit enrolment key attempts to 10 per minute per user"
+      - "MUST rate-limit organisation registration to 3 per hour per IP"
+      - "MUST write an audit entry for grade changes, role changes, user deactivation, organisation settings changes and platform admin actions"
+      - "MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory"
+      - "MUST run composer audit and npm audit in CI"
+    global: false
+    since: 0.1.0
+  - id: SEC-011
+    area: security
+    title: Authentication (official Vue starter kit)
+    status: decided
+    source: user
+    user_statement: "1 α"
+    decision: "Authentication comes from the official Laravel Vue starter kit (Inertia + Vue + TypeScript, auth on Laravel Fortify) instead of the unmaintained Breeze. Email and password; TOTP MFA via Fortify, required for platform admins, optional for org admins, not offered to teachers and students; SSO via Socialite deferred (EXT-001)"
+    rationale: "Breeze receives no updates since Laravel 12; the starter kit is its official successor and Fortify provides two-factor authentication"
+    alternatives_rejected: ["Laravel Breeze: no longer maintained"]
+    constraints: ["MUST require TOTP MFA for ROLE-PlatformAdmin", "MUST offer optional TOTP MFA to ROLE-OrgAdmin"]
+    supersedes: SEC-001
+    since: 0.1.0

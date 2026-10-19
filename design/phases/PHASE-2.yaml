@@ -1,0 +1,49 @@
+id: PHASE-2
+goal: "Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications"
+depends_on: [PHASE-1]
+use_cases: [UC-005, UC-032, UC-006, UC-033, UC-021, UC-011, UC-008, UC-007]
+entities: [ENT-User, ENT-Invitation, ENT-Organization, ENT-CourseSpace, ENT-Enrolment, ENT-Announcement, ENT-Notification]
+components: [CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit]
+decisions: [SEC-004, SEC-007, SEC-008, SEC-010, SEC-011, SCOPE-006, SCOPE-007, DATA-002, DEC-001, ARCH-006]
+environment: development
+out_of_scope:
+  - "Activities of any type (PHASE-3, PHASE-4)"
+  - "Groups (PHASE-4)"
+  - "Leaderboards and XP (PHASE-6)"
+  - "Dashboards beyond a placeholder home page per role (PHASE-7)"
+  - "Deadline reminders (PHASE-9)"
+tasks:
+  - id: P2-T1
+    title: Invitations and user management
+    depends_on: []
+    use_cases: [UC-005, UC-032]
+    touches: {writes: [CMP-Identity], migrations: true}
+  - id: P2-T2
+    title: Profile, nickname, language and optional MFA for org admins
+    depends_on: [P2-T1]
+    use_cases: [UC-006]
+    touches: {writes: [CMP-Identity]}
+  - id: P2-T3
+    title: Organisation settings
+    description: "Logo upload, accent colour, terminology in Greek and English, grading scale, leaderboard on/off, default language"
+    use_cases: [UC-033]
+    touches: {writes: [CMP-Tenancy], migrations: true}
+  - id: P2-T4
+    title: Course spaces and enrolment
+    use_cases: [UC-021, UC-011]
+    touches: {writes: [CMP-Courses], reads: [CMP-Identity], migrations: true}
+  - id: P2-T5
+    title: Announcements
+    depends_on: [P2-T4]
+    use_cases: [UC-008]
+    touches: {writes: [CMP-Courses]}
+  - id: P2-T6
+    title: Notifications in-app and by email
+    description: "Notification model, notification centre, queued mail with retries (INT-001) for invitations and announcements; other DEC-001 kinds are added by later phases' listeners"
+    depends_on: [P2-T1, P2-T5]
+    use_cases: [UC-007]
+    touches: {writes: [CMP-Notifications], reads: [CMP-Identity, CMP-Courses], migrations: true}
+  - id: P2-T7
+    title: Audit entries for users and settings
+    depends_on: [P2-T1, P2-T3]
+    touches: {writes: [CMP-Audit], reads: [CMP-Identity, CMP-Tenancy]}

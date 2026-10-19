@@ -1,0 +1,92 @@
+decisions:
+  - id: DATA-001
+    area: data
+    title: Activity type modelling and JSONB use
+    status: decided
+    source: user
+    user_statement: "PostgreSQL (Class Table Inheritance, JSONB μόνο για άμορφα δεδομένα)"
+    decision: "Type hierarchies (e.g. activity types) use Class Table Inheritance; JSONB is used only for genuinely unstructured data"
+    since: 0.1.0
+  - id: DATA-002
+    area: data
+    topic: grading_scale
+    title: Grading scale
+    status: decided
+    source: user
+    user_statement: "Βαθμολογική κλίμακα ας το κρατήσουμε λίγο ανοιχτό στην διάθεση του οργανισμού και να προσφέρουμε α,β,δ"
+    decision: "Each organisation chooses its grading scale: 0-10 with one decimal, 0-100, or points per question with a pass mark as a percentage"
+    affects: [UC-017, UC-026, UC-029, UC-033]
+    since: 0.1.0
+  - id: DATA-003
+    area: data
+    title: Score storage independent of grading scale
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "Scores are stored as raw points and maximum points with exact decimals; the organisation's grading scale is applied only when displaying or exporting"
+    rationale: "Lets an organisation change its scale without rewriting stored grades (DATA-002)"
+    constraints: ["MUST store scores as earned points and max points using exact decimal types", "MUST convert to the organisation's grading scale only at display or export time"]
+    since: 0.1.0
+  - id: DATA-004
+    area: data
+    title: Server-side quiz timing
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "Quiz time limits and deadlines are enforced by the server clock; the client timer is display only"
+    constraints: ["MUST enforce quiz time limits and deadlines on the server", "MUST NOT trust client timestamps for timing decisions"]
+    since: 0.1.0
+  - id: DATA-005
+    area: data
+    topic: rounding
+    title: Rounding of displayed grades
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "Conversion from points to the organisation's grading scale rounds half-up to 1 decimal (e.g. 7/8 points on 0-10 is 8.8); percentages likewise to 1 decimal"
+    constraints: ["MUST round converted grades and percentages half-up to 1 decimal, only at display or export"]
+    since: 0.1.0
+  - id: DATA-006
+    area: data
+    title: Anonymous vote storage
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "The fact that a student voted is stored separately from the chosen options; chosen options carry no user reference"
+    constraints: ["MUST NOT store a user reference on poll choices", "MUST record poll participation separately to prevent a second vote"]
+    affects: [UC-013]
+    since: 0.1.0
+  - id: DATA-007
+    area: data
+    title: Data conventions
+    status: decided
+    source: default
+    confirmed: true
+    decision: "UUID primary keys; UTC timestamps; soft delete for User, CourseSpace, Activity, Question, Announcement; organization_id on every tenant-owned table including child tables; Laravel naming; CTI subtype tables use the parent id as primary key; XP as a ledger; badges defined platform-wide"
+    constraints:
+      - "MUST use UUID primary keys"
+      - "MUST store timestamps in UTC"
+      - "MUST put organization_id on every tenant-owned table, including child tables"
+      - "MUST include organization_id in unique constraints of tenant-owned tables"
+      - "MUST use the parent's id as primary key of Class Table Inheritance subtype tables"
+      - "MUST NOT soft-delete answers, votes or XP events"
+    global: true
+    since: 0.1.0
+  - id: DATA-008
+    area: data
+    title: Question bank
+    status: decided
+    source: user
+    user_statement: "για το α συμφωνώ για το β θα έλεγα προσωπική με αυτό τον τρόπο ο εκάστωτε καθηγητής \"χτίζει\" την δική του τράπεζα και την διαχειρίζεται"
+    decision: "Each teacher has a personal question bank; adding a bank question to a quiz copies it, so later bank edits never change existing quizzes"
+    constraints: ["MUST copy a bank question with its options and pairs when it is added to a quiz", "MUST NOT show a teacher's bank to other teachers"]
+    affects: [UC-022, UC-023, UC-030]
+    since: 0.1.0
+  - id: DATA-009
+    area: data
+    title: Live answer storage
+    status: decided
+    source: default
+    confirmed: true
+    decision: "LiveAnswer.response is JSONB: a snapshot used only for the answer distribution and XP (exception to DATA-001); self-paced answers stay structured"
+    since: 0.1.0

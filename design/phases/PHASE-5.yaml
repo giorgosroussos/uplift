@@ -1,0 +1,42 @@
+id: PHASE-5
+goal: "Live quiz end to end: lobby or scheduled start, common time window, live monitoring, reconnection, final ranking"
+depends_on: [PHASE-4]
+use_cases: [UC-024, UC-025]
+entities: [ENT-Quiz, ENT-LiveSession, ENT-LiveParticipant, ENT-LiveAnswer]
+components: [CMP-Live, CMP-Assessment]
+decisions: [SCOPE-010, SCOPE-014, SCOPE-019, SCOPE-021, SCOPE-022, SEC-005, SEC-008, SEC-010, ARCH-006, DATA-009, OPS-002]
+environment: development
+acceptance_criteria:
+  - "A browser test with 50 simulated students shows each answer in the teacher's progress view within 1 second"
+out_of_scope:
+  - "XP awarding (PHASE-6 listens to LiveSessionFinished)"
+  - "Per-question pacing, reveal, live leaderboard during the quiz, projector mode (SCOPE-021)"
+tasks:
+  - id: P5-T1
+    title: Live mode in the wizard
+    description: "Quiz mode live with start mode (manual or scheduled) and duration; refuse free-text questions in live quizzes"
+    touches: {writes: [CMP-Assessment]}
+  - id: P5-T2
+    title: Live session engine
+    description: "LiveSession state machine (lobby, cancelled, running, finished), scheduled start job, common end time, finish job, early finish when all submitted, scoring with partial credit, final ranks; LiveSessionFinished event"
+    depends_on: [P5-T1]
+    touches: {writes: [CMP-Live], reads: [CMP-Assessment], migrations: true}
+  - id: P5-T3
+    title: Real-time channels and reconnection
+    description: "Reverb presence and private channels authorised by policies, broadcast events, state snapshot endpoint, 2-second polling fallback"
+    depends_on: [P5-T2]
+    touches: {writes: [CMP-Live]}
+  - id: P5-T4
+    title: Teacher monitor UI
+    depends_on: [P5-T3]
+    use_cases: [UC-024]
+    touches: {writes: [CMP-Live]}
+  - id: P5-T5
+    title: Student player UI (mobile-first)
+    depends_on: [P5-T3]
+    use_cases: [UC-025]
+    touches: {writes: [CMP-Live]}
+  - id: P5-T6
+    title: Live quiz load browser test
+    depends_on: [P5-T4, P5-T5]
+    touches: {writes: [CMP-Live]}

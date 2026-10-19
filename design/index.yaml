@@ -1,0 +1,35 @@
+schema_version: 1
+design_version: 1.0.0
+baseline: {version: 1.0.0, date: '2026-10-19'}
+
+project:
+  name: "Uplift"
+  summary: "Multi-tenant SaaS educational platform where organisations (universities, schools, tutoring centres, companies) run course spaces with interactive activities: quizzes, polls, assignment-topic selection and proposal, and presentation/exam slot booking. Its flagship is a real-time live quiz with gamification, backed by analytics for teachers and organisations."
+  problem: "Interactive educational processes (quizzes, polls, topic assignment, slot booking) are run ad hoc alongside teaching; the platform supports and complements traditional teaching, it does not replace it."
+  category: sensitive-data   # minors among users; GDPR hardening deferred (SEC-003)
+  goals:
+    - "In a live quiz, an answer is recorded and visible to the host within 1 second with 50 players"
+    - "A teacher creates and publishes an activity in at most 5 minutes"
+    - "Data of one organisation is never visible to another organisation (covered by automated tests)"
+    - "GDPR-grade protection of minors' data (deferred hardening, SEC-003)"
+  non_goals:
+    - "Subscriptions, billing or payments for organisations"
+    - "Native mobile apps (responsive web only)"
+    - "Hosting of learning material (files, video, lectures); a full LMS"
+    - "Chat or messaging between users"
+    - "Integration with external LMS (Moodle, LTI)"
+    - "Proctoring or anti-cheating for quizzes"
+    - "UI languages other than Greek and English (SCOPE-020)"
+  scale: {users: "~10 organisations at start", concurrent: "1-2 simultaneous live quizzes with ~50 students each", data_volume: "small"}
+  constraints:
+    - "Personal project; designed and developed by one person"
+    - "No deadline"
+    - "Budget must stay low, ideally free"
+  user_statement: "Ουσιαστικά το σύστημα που αναλύω και θέλω να σχεδιάσουμε είναι μία δικία μου πρώτυπη εκπαιδευτική πλατφόρμα που αφορά οργανισμούς μέσω της οποίας διεξάγονται εκπαιδευτικές διαδικασίες, δεν αντικαθιστά την παροδοσιακή εκπαιδευτική διαδικασία αλλά την συμπληρώνει. Το προϊόν φτίαχνεται ώς ένα προσωπικό έργο (είχε αναπτυχθεί παρόμοιο - πιο απλό - σύστημα στο πλαίσιο της διπλωματικής μου εργασίας και θέλω να το πάω ένα βήμα παρακάτω."
+
+# Defaults below are confirmed together in the area-1 batch confirmation.
+language: {human_docs: en, agent_files: en}
+environments: [development]
+parallelism: {max_parallel: 3, timestamped_migrations: true}
+budgets: {pack_tokens: 8000, brief_tokens: 4000}
+settings_confirmed: true

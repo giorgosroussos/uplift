@@ -1,0 +1,580 @@
+# Logical data model. Proposed by the assistant from area-2 nouns and
+# confirmed by the engineer.
+# Every tenant-owned entity carries organization_id (ARCH-002, DATA-007).
+entities:
+  # ---------- Tenancy and accounts ----------
+  - id: ENT-Organization
+    description: "A tenant: school, university, tutoring centre or company"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: name, type: string, required: true}
+      - {name: subdomain, type: string, required: true, unique: true}
+      - {name: status, type: enum, values: [active, suspended], required: true}
+      - {name: logo_path, type: string}
+      - {name: accent_color, type: string}
+      - {name: student_term_el, type: string, required: true}
+      - {name: student_term_en, type: string, required: true}
+      - {name: teacher_term_el, type: string, required: true}
+      - {name: teacher_term_en, type: string, required: true}
+      - {name: grading_scale, type: enum, values: [scale_0_10, scale_0_100, points_pass_mark], required: true}
+      - {name: leaderboard_enabled, type: boolean, required: true}
+      - {name: default_locale, type: enum, values: [el, en], required: true}
+    relations:
+      - {to: ENT-User, type: one-to-many, on_delete: restrict, label: has}
+      - {to: ENT-CourseSpace, type: one-to-many, on_delete: restrict, label: has}
+    states: {initial: active, transitions: ["active -> suspended", "suspended -> active"]}
+    expected_volume: "~10 at start"
+    used_by: [UC-001, UC-033, UC-036]
+
+  - id: ENT-User
+    description: "A person in exactly one organisation with exactly one role (SEC-004)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: role, type: enum, values: [student, teacher, org_admin], required: true}
+      - {name: name, type: string, required: true, sensitivity: personal}
+      - {name: nickname, type: string, required: true, sensitivity: personal}
+      - {name: avatar, type: string}
+      - {name: email, type: email, required: true, unique: true, sensitivity: personal}
+      - {name: password, type: string, sensitivity: sensitive}
+      - {name: date_of_birth, type: date, sensitivity: personal}
+      - {name: is_minor, type: boolean, sensitivity: personal}
+      - {name: email_verified_at, type: timestamp}
+      - {name: is_active, type: boolean, required: true}
+      - {name: locale, type: enum, values: [el, en]}
+    relations:
+      - {to: ENT-Enrolment, type: one-to-many, on_delete: cascade, label: enrolled via}
+      - {to: ENT-XpEvent, type: one-to-many, on_delete: cascade, label: earns}
+    retention: "While the account exists; erasure and anonymisation periods are set by SEC-003"
+    expected_volume: "~100-2,000 per organisation"
+    used_by: [UC-003, UC-004, UC-006, UC-032]
+
+  - id: ENT-Invitation
+    description: "Invitation of an email address to join an organisation with a role"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: email, type: email, required: true, sensitivity: personal}
+      - {name: role, type: enum, values: [student, teacher, org_admin], required: true}
+      - {name: token_hash, type: string, required: true, sensitivity: sensitive}
+      - {name: invited_by, type: uuid, ref: ENT-User, required: true}
+      - {name: expires_at, type: timestamp, required: true}
+      - {name: status, type: enum, values: [pending, accepted, revoked, expired], required: true}
+    states: {initial: pending, transitions: ["pending -> accepted", "pending -> revoked", "pending -> expired"]}
+    retention: "Deleted 30 days after it stops being pending"
+    used_by: [UC-005, UC-032]
+
+  # ---------- Course spaces ----------
+  - id: ENT-CourseSpace
+    description: "A course space owned by exactly one teacher (SCOPE-007)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: teacher_id, type: uuid, ref: ENT-User, required: true}
+      - {name: title, type: string, required: true}
+      - {name: description, type: text}
+      - {name: enrolment_policy, type: enum, values: [open, key], required: true}
+      - {name: enrolment_key, type: string}
+      - {name: status, type: enum, values: [active, archived], required: true}
+    relations:
+      - {to: ENT-Enrolment, type: one-to-many, on_delete: cascade, label: has}
+      - {to: ENT-Activity, type: one-to-many, on_delete: restrict, label: contains}
+      - {to: ENT-Announcement, type: one-to-many, on_delete: cascade, label: has}
+    states: {initial: active, transitions: ["active -> archived", "archived -> active"]}
+    expected_volume: "~10-200 per organisation"
+    used_by: [UC-011, UC-021]
+
+  - id: ENT-Enrolment
+    description: "A student's enrolment in a course space (unique per pair)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: course_space_id, type: uuid, ref: ENT-CourseSpace, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User, required: true}
+      - {name: enrolled_at, type: timestamp, required: true}
+    retention: "Kept with the course space; follows the student's erasure (SEC-003)"
+    used_by: [UC-011, UC-021]
+
+  - id: ENT-Announcement
+    description: "Announcement posted in a course space"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: course_space_id, type: uuid, ref: ENT-CourseSpace, required: true}
+      - {name: author_id, type: uuid, ref: ENT-User, required: true}
+      - {name: title, type: string, required: true}
+      - {name: body, type: text, required: true}
+      - {name: published_at, type: timestamp}
+    used_by: [UC-008]
+
+  - id: ENT-Group
+    description: "A student group in a course space, used for group activities"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: course_space_id, type: uuid, ref: ENT-CourseSpace, required: true}
+      - {name: name, type: string, required: true}
+      - {name: created_by, type: uuid, ref: ENT-User, required: true}
+    relations:
+      - {to: ENT-GroupMembership, type: one-to-many, on_delete: cascade, label: has}
+    used_by: [UC-019]
+
+  - id: ENT-GroupMembership
+    description: "Membership or pending invitation of a student in a group"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: group_id, type: uuid, ref: ENT-Group, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User, required: true}
+      - {name: status, type: enum, values: [invited, member, declined, left], required: true}
+    states: {initial: invited, transitions: ["invited -> member", "invited -> declined", "member -> left"]}
+    retention: "Kept with the group; follows the student's erasure (SEC-003)"
+    used_by: [UC-019]
+
+  # ---------- Activities (Class Table Inheritance, DATA-001) ----------
+  - id: ENT-Activity
+    description: "Base table of the five activity types; one subtype row per activity"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: course_space_id, type: uuid, ref: ENT-CourseSpace, required: true}
+      - {name: type, type: enum, values: [quiz, poll, topic_selection, topic_proposal, slot_booking], required: true}
+      - {name: title, type: string, required: true}
+      - {name: description, type: text}
+      - {name: deadline_at, type: timestamp}
+      - {name: is_group, type: boolean, required: true}
+      - {name: group_size, type: integer}
+      - {name: status, type: enum, values: [draft, published, closed], required: true}
+      - {name: published_at, type: timestamp}
+    relations:
+      - {to: ENT-Quiz, type: one-to-one, on_delete: cascade, label: is a}
+      - {to: ENT-Poll, type: one-to-one, on_delete: cascade, label: is a}
+      - {to: ENT-TopicActivity, type: one-to-one, on_delete: cascade, label: is a}
+      - {to: ENT-SlotActivity, type: one-to-one, on_delete: cascade, label: is a}
+    states: {initial: draft, transitions: ["draft -> published", "published -> closed"]}
+    expected_volume: "~20-50 per course space"
+    used_by: [UC-022, UC-012, UC-013, UC-014, UC-015, UC-016]
+
+  - id: ENT-Quiz
+    description: "Quiz subtype of Activity"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: activity_id, type: uuid, ref: ENT-Activity, required: true}
+      - {name: mode, type: enum, values: [self_paced, live], required: true}
+      - {name: time_limit, type: duration}
+      - {name: live_start_mode, type: enum, values: [manual, scheduled]}
+      - {name: live_scheduled_start_at, type: timestamp}
+      - {name: max_attempts, type: integer, required: true}
+      - {name: negative_marking, type: boolean, required: true}
+      - {name: negative_mark_fraction, type: percentage}
+      - {name: pass_mark_percentage, type: percentage}
+      - {name: score_visibility, type: enum, values: [immediate, after_deadline, hidden], required: true}
+      - {name: answers_visibility, type: enum, values: [immediate, after_deadline, hidden], required: true}
+    relations:
+      - {to: ENT-QuizQuestion, type: one-to-many, on_delete: cascade, label: contains}
+      - {to: ENT-QuizAttempt, type: one-to-many, on_delete: restrict, label: attempted in}
+      - {to: ENT-LiveSession, type: one-to-one, on_delete: restrict, label: run live in}
+    used_by: [UC-012, UC-022, UC-024]
+
+  - id: ENT-Poll
+    description: "Poll subtype of Activity (anonymous, SCOPE-013)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: activity_id, type: uuid, ref: ENT-Activity, required: true}
+      - {name: max_choices, type: integer, required: true}
+      - {name: results_visibility, type: enum, values: [after_vote, after_close], required: true}
+    relations:
+      - {to: ENT-PollOption, type: one-to-many, on_delete: cascade, label: offers}
+      - {to: ENT-PollParticipation, type: one-to-many, on_delete: cascade, label: voted by}
+    used_by: [UC-013]
+
+  - id: ENT-PollOption
+    description: "An option of a poll with its vote count source"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: poll_id, type: uuid, ref: ENT-Poll, required: true}
+      - {name: label, type: string, required: true}
+      - {name: position, type: integer, required: true}
+    relations:
+      - {to: ENT-PollVote, type: one-to-many, on_delete: cascade, label: receives}
+    used_by: [UC-013]
+
+  - id: ENT-PollParticipation
+    description: "Records THAT a student voted, never what (DATA-006)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: poll_id, type: uuid, ref: ENT-Poll, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User, required: true}
+    retention: "Kept with the poll; follows the student's erasure (SEC-003)"
+    used_by: [UC-013]
+
+  - id: ENT-PollVote
+    description: "One chosen option; carries no user reference (DATA-006)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: poll_option_id, type: uuid, ref: ENT-PollOption, required: true}
+    used_by: [UC-013]
+
+  - id: ENT-TopicActivity
+    description: "Subtype of Activity for topic selection and topic proposal"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: activity_id, type: uuid, ref: ENT-Activity, required: true}
+    relations:
+      - {to: ENT-Topic, type: one-to-many, on_delete: cascade, label: offers}
+      - {to: ENT-TopicProposal, type: one-to-many, on_delete: cascade, label: receives}
+    used_by: [UC-014, UC-015]
+
+  - id: ENT-Topic
+    description: "A topic offered for selection, with capacity (SCOPE-011)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: topic_activity_id, type: uuid, ref: ENT-TopicActivity, required: true}
+      - {name: title, type: string, required: true}
+      - {name: description, type: text}
+      - {name: capacity, type: integer, required: true}
+    relations:
+      - {to: ENT-TopicChoice, type: one-to-many, on_delete: cascade, label: chosen in}
+    used_by: [UC-014]
+
+  - id: ENT-TopicChoice
+    description: "A student's or group's current topic; one per activity"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: topic_id, type: uuid, ref: ENT-Topic, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User}
+      - {name: group_id, type: uuid, ref: ENT-Group}
+    retention: "Kept with the activity; follows the student's erasure (SEC-003)"
+    used_by: [UC-014]
+
+  - id: ENT-TopicProposal
+    description: "A topic proposed by a student or group"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: topic_activity_id, type: uuid, ref: ENT-TopicActivity, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User}
+      - {name: group_id, type: uuid, ref: ENT-Group}
+      - {name: title, type: string, required: true}
+      - {name: description, type: text, sensitivity: personal}
+      - {name: status, type: enum, values: [pending, approved, rejected], required: true}
+      - {name: teacher_comment, type: text}
+    states: {initial: pending, transitions: ["pending -> approved", "pending -> rejected"]}
+    retention: "Kept with the activity; follows the student's erasure (SEC-003)"
+    used_by: [UC-015, UC-027]
+
+  - id: ENT-SlotActivity
+    description: "Slot booking subtype of Activity"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: activity_id, type: uuid, ref: ENT-Activity, required: true}
+      - {name: slot_duration, type: duration}
+    relations:
+      - {to: ENT-Slot, type: one-to-many, on_delete: cascade, label: offers}
+    used_by: [UC-016]
+
+  - id: ENT-Slot
+    description: "A bookable time slot with capacity"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: slot_activity_id, type: uuid, ref: ENT-SlotActivity, required: true}
+      - {name: starts_at, type: timestamp, required: true}
+      - {name: ends_at, type: timestamp, required: true}
+      - {name: location, type: string}
+      - {name: capacity, type: integer, required: true}
+    relations:
+      - {to: ENT-Booking, type: one-to-many, on_delete: cascade, label: booked in}
+    used_by: [UC-016]
+
+  - id: ENT-Booking
+    description: "A student's or group's booking; one per activity"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: slot_id, type: uuid, ref: ENT-Slot, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User}
+      - {name: group_id, type: uuid, ref: ENT-Group}
+    retention: "Kept with the activity; follows the student's erasure (SEC-003)"
+    used_by: [UC-016]
+
+  # ---------- Questions (Class Table Inheritance) ----------
+  - id: ENT-Question
+    description: "A question of one of five types; the bank is personal to each teacher; adding a bank question to a quiz copies it (DATA-008)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: owner_id, type: uuid, ref: ENT-User, required: true}
+      - {name: type, type: enum, values: [single_choice, multiple_choice, true_false, matching, free_text], required: true}
+      - {name: prompt, type: text, required: true}
+      - {name: points, type: decimal, required: true}
+      - {name: in_bank, type: boolean, required: true}
+    relations:
+      - {to: ENT-ChoiceOption, type: one-to-many, on_delete: cascade, label: offers}
+      - {to: ENT-MatchingPair, type: one-to-many, on_delete: cascade, label: pairs}
+    used_by: [UC-022, UC-023, UC-030]
+
+  - id: ENT-ChoiceOption
+    description: "Option of a single-choice, multiple-choice or true/false question"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: question_id, type: uuid, ref: ENT-Question, required: true}
+      - {name: text, type: text, required: true}
+      - {name: is_correct, type: boolean, required: true}
+      - {name: position, type: integer, required: true}
+    used_by: [UC-022, UC-023]
+
+  - id: ENT-MatchingPair
+    description: "A correct left-right pair of a matching question"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: question_id, type: uuid, ref: ENT-Question, required: true}
+      - {name: left_text, type: text, required: true}
+      - {name: right_text, type: text, required: true}
+      - {name: position, type: integer, required: true}
+    used_by: [UC-022, UC-023]
+
+  - id: ENT-QuizQuestion
+    description: "Ordered placement of a (copied) question in a quiz"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: quiz_id, type: uuid, ref: ENT-Quiz, required: true}
+      - {name: question_id, type: uuid, ref: ENT-Question, required: true}
+      - {name: position, type: integer, required: true}
+    used_by: [UC-022, UC-024]
+
+  # ---------- Attempts and grading ----------
+  - id: ENT-QuizAttempt
+    description: "One attempt of a self-paced quiz by a student or a group"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: quiz_id, type: uuid, ref: ENT-Quiz, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User}
+      - {name: group_id, type: uuid, ref: ENT-Group}
+      - {name: submitted_by, type: uuid, ref: ENT-User}
+      - {name: started_at, type: timestamp, required: true}
+      - {name: ends_at, type: timestamp}
+      - {name: submitted_at, type: timestamp}
+      - {name: earned_points, type: decimal, sensitivity: personal}
+      - {name: max_points, type: decimal}
+      - {name: status, type: enum, values: [in_progress, submitted, graded], required: true}
+    relations:
+      - {to: ENT-Answer, type: one-to-many, on_delete: cascade, label: contains}
+    states: {initial: in_progress, transitions: ["in_progress -> submitted", "submitted -> graded"]}
+    retention: "Kept while the course space exists; follows the student's erasure (SEC-003)"
+    audit: true
+    expected_volume: "~50 attempts per quiz"
+    used_by: [UC-012, UC-017, UC-028, UC-029]
+
+  - id: ENT-Answer
+    description: "Answer to one quiz question; structured per type (selected options, matches, or text)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: attempt_id, type: uuid, ref: ENT-QuizAttempt, required: true}
+      - {name: quiz_question_id, type: uuid, ref: ENT-QuizQuestion, required: true}
+      - {name: text_response, type: text, sensitivity: personal}
+      - {name: points_awarded, type: decimal}
+      - {name: grading_status, type: enum, values: [auto_graded, pending, graded], required: true}
+      - {name: feedback, type: text, sensitivity: personal, type_confirmed: true}
+      - {name: graded_by, type: uuid, ref: ENT-User}
+      - {name: graded_at, type: timestamp}
+    relations:
+      - {to: ENT-AnswerSelection, type: one-to-many, on_delete: cascade, label: selects}
+      - {to: ENT-AnswerMatch, type: one-to-many, on_delete: cascade, label: matches}
+    states: {initial: pending, transitions: ["pending -> graded"]}
+    retention: "As ENT-QuizAttempt"
+    audit: true
+    used_by: [UC-012, UC-026]
+
+  - id: ENT-AnswerSelection
+    description: "A choice option selected in an answer"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: answer_id, type: uuid, ref: ENT-Answer, required: true}
+      - {name: choice_option_id, type: uuid, ref: ENT-ChoiceOption, required: true}
+    used_by: [UC-012]
+
+  - id: ENT-AnswerMatch
+    description: "A left item matched to a right item in an answer"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: answer_id, type: uuid, ref: ENT-Answer, required: true}
+      - {name: left_pair_id, type: uuid, ref: ENT-MatchingPair, required: true}
+      - {name: right_pair_id, type: uuid, ref: ENT-MatchingPair, required: true}
+    used_by: [UC-012]
+
+  # ---------- Live quiz ----------
+  - id: ENT-LiveSession
+    description: "The real-time run of a live quiz with one common end time (SCOPE-021); at most one non-cancelled session per quiz (SCOPE-022)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: quiz_id, type: uuid, ref: ENT-Quiz, required: true}
+      - {name: host_id, type: uuid, ref: ENT-User, required: true}
+      - {name: status, type: enum, values: [lobby, cancelled, running, finished], required: true}
+      - {name: started_at, type: timestamp}
+      - {name: ends_at, type: timestamp}
+      - {name: finished_at, type: timestamp}
+    relations:
+      - {to: ENT-LiveParticipant, type: one-to-many, on_delete: cascade, label: joined by}
+    states: {initial: lobby, transitions: ["lobby -> running", "lobby -> cancelled", "running -> finished"]}
+    expected_volume: "1-2 concurrent, ~50 participants each"
+    used_by: [UC-024, UC-025]
+
+  - id: ENT-LiveParticipant
+    description: "A student in a live session"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: live_session_id, type: uuid, ref: ENT-LiveSession, required: true}
+      - {name: student_id, type: uuid, ref: ENT-User, required: true}
+      - {name: joined_at, type: timestamp, required: true}
+      - {name: submitted_at, type: timestamp}
+      - {name: score, type: decimal, sensitivity: personal}
+      - {name: final_rank, type: integer}
+    relations:
+      - {to: ENT-LiveAnswer, type: one-to-many, on_delete: cascade, label: gives}
+    retention: "Kept with the session; follows the student's erasure (SEC-003)"
+    used_by: [UC-024, UC-025]
+
+  - id: ENT-LiveAnswer
+    description: "Current answer of a participant to one question; may change until submission or the end time; scored when the session finishes"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: live_participant_id, type: uuid, ref: ENT-LiveParticipant, required: true}
+      - {name: quiz_question_id, type: uuid, ref: ENT-QuizQuestion, required: true}
+      - {name: response, type: json, sensitivity: personal}
+      - {name: is_correct, type: boolean}
+      - {name: points, type: decimal}
+      - {name: answered_at, type: timestamp, required: true}
+    retention: "As ENT-LiveParticipant"
+    expected_volume: "~50 x questions per session"
+    used_by: [UC-025]
+
+  # ---------- Gamification ----------
+  - id: ENT-XpEvent
+    description: "Ledger of XP awarded; level and totals are derived from it"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: user_id, type: uuid, ref: ENT-User, required: true}
+      - {name: source_type, type: enum, values: [quiz_attempt, live_session, poll, topic, booking, badge], required: true}
+      - {name: source_id, type: uuid, required: true}
+      - {name: xp, type: integer, required: true}
+      - {name: awarded_at, type: timestamp, required: true}
+    retention: "Follows the student's erasure (SEC-003)"
+    used_by: [UC-037, UC-018, UC-010]
+
+  - id: ENT-Badge
+    description: "Badge definition"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: code, type: string, required: true, unique: true}
+      - {name: name, type: string, required: true}
+      - {name: description, type: text}
+    used_by: [UC-037, UC-018]
+
+  - id: ENT-UserBadge
+    description: "A badge earned by a user"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: user_id, type: uuid, ref: ENT-User, required: true}
+      - {name: badge_id, type: uuid, ref: ENT-Badge, required: true}
+      - {name: earned_at, type: timestamp, required: true}
+    retention: "Follows the student's erasure (SEC-003)"
+    used_by: [UC-037, UC-018]
+
+  # ---------- Platform ----------
+  - id: ENT-PlatformAdmin
+    description: "Platform super-admin; separate from organisation users and outside tenancy (SEC-006)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: name, type: string, required: true, sensitivity: personal}
+      - {name: email, type: email, required: true, unique: true, sensitivity: personal}
+      - {name: password, type: string, required: true, sensitivity: sensitive}
+    retention: "While the admin account exists"
+    ownership_not_needed: "Only platform admins access this table, through a separate guard (SEC-006)"
+    used_by: [UC-035, UC-036]
+
+  # ---------- Audit ----------
+  - id: ENT-AuditEntry
+    description: "Append-only record of security-relevant actions (SEC-010)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization}
+      - {name: actor_type, type: enum, values: [user, platform_admin, system], required: true}
+      - {name: actor_id, type: uuid}
+      - {name: action, type: string, required: true}
+      - {name: subject_type, type: string, required: true}
+      - {name: subject_id, type: uuid, required: true}
+      - {name: changes, type: json}
+      - {name: occurred_at, type: timestamp, required: true}
+    retention: "2 years, then deleted"
+    ownership_not_needed: "Readable only by platform admins; references users by id only"
+    used_by: [UC-026, UC-032, UC-033, UC-036]
+
+  # ---------- Notifications ----------
+  - id: ENT-Notification
+    description: "In-app notification of a user (Laravel database notifications)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: user_id, type: uuid, ref: ENT-User, required: true}
+      - {name: kind, type: string, required: true}
+      - {name: data, type: json, required: true}
+      - {name: read_at, type: timestamp}
+    retention: "Deleted 180 days after creation"
+    ownership_not_needed: "Holds references only, not personal data"
+    used_by: [UC-007]

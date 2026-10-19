@@ -1,0 +1,30 @@
+id: PHASE-9
+goal: "Ready for real users: GDPR and minors hardening, production hosting and operations, remaining could use cases"
+depends_on: [PHASE-7, PHASE-8]
+use_cases: [UC-039, UC-038, UC-002]
+entities: [ENT-User]
+components: [CMP-Identity, CMP-Notifications, CMP-Tenancy]
+decisions: [SEC-003, OPS-001, OPS-002, OPS-003, SCOPE-004]
+environment: development
+acceptance_criteria:
+  - "SEC-003, OPS-003, OPS-001 and the email provider of EXT-002 are decided by amendment, and staging/production environments are added, before any task of this phase starts"
+out_of_scope:
+  - "SSO (EXT-001, after the first production release)"
+tasks:
+  - id: P9-T1
+    title: GDPR export and erasure, minors' consent
+    description: "Implements SEC-003 as decided by amendment"
+    use_cases: [UC-039]
+    touches: {writes: [CMP-Identity], migrations: true}
+  - id: P9-T2
+    title: Deadline reminders
+    use_cases: [UC-038]
+    touches: {writes: [CMP-Notifications], reads: [CMP-Activities]}
+  - id: P9-T3
+    title: Find my organisation
+    use_cases: [UC-002]
+    touches: {writes: [CMP-Tenancy]}
+  - id: P9-T4
+    title: Production image, deploy script and backups
+    description: "Production container image, deploy script that waits while a live session runs (OPS-002), backups per OPS-003"
+    touches: {writes: [], hotspots: [composer.json]}

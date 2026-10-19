@@ -1,0 +1,213 @@
+decisions:
+  - id: SCOPE-001
+    area: scope
+    title: Positioning relative to traditional teaching
+    status: decided
+    source: user
+    user_statement: "δεν αντικαθιστά την παροδοσιακή εκπαιδευτική διαδικασία αλλά την συμπληρώνει"
+    decision: "The platform complements traditional teaching; it is not a full LMS replacement"
+    since: 0.1.0
+  - id: SCOPE-002
+    area: scope
+    title: Budget
+    status: decided
+    source: user
+    user_statement: "το budget πρέπει να μείνει χαμηλό έως και δωρεάν"
+    decision: "Running and tooling costs stay low, preferably zero; free tiers and self-hosted open-source are preferred over paid services"
+    constraints: ["MUST NOT introduce a paid third-party service without a recorded decision"]
+    global: true
+    since: 0.1.0
+  - id: SCOPE-003
+    area: scope
+    title: Non-goals of the current version
+    status: decided
+    source: user
+    user_statement: "Για το 4 όλα που επισημαίνεις είναι μελλοντικά πλάνα και όχι της παρούσης αλλά αποτελούν ιδέες για μελλοντική δουλεία όταν το σύστημα πάρει μορφή και οι κύριες λειτουργίες του έιναι πλήρως λειτορυγικές και υλοποιημένες μπορεί να σχεδιαστούν τέτοιοι στόχοι."
+    decision: "Billing, native apps, learning-material hosting, chat, external LMS integration, proctoring and UI languages beyond Greek and English (SCOPE-020) are out of scope for this version; they are future ideas to design once the core works"
+    since: 0.1.0
+  - id: SCOPE-004
+    area: scope
+    title: Environments
+    status: decided
+    source: user
+    user_statement: "για τα περιβάλλοντα έχουμε μόνο dev το παρόν σύστημα"
+    decision: "Only a development environment exists for now; staging and production are added by amendment when needed"
+    since: 0.1.0
+  - id: SCOPE-005
+    area: scope
+    title: Goal of organisation onboarding time
+    status: decided
+    source: user
+    user_statement: "για το γ δεν με πειράζει να είναι και ανω το 10 λεπτών είναι διαδικαστική διαδικασία που γίνεται μία φορά και όχι κατ'επανάληψη"
+    decision: "No time target for organisation onboarding"
+    since: 0.1.0
+  - id: SCOPE-006
+    area: scope
+    title: Enrolment policy
+    status: decided
+    source: user
+    user_statement: "Εγγραφή φοιτητή σε χώρο μαθήματος θα μπορεί να γίνει είτε ελεύθερα είτε με κωδικό εγγραφής, ο καθηγητής προσδιορίζει έναν από τους δύο τρόπους ανά χώρο μαθήματος"
+    decision: "Each course space has an enrolment policy chosen by its teacher: open or enrolment key"
+    affects: [UC-011, UC-021]
+    since: 0.1.0
+  - id: SCOPE-007
+    area: scope
+    title: Course space ownership
+    status: decided
+    source: user
+    user_statement: "Συνδιδασκαλία 1-1 ένας χώρος ένας καθηγητής και ναι ο OrgAdmin μπορεί να βλέπει τους χώρους μαθημάτων"
+    decision: "A course space has exactly one teacher; org admins can view all course spaces of their organisation"
+    constraints: ["MUST allow only the owning teacher to edit a course space and its activities"]
+    affects: [UC-021]
+    since: 0.1.0
+  - id: SCOPE-008
+    area: scope
+    title: Self-paced quiz rules
+    status: decided
+    source: user
+    user_statement: "το α είναι όσες ορίσει ο καθηγητής, το β ναι υποβάλλεται αυτόματα ότι έχει απαντήθει, το γ θα πρέπει να υπάρχει και αρνητική βαθμολόγηση (επιλογή του καθηγητή), το δ όπως ορίσει ο καθηγητής με default να βλέπει την βαθμολογία του ο φοιτητής αμέσως μετα την υποβολή"
+    decision: "Attempts per quiz set by the teacher; on timeout the answered questions are auto-submitted; negative marking is optional per quiz; result visibility is set by the teacher, default: score visible immediately after submission"
+    affects: [UC-012, UC-022]
+    since: 0.1.0
+  - id: SCOPE-009
+    area: scope
+    title: Partial credit
+    status: decided
+    source: user
+    user_statement: "1β"
+    decision: "Multiple-choice and matching questions give proportional partial credit (e.g. 2 of 3 correct pairs earn 2/3 of the points)"
+    affects: [UC-012, UC-025]
+    since: 0.1.0
+  - id: SCOPE-010
+    area: scope
+    title: Live quiz scoring
+    status: decided
+    source: user
+    user_statement: "σταθεροί πόντοι ανα σωστή απάντηση (να το κρατήσουμε πιο απλό για τώρα)"
+    decision: "Live quiz awards fixed points per correct answer; no speed bonus for now"
+    affects: [UC-024, UC-025]
+    since: 0.1.0
+  - id: SCOPE-011
+    area: scope
+    title: Topic and slot rules
+    status: decided
+    source: user
+    user_statement: "α) όπως ορίσει ο καθηγητής, β) ναι μπορεί εντός προθεσμίας να αλλάξει/ακυρώσει, γ) ναι"
+    decision: "The teacher sets the capacity of each topic and slot; a student or group may change or cancel a topic choice or slot booking until the deadline; a student whose proposed topic is rejected may propose again"
+    constraints: ["MUST NOT allow more holders of a topic or slot than its capacity, also under concurrent requests"]
+    affects: [UC-014, UC-015, UC-016, UC-027]
+    since: 0.1.0
+  - id: SCOPE-012
+    area: scope
+    title: Group submissions
+    status: decided
+    source: user
+    user_statement: "ένας υποβάλει για όλους η υποβολή φαίνεται σε όλα τα μέλη της ομάδας | 2 ίδιο βαθμό"
+    decision: "In group activities one member submits on behalf of the group; the submission is visible to all members and every member receives the same grade"
+    affects: [UC-019, UC-012, UC-014, UC-015, UC-016]
+    since: 0.1.0
+  - id: SCOPE-013
+    area: scope
+    title: Poll rules
+    status: decided
+    source: user
+    user_statement: "ανωνυμή ψηφοφορία χωρίς αλλαγή της ψήφου του και βλέπει το αποτέλεσμα όπως έχει ορίσει ο καθηγητής (είτε μετά την ψήφο είτε μετά το κλείσιμο)"
+    decision: "Polls are anonymous; a vote cannot be changed; results are visible after voting or after closing, as set by the teacher"
+    constraints: ["MUST NOT expose to teachers or admins which student cast which vote"]
+    affects: [UC-013]
+    since: 0.1.0
+  - id: SCOPE-014
+    area: scope
+    title: Live quiz outcome
+    status: decided
+    source: user
+    user_statement: "1 μόνο XP"
+    decision: "A live quiz awards XP and leaderboard points only; it does not produce a grade in the student's results"
+    affects: [UC-024, UC-025, UC-017, UC-037]
+    since: 0.1.0
+  - id: SCOPE-015
+    area: scope
+    title: Late join to a live quiz
+    status: superseded
+    source: user
+    user_statement: "3 α"
+    decision: "A student joining after the start enters at the current question with 0 points for earlier questions"
+    affects: [UC-025]
+    since: 0.1.0
+  - id: SCOPE-016
+    area: scope
+    title: Quiz mode
+    status: decided
+    source: user
+    user_statement: "μια χαρά ας το κάνουμε ως επιλογή του καθηγητή ειναι πιο καθαρό και απλο"
+    decision: "The teacher chooses at creation whether a quiz is self-paced or live; a self-paced quiz has attempts, a live quiz has live sessions"
+    constraints: ["MUST NOT allow self-paced attempts on a live quiz", "MUST NOT allow live sessions on a self-paced quiz"]
+    affects: [UC-012, UC-022, UC-024, UC-025]
+    since: 0.1.0
+  - id: SCOPE-017
+    area: scope
+    title: Reusable groups
+    status: decided
+    source: user
+    user_statement: "οχι επαναχρησιμοποιούμενες είναι το σωστό"
+    decision: "Groups belong to a course space and are reused across its group activities; each activity sets its maximum group size"
+    affects: [UC-019]
+    since: 0.1.0
+  - id: SCOPE-018
+    area: scope
+    title: Gamification rules
+    status: deferred
+    source: inferred
+    confirmed: true
+    deferred_to: PHASE-6
+    trigger: "Core activities and live quiz are implemented"
+    requirements: ["List of badges and their conditions", "XP per activity type and outcome", "Level thresholds"]
+    prepare_now: ["MUST record XP only as XpEvent ledger rows, never as a stored total", "MUST award XP from domain event listeners, not inside activity actions"]
+    affects: [UC-037, UC-018]
+    since: 0.1.0
+  - id: SCOPE-019
+    area: scope
+    title: Live quiz content and runs
+    status: decided
+    source: user
+    user_statement: "1 α) συμφωνώ, β) αυτόματη βαθμολόγηση μόνο οταν είναι live, γ) δεν βαθμολογεί ο καθηγητής στα live quiz. 2)δεν ξανατρέχει το ίδιο quiz."
+    decision: "Live quizzes contain only auto-gradable questions (no free text); teachers never grade live answers; a live quiz runs exactly once"
+    constraints: ["MUST reject free-text questions in a live quiz", "MUST NOT start a second live session for the same quiz"]
+    affects: [UC-022, UC-024, UC-025]
+    since: 0.1.0
+  - id: SCOPE-020
+    area: scope
+    title: UI languages
+    status: decided
+    source: user
+    user_statement: "3 ελληνικά και αγγλικά"
+    decision: "The UI is available in Greek and English; all UI strings live in translation files from the first phase. User-created content (questions, announcements) is not translated"
+    constraints: ["MUST NOT hardcode UI strings; every UI string comes from a translation key with Greek and English values"]
+    global: true
+    since: 0.1.0
+  - id: SCOPE-021
+    area: scope
+    title: Live quiz model
+    status: decided
+    source: user
+    user_statement: "1 γ, 2 ναι υπάρχει κοινός χρόνος για όλους αν κάποιος μπεί καθυστερημένα εχει όσο διαθεσιμο χρόνο για την ληξη από την στιγμή που εισέρχεται και ναι μπορούν να υποβάλλουν και νωρίτερα. 3 α, γ στο τέλος, ε. 4 α παραμένει, β παραμένει, γ παραμένει, δ παραμένει. Ναι ο φοιτητής έχει το δικαίωμα στον διαθέσιμο χρόνο να πλοηγείται στις ερωτήσεις και να διορθώνει τις απαντήσεις του αν θέλει."
+    decision: "A live quiz is taken by all enrolled students at the same time: it starts manually from a lobby or automatically at a scheduled time (teacher's choice); one common end time = start + duration; late joiners get only the remaining time; students navigate freely, change answers until they submit or time ends, and may submit early. During the quiz the teacher sees live progress; students see correctness only at the end; at the end a final ranking with podium is shown. There is no per-question pacing by the teacher, no live leaderboard during the quiz and no projector mode"
+    rationale: "The engineer's intended model; the design brief's host-driven (Kahoot-style) flow was a misreading"
+    alternatives_rejected: ["Host-driven question-by-question flow with per-question timers, reveal and projector view: not what the engineer intends"]
+    constraints:
+      - "MUST fix one common end time for a live session at its start and enforce it on the server"
+      - "MUST NOT reveal correctness of any live answer before the session finishes"
+      - "MUST finish and score a live session at its end time without teacher action"
+    supersedes: SCOPE-015
+    affects: [UC-024, UC-025, UC-022, ENT-LiveSession, ENT-LiveAnswer, ENT-Quiz]
+    since: 0.1.0
+  - id: SCOPE-022
+    area: scope
+    title: Live quiz finish, lobby and scoring details
+    status: decided
+    source: user
+    user_statement: "1 ναι, 2 οκ, 3 αναλογική βαθμολογία, συμφωνώ με όλες τις προεπιλογές"
+    decision: "A live session finishes early when every joined student has submitted; a lobby closed without starting does not count as a run and the quiz can be started later; multiple-choice and matching questions in live quizzes get proportional partial credit (SCOPE-009), no negative marking"
+    constraints: ["MUST allow at most one non-cancelled live session per quiz", "MUST NOT apply negative marking in live quizzes"]
+    affects: [UC-024, UC-025, ENT-LiveSession]
+    since: 0.1.0

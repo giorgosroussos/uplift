@@ -1,0 +1,24 @@
+id: PHASE-8
+goal: "Platform administration: separate admin guard with required MFA, organisation management, platform dashboard"
+depends_on: [PHASE-2]
+use_cases: [UC-036, UC-035]
+entities: [ENT-PlatformAdmin, ENT-Organization]
+components: [CMP-Platform, CMP-Audit]
+decisions: [SEC-006, SEC-011, SEC-010]
+environment: development
+out_of_scope:
+  - "Impersonation of organisation users"
+  - "Billing (non-goal)"
+tasks:
+  - id: P8-T1
+    title: Platform admin guard and MFA
+    touches: {writes: [CMP-Platform], migrations: true}
+  - id: P8-T2
+    title: Manage organisations and platform dashboard
+    depends_on: [P8-T1]
+    use_cases: [UC-036, UC-035]
+    touches: {writes: [CMP-Platform], reads: [CMP-Tenancy, CMP-Identity]}
+  - id: P8-T3
+    title: Audit of platform admin actions
+    depends_on: [P8-T2]
+    touches: {writes: [CMP-Audit], reads: [CMP-Platform]}

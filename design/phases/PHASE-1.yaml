@@ -1,0 +1,47 @@
+id: PHASE-1
+goal: "Walking skeleton: project, CI and all checks, modules, tenancy, organisation registration and login"
+depends_on: []
+use_cases: [UC-001, UC-003, UC-004]
+entities: [ENT-Organization, ENT-User, ENT-AuditEntry]
+components: [CMP-Tenancy, CMP-Identity, CMP-Audit]
+decisions: [SEC-011, SEC-010, SEC-003, DATA-001, OPS-001, OPS-003, OPS-004]
+environment: development
+acceptance_criteria:
+  - "GitHub Actions runs every operations.ci stage on each pull request and push to main"
+  - "GET /up returns 200"
+  - "deptrac fails when a module depends on a module outside its may_depend_on"
+  - "A tenant-isolation test fails if any tenant-owned model lacks the organization_id global scope"
+  - "Every UI string resolves from lang/el and lang/en"
+out_of_scope:
+  - "Invitations, user management, profile (PHASE-2)"
+  - "Course spaces and activities (PHASE-2, PHASE-3)"
+  - "Platform admin and MFA for admins (PHASE-2 and PHASE-8)"
+  - "SSO (EXT-001, future)"
+  - "Production image and deploy (PHASE-9)"
+tasks:
+  - id: P1-T1
+    title: Project skeleton, tooling and CI
+    description: "Laravel 13 with the official Vue starter kit (Inertia, Vue, TypeScript, Fortify); Laravel Sail with PostgreSQL 18, Redis 8, Mailpit and Reverb; install and lock every approved dependency; skeletons and service providers for all 11 modules; deptrac rules from may_depend_on; Pint, Larastan level 6, ESLint, Prettier, Vitest, Pest (+browser); laravel-vue-i18n with lang/el and lang/en; GitHub Actions application pipeline; /up"
+    touches: {writes: [], hotspots: [composer.json, package.json, bootstrap/providers.php, routes/channels.php]}
+  - id: P1-T2
+    title: Tenancy core
+    description: "Organization model; subdomain resolution middleware and tenant context; BelongsToOrganization trait with global scope; reserved subdomains; reusable tenant-isolation test helpers"
+    depends_on: [P1-T1]
+    touches: {writes: [CMP-Tenancy], migrations: true}
+  - id: P1-T3
+    title: Users and login per subdomain
+    description: "User model (role enum, nickname auto-generated, locale, date_of_birth/is_minor, nullable password); Fortify login on the organisation subdomain, throttling, argon2id, host-only session cookie; password reset and email verification via queued mail to Mailpit"
+    depends_on: [P1-T2]
+    use_cases: [UC-003, UC-004]
+    touches: {writes: [CMP-Identity], reads: [CMP-Tenancy], migrations: true}
+  - id: P1-T4
+    title: Organisation registration
+    description: "Public sign-up on the apex domain with live subdomain check (RFC 9457 errors) creating the organisation and its first org admin"
+    depends_on: [P1-T3]
+    use_cases: [UC-001]
+    touches: {writes: [CMP-Identity], reads: [CMP-Tenancy]}
+  - id: P1-T5
+    title: Audit log
+    description: "AuditEntry model and event listener infrastructure; first entries for organisation registration"
+    depends_on: [P1-T1]
+    touches: {writes: [CMP-Audit], migrations: true}

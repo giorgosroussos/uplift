@@ -1,0 +1,50 @@
+id: PHASE-3
+goal: "Activities framework and self-paced quizzes end to end: wizard, question bank, taking, grading, results"
+depends_on: [PHASE-2]
+use_cases: [UC-022, UC-023, UC-012, UC-026, UC-017, UC-028, UC-030]
+entities: [ENT-Activity, ENT-Quiz, ENT-Question, ENT-ChoiceOption, ENT-MatchingPair, ENT-QuizQuestion, ENT-QuizAttempt, ENT-Answer, ENT-AnswerSelection, ENT-AnswerMatch]
+components: [CMP-Activities, CMP-Assessment, CMP-Notifications]
+decisions: [ARCH-004, DATA-003, DATA-004, DATA-005, DATA-008, SCOPE-008, SCOPE-009, SCOPE-016]
+environment: development
+out_of_scope:
+  - "Polls, topics, slots, groups and group attempts (PHASE-4)"
+  - "Live quizzes; the wizard offers only self-paced mode (PHASE-5)"
+  - "XP, badges, leaderboards (PHASE-6)"
+  - "Analytics and dashboards (PHASE-7)"
+tasks:
+  - id: P3-T1
+    title: Activity base, ActivityType contract and wizard shell
+    description: "Activity model and lifecycle (draft, published, closed); ActivityType contract that modules register; multi-step wizard with autosave; submissions overview fed by each type"
+    touches: {writes: [CMP-Activities], reads: [CMP-Courses], migrations: true}
+  - id: P3-T2
+    title: Personal question bank
+    description: "Question model with the five types, builder UI including matching pairs and drag-and-drop ordering"
+    use_cases: [UC-023]
+    touches: {writes: [CMP-Assessment], migrations: true}
+  - id: P3-T3
+    title: Quiz activity type
+    description: "Quiz subtype registered through ActivityType; quiz settings in the wizard; adding questions by copying from the bank; ordering"
+    depends_on: [P3-T1, P3-T2]
+    use_cases: [UC-022]
+    touches: {writes: [CMP-Assessment], reads: [CMP-Activities], migrations: true}
+  - id: P3-T4
+    title: Take a self-paced quiz
+    description: "Attempts, server-side time limit, autosaved answers, auto-submit, auto-grading with partial credit and optional negative marking"
+    depends_on: [P3-T3]
+    use_cases: [UC-012]
+    touches: {writes: [CMP-Assessment], migrations: true}
+  - id: P3-T5
+    title: Grading, results and quiz submissions
+    description: "Free-text grading with feedback, provisional vs final scores, grading-scale conversion and rounding, My results, quiz submissions in the overview; GradeFinalised event"
+    depends_on: [P3-T4]
+    use_cases: [UC-026, UC-017, UC-028]
+    touches: {writes: [CMP-Assessment], reads: [CMP-Activities, CMP-Tenancy]}
+  - id: P3-T6
+    title: CSV question import
+    depends_on: [P3-T2]
+    use_cases: [UC-030]
+    touches: {writes: [CMP-Assessment]}
+  - id: P3-T7
+    title: Notifications for new activities and grades
+    depends_on: [P3-T1, P3-T5]
+    touches: {writes: [CMP-Notifications], reads: [CMP-Activities, CMP-Assessment]}

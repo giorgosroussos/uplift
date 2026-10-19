@@ -1,0 +1,27 @@
+id: PHASE-6
+goal: "Gamification: XP ledger, levels, badges, per-course-space leaderboards"
+depends_on: [PHASE-5]
+use_cases: [UC-037, UC-018]
+entities: [ENT-XpEvent, ENT-Badge, ENT-UserBadge]
+components: [CMP-Gamification]
+decisions: [SCOPE-018, SEC-008, SCOPE-014]
+environment: development
+acceptance_criteria:
+  - "SCOPE-018 is decided by amendment (badges, XP rules, level thresholds) before any task of this phase starts"
+out_of_scope:
+  - "Dashboards showing XP (PHASE-7)"
+tasks:
+  - id: P6-T1
+    title: XP ledger and levels
+    description: "XpEvent ledger written by listeners of activity, attempt and live-session events; level computation per SCOPE-018"
+    touches: {writes: [CMP-Gamification], reads: [CMP-Activities, CMP-Assessment, CMP-Live], migrations: true}
+  - id: P6-T2
+    title: Badges
+    depends_on: [P6-T1]
+    use_cases: [UC-037]
+    touches: {writes: [CMP-Gamification], migrations: true}
+  - id: P6-T3
+    title: Gamification profile and leaderboards
+    depends_on: [P6-T2]
+    use_cases: [UC-018]
+    touches: {writes: [CMP-Gamification], reads: [CMP-Courses]}
