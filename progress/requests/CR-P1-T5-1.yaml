@@ -1,0 +1,58 @@
+id: CR-P1-T5-1
+raised_by: implementation-agent
+task: P1-T5
+status: accepted
+problem: >
+  P1-T5 asks for "first entries for organisation registration", but nothing
+  this task may use produces or describes that event. Organisation
+  registration is built by P1-T4 (writes CMP-Identity, depends on P1-T3),
+  while P1-T5 depends only on P1-T1, reads no component and runs in the same
+  wave as P1-T2. Audit is written only from domain events (CMP-Audit
+  responsibility, ARCH-003) and Identity/Tenancy may not depend on Audit, so
+  the event class must live in Identity (or Tenancy) and does not exist yet.
+  The design does not name the event, its payload, or the entry to write:
+  (a) event class and fields (e.g. organization id, admin user id);
+  (b) action string (e.g. "organization.registered");
+  (c) actor: the registering visitor is not a user at that moment - is it
+  actor_type user with actor_id = the new org admin, or actor_type system?
+  (d) subject (Organization, or also the created admin user = two entries?);
+  (e) which non-personal values go in `changes` (name, subdomain?).
+  Also, SEC-010 lists the audited actions (grade changes, role changes, user
+  deactivation, organisation settings changes, platform admin actions) and
+  organisation registration is not among them.
+  Secondary gaps on ENT-AuditEntry found while building the table:
+  (f) organization_id references ENT-Organization, but the organizations
+  table is created by P1-T2 (parallel, not a dependency), so this task could
+  not add the foreign key; (g) AuditEntry is not owner-scoped
+  ("readable only by platform admins"), so it is unclear whether it must use
+  the BelongsToOrganization global scope that the phase tenant-isolation test
+  will require of every model with organization_id.
+affects:
+  - design/phases/PHASE-1.yaml (P1-T4, P1-T5 descriptions, dependencies and touches)
+  - design/model/data.yaml (ENT-AuditEntry: organization_id foreign key, tenant scope)
+  - design/decisions/security.yaml (SEC-010 list of audited actions)
+proposal: >
+  Keep P1-T5 as the infrastructure now on branch P1-T5 (audit_entries table,
+  AuditEntry model, RecordAuditEntry action, AuditListener base class,
+  2-year prune) and mark it done. Add to P1-T4 that Identity dispatches
+  App\Modules\Identity\Events\OrganizationRegistered(organizationId,
+  adminUserId) after commit. Add a task P1-T6 "Audit organisation
+  registration" (depends on P1-T4 and P1-T5, writes CMP-Audit, reads
+  CMP-Identity) whose listener writes one entry: action
+  "organization.registered", actor_type user, actor_id = admin user id,
+  subject_type organization, subject_id = organization id, organization_id =
+  organization id, changes {subdomain}. In P1-T6 also add the foreign key
+  audit_entries.organization_id -> organizations.id (on delete restrict) and
+  record that AuditEntry is exempt from the organisation global scope
+  (platform-admin reads only), listed as an exception in the
+  tenant-isolation test.
+resolution: >
+  Accepted in design v1.2.0 with one change to the proposal: no new task.
+  P1-T5 is the audit infrastructure only (what is on branch P1-T5 covers it).
+  P1-T4 dispatches OrganizationRegistered(organizationId, adminUserId) after
+  commit. P2-T7 writes the organization.registered entry (actor_type user,
+  actor_id = new admin, subject organization, changes {subdomain}) and adds
+  the audit_entries.organization_id foreign key. SEC-010 now lists
+  organisation registration. ENT-AuditEntry: organization_id nullable and
+  exempt from the organisation global scope, listed as an exception in the
+  tenant-isolation test.

@@ -36,12 +36,12 @@ tasks:
     touches: {writes: [CMP-Identity], reads: [CMP-Tenancy], migrations: true}
   - id: P1-T4
     title: Organisation registration
-    description: "Public sign-up on the apex domain with live subdomain check (RFC 9457 errors) creating the organisation and its first org admin"
+    description: "Public sign-up on the apex domain with live subdomain check (RFC 9457 errors) creating the organisation and its first org admin; after commit, Identity dispatches App\\Modules\\Identity\\Events\\OrganizationRegistered(organizationId, adminUserId)"
     depends_on: [P1-T3]
     use_cases: [UC-001]
     touches: {writes: [CMP-Identity], reads: [CMP-Tenancy]}
   - id: P1-T5
     title: Audit log
-    description: "AuditEntry model and event listener infrastructure; first entries for organisation registration"
+    description: "AuditEntry model (append-only), RecordAuditEntry action, AuditListener base class for event-to-entry listeners, 2-year pruning. No concrete audit entries yet (they come with P2-T7 and P8-T3)"
     depends_on: [P1-T1]
     touches: {writes: [CMP-Audit], migrations: true}

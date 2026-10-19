@@ -109,7 +109,7 @@ decisions:
       - "MUST rate-limit login to 5 attempts per minute per email"
       - "MUST rate-limit enrolment key attempts to 10 per minute per user"
       - "MUST rate-limit organisation registration to 3 per hour per IP"
-      - "MUST write an audit entry for grade changes, role changes, user deactivation, organisation settings changes and platform admin actions"
+      - "MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions"
       - "MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory"
       - "MUST run composer audit and npm audit in CI"
     global: false

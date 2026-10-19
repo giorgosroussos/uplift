@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v1.1.0 · source c01395b7b2ab_
+_Generated document · design v1.2.0 · source fda7b69da42e_
 
 
 ## Phase map
@@ -162,7 +162,7 @@ Depends on: PHASE-1 · use cases: UC-005, UC-032, UC-006, UC-033, UC-021, UC-011
 | P2-T4 | Course spaces and enrolment | — | CMP-Courses | yes |
 | P2-T5 | Announcements | P2-T4 | CMP-Courses |  |
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications | yes |
-| P2-T7 | Audit entries for users and settings | P2-T1, P2-T3 | CMP-Audit |  |
+| P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3 | CMP-Audit | yes |
 
 Task waves:
 

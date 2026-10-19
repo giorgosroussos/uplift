@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-1 — Walking skeleton: project, CI and all checks, modules, tenancy, organisation registration and login
 
-_design v1.1.0 · c01395b7b2ab_
+_design v1.2.0 · fda7b69da42e_
 
 Depends on: none · environment: development · components: CMP-Tenancy, CMP-Identity, CMP-Audit
 
@@ -115,7 +115,7 @@ Owned by CMP-Identity · retention: While the account exists; erasure and anonym
 
 Relations: one-to-many → ENT-Enrolment (on delete cascade); one-to-many → ENT-XpEvent (on delete cascade)
 
-#### ENT-AuditEntry — Append-only record of security-relevant actions (SEC-010)
+#### ENT-AuditEntry — Append-only record of security-relevant actions (SEC-010). organization_id is null for platform-level actions. Exempt from the organisation global scope: only platform admins read it (SEC-006); the exemption is listed in the tenant-isolation test
 
 Owned by CMP-Audit · retention: 2 years, then deleted · audit: no
 
@@ -163,7 +163,7 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST rate-limit login to 5 attempts per minute per email  (SEC-010)
 - MUST rate-limit enrolment key attempts to 10 per minute per user  (SEC-010)
 - MUST rate-limit organisation registration to 3 per hour per IP  (SEC-010)
-- MUST write an audit entry for grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
+- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
 - MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory  (SEC-010)
 - MUST run composer audit and npm audit in CI  (SEC-010)
 - MUST run every operations.ci stage on each pull request and push to main  (OPS-004)
