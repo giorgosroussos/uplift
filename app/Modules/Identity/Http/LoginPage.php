@@ -40,6 +40,9 @@ final class LoginPage
         return Inertia::render('auth/Login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'status' => $request->session()->get('status'),
+            // After sign-up on the apex domain (UC-001): the verification
+            // link was sent. Host-only cookies rule out a session flash.
+            'verificationSent' => $request->query('verification') === 'sent',
             'organization' => $organization === null ? null : ['name' => $organization->name],
             'identityProviders' => $providers,
             'identityProvidersUnavailable' => $providersUnavailable,

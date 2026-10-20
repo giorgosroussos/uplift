@@ -9,6 +9,7 @@ use App\Modules\Identity\Http\LoginPage;
 use App\Modules\Identity\Http\Middleware\EnsureAccountIsActive;
 use App\Modules\Identity\Http\Responses\PasswordResetFailedResponse;
 use App\Modules\Identity\Http\Responses\PasswordResetLinkRequestedResponse;
+use App\Modules\Identity\Http\Responses\ProblemDetails;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Policies\UserPolicy;
 use App\Modules\Identity\Support\NoIdentityProviders;
@@ -16,12 +17,14 @@ use App\Modules\Identity\Support\OfflineUncompromisedVerifier;
 use App\Modules\Identity\Support\TenantLoginRateLimiter;
 use App\Modules\Identity\Support\TenantPasswordBrokerManager;
 use App\Support\Modules\ModuleServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
@@ -68,6 +71,22 @@ class IdentityServiceProvider extends ModuleServiceProvider
 
         $this->configureFortify();
         $this->configureMiddleware();
+        $this->configureRateLimiting();
+    }
+
+    private function configureRateLimiting(): void
+    {
+        // SEC-010: the live subdomain check of the sign-up page, 60 per
+        // minute per IP; the JSON endpoint answers in RFC 9457 form.
+        RateLimiter::for('subdomain-check', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by('subdomain-check:'.$request->ip())
+            ->response(fn (Request $request, array $headers) => ProblemDetails::response(
+                429,
+                'urn:uplift:problem:too-many-requests',
+                (string) __('registration.subdomain.too_many_title'),
+                (string) __('registration.subdomain.too_many'),
+                headers: $headers,
+            )));
     }
 
     private function configureFortify(): void
