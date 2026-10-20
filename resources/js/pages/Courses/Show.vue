@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import CourseAnnouncements from '@/components/courses/CourseAnnouncements.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { archive, edit, enrol, index, restore } from '@/routes/courses';
 import { destroy, store as addStudent } from '@/routes/courses/students';
 import type {
+    Announcement,
     CourseSpaceDetails,
     EnrolledStudent,
     StudentOption,
@@ -22,8 +24,14 @@ defineOptions({
 
 const props = defineProps<{
     space: CourseSpaceDetails;
-    can: { update: boolean; enrol: boolean; manageEnrolments: boolean };
+    can: {
+        update: boolean;
+        enrol: boolean;
+        manageEnrolments: boolean;
+        manageAnnouncements: boolean;
+    };
     enrolled: boolean;
+    announcements: Announcement[];
     enrolmentsCount: number | null;
     students: EnrolledStudent[];
     availableStudents: StudentOption[];
@@ -210,6 +218,13 @@ function formatDate(value: string): string {
         >
             {{ $t('courses.show.enrolments_count') }}: {{ enrolmentsCount }}
         </p>
+
+        <CourseAnnouncements
+            v-if="can.manageAnnouncements || enrolled"
+            :space-id="space.id"
+            :announcements="announcements"
+            :can-manage="can.manageAnnouncements"
+        />
 
         <section v-if="can.manageEnrolments" class="flex flex-col gap-4">
             <h2 class="text-lg font-medium">

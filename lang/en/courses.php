@@ -85,12 +85,29 @@ return [
         'no_available_students' => 'Every student of the organisation is already enrolled.',
     ],
 
+    'announcements' => [
+        'heading' => 'Announcements',
+        'empty' => 'There are no announcements yet.',
+        'new' => 'New announcement',
+        'title' => 'Title',
+        'body' => 'Text',
+        'post' => 'Publish',
+        'published_by' => 'By :author, :date',
+        'edit' => 'Edit',
+        'save' => 'Save',
+        'cancel' => 'Cancel',
+        'delete' => 'Delete',
+        'confirm_delete' => 'Delete this announcement?',
+    ],
+
     'attributes' => [
         'title' => 'title',
         'description' => 'description',
         'enrolment_policy' => 'enrolment',
         'enrolment_key' => 'enrolment key',
         'student' => 'student',
+        'announcement_title' => 'title',
+        'announcement_body' => 'text',
     ],
 
     'errors' => [
@@ -108,6 +125,9 @@ return [
         'enrolled' => 'You are enrolled.',
         'student_added' => 'Student added.',
         'student_removed' => 'Student removed.',
+        'announcement_posted' => 'Announcement published.',
+        'announcement_updated' => 'Announcement saved.',
+        'announcement_deleted' => 'Announcement deleted.',
     ],
 
 ];
