@@ -3,10 +3,12 @@
 namespace App\Modules\Identity;
 
 use App\Modules\Identity\Actions\AuthenticateUser;
+use App\Modules\Identity\Actions\ConfirmTwoFactorCode;
 use App\Modules\Identity\Actions\ResetUserPassword;
 use App\Modules\Identity\Contracts\IdentityProviderResolver;
 use App\Modules\Identity\Http\LoginPage;
 use App\Modules\Identity\Http\Middleware\EnsureAccountIsActive;
+use App\Modules\Identity\Http\Responses\FailedTwoFactorLoginResponse;
 use App\Modules\Identity\Http\Responses\PasswordResetFailedResponse;
 use App\Modules\Identity\Http\Responses\PasswordResetLinkRequestedResponse;
 use App\Modules\Identity\Http\Responses\ProblemDetails;
@@ -30,8 +32,10 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Contracts\FailedPasswordResetResponse;
+use Laravel\Fortify\Contracts\FailedTwoFactorLoginResponse as FailedTwoFactorLoginResponseContract;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\LoginRateLimiter;
@@ -57,6 +61,8 @@ class IdentityServiceProvider extends ModuleServiceProvider
         $this->app->bind(SuccessfulPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestedResponse::class);
         $this->app->bind(FailedPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestedResponse::class);
         $this->app->bind(FailedPasswordResetResponse::class, PasswordResetFailedResponse::class);
+        $this->app->bind(FailedTwoFactorLoginResponseContract::class, FailedTwoFactorLoginResponse::class);
+        $this->app->bind(ConfirmTwoFactorAuthentication::class, ConfirmTwoFactorCode::class);
 
         if (! $this->app->isProduction()) {
             $this->app->singleton(UncompromisedVerifier::class, OfflineUncompromisedVerifier::class);
@@ -85,6 +91,11 @@ class IdentityServiceProvider extends ModuleServiceProvider
 
     private function configureRateLimiting(): void
     {
+        // SEC-012: the two-factor challenge, 5 attempts per minute per login
+        // session (the session that passed the password step).
+        RateLimiter::for('two-factor', fn (Request $request): Limit => Limit::perMinute(5)
+            ->by('two-factor:'.$request->session()->getId()));
+
         // SEC-010: the live subdomain check of the sign-up page, 60 per
         // minute per IP; the JSON endpoint answers in RFC 9457 form.
         RateLimiter::for('subdomain-check', fn (Request $request): Limit => Limit::perMinute(60)
@@ -100,10 +111,24 @@ class IdentityServiceProvider extends ModuleServiceProvider
 
     private function configureFortify(): void
     {
-        Fortify::authenticateUsing(fn (Request $request): ?User => $this->app->make(AuthenticateUser::class)->handle(
-            (string) $request->input(Fortify::username()),
-            (string) $request->input('password'),
-        ));
+        // Fortify asks twice per login when MFA is on (its two-factor step,
+        // then its login step); the password is checked once per request so
+        // every login path does equal work.
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            if ($request->attributes->has('identity.authenticated_user')) {
+                $user = $request->attributes->get('identity.authenticated_user');
+
+                return $user instanceof User ? $user : null;
+            }
+
+            $user = $this->app->make(AuthenticateUser::class)->handle(
+                (string) $request->input(Fortify::username()),
+                (string) $request->input('password'),
+            );
+            $request->attributes->set('identity.authenticated_user', $user);
+
+            return $user;
+        });
 
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
@@ -124,6 +149,8 @@ class IdentityServiceProvider extends ModuleServiceProvider
         ]));
 
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/ConfirmPassword'));
+
+        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
     }
 
     private function configureMiddleware(): void
