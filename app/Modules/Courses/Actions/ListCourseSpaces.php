@@ -2,6 +2,7 @@
 
 namespace App\Modules\Courses\Actions;
 
+use App\Modules\Courses\Enums\CourseSpaceStatus;
 use App\Modules\Courses\Models\CourseSpace;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Identity\Models\User;
@@ -25,7 +26,8 @@ class ListCourseSpaces
             ->orderBy('title');
 
         match ($user->role) {
-            Role::Student => $query->whereHas(
+            // DATA-012: archived spaces are never listed to students.
+            Role::Student => $query->where('status', CourseSpaceStatus::Active)->whereHas(
                 'enrolments',
                 fn (Builder $enrolments) => $enrolments->where('student_id', $user->getKey()),
             ),
