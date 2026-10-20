@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-3 — Activities framework and self-paced quizzes end to end: wizard, question bank, taking, grading, results
 
-_design v1.2.0 · fda7b69da42e_
+_design v1.3.0 · 4b4668e8fa72_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Activities, CMP-Assessment, CMP-Notifications
 

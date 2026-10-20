@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v1.2.0 · source fda7b69da42e_
+_Generated document · design v1.3.0 · source 4b4668e8fa72_
 
 
 ## Actors
@@ -127,8 +127,9 @@ Main flow:
 1. Visitor opens sign-up on the apex domain
 2. Enters organisation name and a subdomain; availability is checked live
 3. Enters admin name, email and password
-4. Organisation is created as active; the admin is created with ROLE-OrgAdmin and must verify the email
-5. Visitor is redirected to the organisation subdomain
+4. Organisation is created as active with the initial settings of DATA-010; the admin is created with ROLE-OrgAdmin and a verification email is queued
+5. Visitor is redirected to the login page of the organisation subdomain, which shows that a verification link was sent (session cookies are host-only, SEC-010)
+6. Admin logs in there and sees the verify-email page until the email is verified
 
 Exceptions:
 - Subdomain taken, reserved or invalid: organisation is not created and the field shows the reason
@@ -138,6 +139,10 @@ Acceptance criteria:
 - Given an organisation with subdomain 'acme', When a visitor registers subdomain 'acme' or 'ACME', Then registration is rejected and no organisation or user is created
 - Given the reserved subdomains www, app, api, admin, mail, When a visitor registers any of them, Then registration is rejected
 - Given subdomains 'ab' (2 chars), '-acme', 'acme_1' and a 31-character name, When registered, Then each is rejected; 'acme-1' (3-30 chars, a-z, 0-9, inner hyphens) is accepted
+- Given a visitor using the Greek UI, When they register 'acme', Then the organisation has student terms Μαθητής/Student, teacher terms Καθηγητής/Teacher, grading_scale scale_0_10, leaderboard_enabled true and default_locale el; with the English UI default_locale is en
+- Given a successful registration of 'acme', When it completes, Then one verification email to the admin is queued and the visitor lands on acme's login page with the verification-sent notice
+- Given an IP with 3 successful registrations in the last hour, When it submits a 4th valid registration, Then it is rejected with 429 and nothing is created
+- Given an IP with 5 registrations rejected by validation in the last hour, When it submits a valid registration, Then the organisation is created
 
 #### UC-002 — Find my organisation (could)
 

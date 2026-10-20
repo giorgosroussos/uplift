@@ -90,3 +90,16 @@ decisions:
     confirmed: true
     decision: "LiveAnswer.response is JSONB: a snapshot used only for the answer distribution and XP (exception to DATA-001); self-paced answers stay structured"
     since: 0.1.0
+  - id: DATA-010
+    area: data
+    title: Initial settings of a registered organisation
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "Sign-up asks for none of the organisation settings. A new organisation gets student terms Μαθητής / Student, teacher terms Καθηγητής / Teacher, grading scale 0-10, leaderboard enabled, and as default locale the UI locale the visitor used for sign-up; all are changeable later (UC-033)"
+    rationale: "Keeps self-serve sign-up short (CR-P1-T4-1); every setting has a sensible value and the org admin adjusts it in settings"
+    constraints:
+      - "MUST create a registered organisation with student_term_el 'Μαθητής', student_term_en 'Student', teacher_term_el 'Καθηγητής', teacher_term_en 'Teacher', grading_scale scale_0_10 and leaderboard_enabled true"
+      - "MUST set a registered organisation's default_locale to the UI locale (el or en) of the sign-up request"
+    affects: [UC-001, UC-033]
+    since: 1.3.0

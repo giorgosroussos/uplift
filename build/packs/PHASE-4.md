@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-4 — The other four activity types and groups: polls, topic selection, topic proposals with approval, slot booking, group activities
 
-_design v1.2.0 · fda7b69da42e_
+_design v1.3.0 · 4b4668e8fa72_
 
 Depends on: PHASE-3 · environment: development · components: CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications
 

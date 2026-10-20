@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-1 — Walking skeleton: project, CI and all checks, modules, tenancy, organisation registration and login
 
-_design v1.2.0 · fda7b69da42e_
+_design v1.3.0 · 4b4668e8fa72_
 
 Depends on: none · environment: development · components: CMP-Tenancy, CMP-Identity, CMP-Audit
 
@@ -35,8 +35,9 @@ Main flow:
 1. Visitor opens sign-up on the apex domain
 2. Enters organisation name and a subdomain; availability is checked live
 3. Enters admin name, email and password
-4. Organisation is created as active; the admin is created with ROLE-OrgAdmin and must verify the email
-5. Visitor is redirected to the organisation subdomain
+4. Organisation is created as active with the initial settings of DATA-010; the admin is created with ROLE-OrgAdmin and a verification email is queued
+5. Visitor is redirected to the login page of the organisation subdomain, which shows that a verification link was sent (session cookies are host-only, SEC-010)
+6. Admin logs in there and sees the verify-email page until the email is verified
 
 Exceptions:
 - Subdomain taken, reserved or invalid: organisation is not created and the field shows the reason
@@ -162,10 +163,13 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST NOT broadcast personal data other than nickname and avatar  (SEC-010)
 - MUST rate-limit login to 5 attempts per minute per email  (SEC-010)
 - MUST rate-limit enrolment key attempts to 10 per minute per user  (SEC-010)
-- MUST rate-limit organisation registration to 3 per hour per IP  (SEC-010)
+- MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count  (SEC-010)
+- MUST rate-limit the live subdomain availability check to 60 requests per minute per IP  (SEC-010)
 - MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
 - MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory  (SEC-010)
 - MUST run composer audit and npm audit in CI  (SEC-010)
+- MUST create a registered organisation with student_term_el 'Μαθητής', student_term_en 'Student', teacher_term_el 'Καθηγητής', teacher_term_en 'Teacher', grading_scale scale_0_10 and leaderboard_enabled true  (DATA-010)
+- MUST set a registered organisation's default_locale to the UI locale (el or en) of the sign-up request  (DATA-010)
 - MUST run every operations.ci stage on each pull request and push to main  (OPS-004)
 - MUST NOT merge a pull request whose CI fails  (OPS-004)
 - MUST NOT install @laravel/passkeys or laravel/chisel; remove the starter kit features that use them  (ARCH-007)
@@ -211,6 +215,10 @@ Standing constraints from deferred decisions (apply now):
 - [UC-001] Given an organisation with subdomain 'acme', When a visitor registers subdomain 'acme' or 'ACME', Then registration is rejected and no organisation or user is created
 - [UC-001] Given the reserved subdomains www, app, api, admin, mail, When a visitor registers any of them, Then registration is rejected
 - [UC-001] Given subdomains 'ab' (2 chars), '-acme', 'acme_1' and a 31-character name, When registered, Then each is rejected; 'acme-1' (3-30 chars, a-z, 0-9, inner hyphens) is accepted
+- [UC-001] Given a visitor using the Greek UI, When they register 'acme', Then the organisation has student terms Μαθητής/Student, teacher terms Καθηγητής/Teacher, grading_scale scale_0_10, leaderboard_enabled true and default_locale el; with the English UI default_locale is en
+- [UC-001] Given a successful registration of 'acme', When it completes, Then one verification email to the admin is queued and the visitor lands on acme's login page with the verification-sent notice
+- [UC-001] Given an IP with 3 successful registrations in the last hour, When it submits a 4th valid registration, Then it is rejected with 429 and nothing is created
+- [UC-001] Given an IP with 5 registrations rejected by validation in the last hour, When it submits a valid registration, Then the organisation is created
 - [UC-003] Given a teacher of 'acme', When they log in with correct credentials on acme's subdomain, Then they reach the teacher dashboard
 - [UC-003] Given a teacher of 'acme', When they log in with correct credentials on the subdomain of 'beta', Then login fails with the same message as a wrong password
 - [UC-003] Given a deactivated user, When they log in with correct credentials, Then login is refused

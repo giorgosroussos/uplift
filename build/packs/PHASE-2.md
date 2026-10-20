@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-2 — Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications
 
-_design v1.2.0 · fda7b69da42e_
+_design v1.3.0 · 4b4668e8fa72_
 
 Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit
 
@@ -261,7 +261,8 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST NOT broadcast personal data other than nickname and avatar  (SEC-010)
 - MUST rate-limit login to 5 attempts per minute per email  (SEC-010)
 - MUST rate-limit enrolment key attempts to 10 per minute per user  (SEC-010)
-- MUST rate-limit organisation registration to 3 per hour per IP  (SEC-010)
+- MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count  (SEC-010)
+- MUST rate-limit the live subdomain availability check to 60 requests per minute per IP  (SEC-010)
 - MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
 - MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory  (SEC-010)
 - MUST run composer audit and npm audit in CI  (SEC-010)

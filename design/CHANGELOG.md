@@ -1,5 +1,9 @@
 # Design changelog
 
+## v1.3.0 — 2026-10-20
+
+- Initial organisation settings on registration, post-registration landing, registration rate-limit counting (CR-P1-T4-1)
+
 ## v1.2.0 — 2026-10-19
 
 - Audit: P1-T5 infrastructure only, organisation registration audited in P2-T7 via OrganizationRegistered, AuditEntry exempt from tenant scope (CR-P1-T5-1)

@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v1.2.0 · source fda7b69da42e_
+_Generated document · design v1.3.0 · source 4b4668e8fa72_
 
 
 ## Scope
@@ -330,6 +330,18 @@ _affects UC-022, UC-023, UC-030 · since v0.1.0_
 
 _since v0.1.0_
 
+### DATA-010 — Initial settings of a registered organisation · decided · source: inferred
+
+**Decision:** Sign-up asks for none of the organisation settings. A new organisation gets student terms Μαθητής / Student, teacher terms Καθηγητής / Teacher, grading scale 0-10, leaderboard enabled, and as default locale the UI locale the visitor used for sign-up; all are changeable later (UC-033)
+
+**Why:** Keeps self-serve sign-up short (CR-P1-T4-1); every setting has a sensible value and the org admin adjusts it in settings
+
+**Constraints for implementation:**
+- `MUST create a registered organisation with student_term_el 'Μαθητής', student_term_en 'Student', teacher_term_el 'Καθηγητής', teacher_term_en 'Teacher', grading_scale scale_0_10 and leaderboard_enabled true`
+- `MUST set a registered organisation's default_locale to the UI locale (el or en) of the sign-up request`
+
+_affects UC-001, UC-033 · since v1.3.0_
+
 ## Security
 
 ### SEC-001 — Authentication · superseded
@@ -457,7 +469,8 @@ _affects UC-013, ENT-PollParticipation · since v0.1.0_
 - `MUST NOT broadcast personal data other than nickname and avatar`
 - `MUST rate-limit login to 5 attempts per minute per email`
 - `MUST rate-limit enrolment key attempts to 10 per minute per user`
-- `MUST rate-limit organisation registration to 3 per hour per IP`
+- `MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count`
+- `MUST rate-limit the live subdomain availability check to 60 requests per minute per IP`
 - `MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions`
 - `MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory`
 - `MUST run composer audit and npm audit in CI`

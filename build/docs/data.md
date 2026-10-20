@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v1.2.0 · source fda7b69da42e_
+_Generated document · design v1.3.0 · source 4b4668e8fa72_
 
 
 ## Entity–relationship diagram
@@ -944,3 +944,4 @@ Owned by CMP-Notifications · retention: Deleted 180 days after creation · audi
 | DATA-007 | Data conventions | decided (default) | UUID primary keys; UTC timestamps; soft delete for User, CourseSpace, Activity, Question, Announcement; organization_id on every tenant-owned table including child tables; Laravel naming; CTI subtype tables use the parent id as primary key; XP as a ledger; badges defined platform-wide |
 | DATA-008 | Question bank | decided | Each teacher has a personal question bank; adding a bank question to a quiz copies it, so later bank edits never change existing quizzes |
 | DATA-009 | Live answer storage | decided (default) | LiveAnswer.response is JSONB: a snapshot used only for the answer distribution and XP (exception to DATA-001); self-paced answers stay structured |
+| DATA-010 | Initial settings of a registered organisation | decided (inferred) | Sign-up asks for none of the organisation settings. A new organisation gets student terms Μαθητής / Student, teacher terms Καθηγητής / Teacher, grading scale 0-10, leaderboard enabled, and as default locale the UI locale the visitor used for sign-up; all are changeable later (UC-033) |

@@ -4,7 +4,7 @@ depends_on: []
 use_cases: [UC-001, UC-003, UC-004]
 entities: [ENT-Organization, ENT-User, ENT-AuditEntry]
 components: [CMP-Tenancy, CMP-Identity, CMP-Audit]
-decisions: [SEC-011, SEC-010, SEC-003, DATA-001, OPS-001, OPS-003, OPS-004, ARCH-007]
+decisions: [SEC-011, SEC-010, SEC-003, DATA-001, DATA-010, OPS-001, OPS-003, OPS-004, ARCH-007]
 environment: development
 acceptance_criteria:
   - "GitHub Actions runs every operations.ci stage on each pull request and push to main"
