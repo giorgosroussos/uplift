@@ -20,6 +20,7 @@ defineOptions({
 
 defineProps<{
     status?: string;
+    verificationSent: boolean;
     canResetPassword: boolean;
     organization: { name: string } | null;
     identityProviders: string[];
@@ -45,6 +46,15 @@ defineProps<{
         data-test="identity-providers-unavailable"
     >
         {{ $t('ui.auth.login.providers_unavailable') }}
+    </div>
+
+    <div
+        v-if="verificationSent"
+        role="status"
+        class="mb-4 text-center text-sm font-medium text-green-600"
+        data-test="verification-sent"
+    >
+        {{ $t('ui.auth.login.verification_sent') }}
     </div>
 
     <div

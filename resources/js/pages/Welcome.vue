@@ -2,7 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Button } from '@/components/ui/button';
-import { dashboard, login } from '@/routes';
+import { dashboard, login, register } from '@/routes';
 </script>
 
 <template>
@@ -21,11 +21,18 @@ import { dashboard, login } from '@/routes';
                         $t('ui.nav.dashboard')
                     }}</Link>
                 </Button>
-                <Button v-else as-child variant="ghost">
-                    <Link :href="login()" data-test="welcome-login">{{
-                        $t('ui.nav.log_in')
-                    }}</Link>
-                </Button>
+                <template v-else>
+                    <Button as-child variant="ghost">
+                        <Link :href="login()" data-test="welcome-login">{{
+                            $t('ui.nav.log_in')
+                        }}</Link>
+                    </Button>
+                    <Button as-child variant="outline">
+                        <Link :href="register()" data-test="welcome-register">{{
+                            $t('ui.nav.register')
+                        }}</Link>
+                    </Button>
+                </template>
             </nav>
         </header>
 
