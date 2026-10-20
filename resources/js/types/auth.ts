@@ -1,12 +1,13 @@
+export type Role = 'student' | 'teacher' | 'org_admin';
+
 export type User = {
-    id: number;
+    id: string;
+    role: Role;
     name: string;
+    nickname: string;
     email: string;
-    avatar?: string;
+    avatar?: string | null;
     email_verified_at: string | null;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown;
 };
 
 export type Auth = {

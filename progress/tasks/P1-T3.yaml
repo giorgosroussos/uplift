@@ -1,0 +1,9 @@
+id: P1-T3
+status: ready_to_merge
+commit: 63a694c
+handoff: |
+  app/Modules/Identity: Models/User (tenant-scoped, UUID, Enums/Role, nickname auto-generated unique per org, email lower-cased, nullable password, locale, date_of_birth/is_minor), Database/Factories/UserFactory (->student/teacher/orgAdmin/unverified/inactive/withoutPassword, PASSWORD const), users + password_reset_tokens migration.
+  Fortify is configured in IdentityServiceProvider (FortifyServiceProvider is empty); its routes need a tenant (config fortify.middleware web+tenant); Actions/AuthenticateUser refuses other-org, inactive users and suspended orgs, with one hash check on every path (Support/EqualWork, TenantPasswordBroker for reset links); TenantLoginRateLimiter = 5 failures/min per org+email.
+  argon2id (config/hashing.php), host-only session cookie, Password::defaults min 8 + uncompromised (OfflineUncompromisedVerifier outside production), AuthenticateSession + EnsureAccountIsActive on the web group, TenantPasswordBrokerManager/TenantTokenRepository scope reset tokens per org.
+  Queued Notifications/ResetPasswordNotification + VerifyEmailNotification with links built by Support/OrganizationUrl; GET /dashboard (DashboardController) renders Identity/{Student,Teacher,OrgAdmin}Dashboard; Policies/UserPolicy = OWN-001.
+  Contracts/IdentityProviderResolver bound to Support/NoIdentityProviders (config/identity.php timeout 10s); login page shows an error on IdentityProviderUnavailable. Tests: tests/Feature/Identity, tests/Browser/LoginTest.

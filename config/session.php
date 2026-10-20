@@ -156,7 +156,9 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    // Host-only: the session cookie never leaves the organisation's
+    // subdomain (SEC-010), so SESSION_DOMAIN is deliberately not read.
+    'domain' => null,
 
     /*
     |--------------------------------------------------------------------------

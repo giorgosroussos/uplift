@@ -36,6 +36,9 @@ return [
 
     'dashboard' => [
         'title' => 'Dashboard',
+        'student' => 'Student dashboard',
+        'teacher' => 'Teacher dashboard',
+        'org_admin' => 'Organisation admin dashboard',
     ],
 
     'auth' => [
@@ -53,6 +56,7 @@ return [
             'forgot_password' => 'Forgot your password?',
             'remember_me' => 'Remember me',
             'submit' => 'Log in',
+            'providers_unavailable' => 'Single sign-on is unavailable right now. You can still log in with your email and password.',
         ],
 
         'forgot_password' => [

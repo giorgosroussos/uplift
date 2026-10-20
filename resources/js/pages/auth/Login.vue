@@ -21,11 +21,31 @@ defineOptions({
 defineProps<{
     status?: string;
     canResetPassword: boolean;
+    organization: { name: string } | null;
+    identityProviders: string[];
+    identityProvidersUnavailable: boolean;
 }>();
 </script>
 
 <template>
     <Head :title="$t('ui.auth.login.page_title')" />
+
+    <p
+        v-if="organization"
+        class="text-center text-lg font-semibold"
+        data-test="organization-name"
+    >
+        {{ organization.name }}
+    </p>
+
+    <div
+        v-if="identityProvidersUnavailable"
+        role="alert"
+        class="text-center text-sm font-medium text-red-600"
+        data-test="identity-providers-unavailable"
+    >
+        {{ $t('ui.auth.login.providers_unavailable') }}
+    </div>
 
     <div
         v-if="status"
