@@ -1,0 +1,9 @@
+id: P2-T3
+status: ready_to_merge
+commit: c81ffe5
+handoff: |
+  app/Modules/Tenancy: Contracts/OrganizationMember + Policies/OrganizationPolicy (ability update, ARCH-008; Identity's User implements it), Actions/UpdateOrganizationSettings, Support/{OrganizationLogo (disk config tenancy.logo_disk), SvgSanitizer}.
+  Routes: tenant GET organization/logo (organization.logo, public); tenant+auth GET/POST organization/settings (organization.settings.edit/update). No migration: the columns already existed.
+  Events/OrganizationSettingsChanged(organizationId, actorId, changes {field: {from, to}}; logo as logo_path) after commit, only when something changed — for P2-T7.
+  Middleware (web group): ApplyLocale (user locale, else default_locale on tenant hosts), ShareOrganization (shared prop organization, dot-merged into the login page's own prop). OrganizationFactory default_locale is now en.
+  UI: pages/Tenancy/OrganizationSettings.vue (sidebar for org admins), lib/organizationTheme.ts (accent as --primary), logo in AppLogo/AuthSimpleLayout; lang/{en,el}/organization.php. Tests: tests/Feature/Tenancy/OrganizationSettingsTest.php, tests/Browser/OrganizationSettingsTest.php, tests/Architecture/OrganizationMemberContractTest.php, Vitest.

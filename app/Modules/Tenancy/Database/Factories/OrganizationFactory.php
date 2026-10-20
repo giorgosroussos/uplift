@@ -29,7 +29,9 @@ class OrganizationFactory extends Factory
             'teacher_term_en' => 'Teacher',
             'grading_scale' => GradingScale::Scale0To10,
             'leaderboard_enabled' => true,
-            'default_locale' => Locale::Greek,
+            // English, like the application default: tests that expect a
+            // Greek UI set it explicitly (DATA-011 applies default_locale).
+            'default_locale' => Locale::English,
         ];
     }
 

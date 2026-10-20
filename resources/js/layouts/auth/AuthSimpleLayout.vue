@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
 
@@ -7,6 +8,10 @@ defineProps<{
     title?: string;
     description?: string;
 }>();
+
+// DATA-011: the organisation's logo in the header, else the app logo.
+const page = usePage();
+const organization = computed(() => page.props.organization);
 </script>
 
 <template>
@@ -20,8 +25,17 @@ defineProps<{
                         :href="home()"
                         class="flex flex-col items-center gap-2 font-medium"
                     >
+                        <img
+                            v-if="organization?.logo_url"
+                            :src="organization.logo_url"
+                            :alt="organization.name"
+                            class="mb-1 h-12 max-w-48 object-contain"
+                            data-test="organization-logo"
+                        />
                         <div
+                            v-else
                             class="mb-1 flex h-9 w-9 items-center justify-center rounded-md"
+                            data-test="app-logo"
                         >
                             <AppLogoIcon
                                 class="size-9 fill-current text-[var(--foreground)] dark:text-white"

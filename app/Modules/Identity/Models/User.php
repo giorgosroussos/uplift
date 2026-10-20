@@ -9,6 +9,7 @@ use App\Modules\Identity\Notifications\VerifyEmailNotification;
 use App\Modules\Identity\Support\NicknameGenerator;
 use App\Modules\Identity\Support\OrganizationUrl;
 use App\Modules\Tenancy\Concerns\BelongsToOrganization;
+use App\Modules\Tenancy\Contracts\OrganizationMember;
 use App\Modules\Tenancy\Enums\Locale;
 use App\Modules\Tenancy\Models\Organization;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -48,7 +49,7 @@ use Illuminate\Support\Facades\Config;
  * @property-read Organization $organization
  */
 #[UseFactory(UserFactory::class)]
-class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail, OrganizationMember
 {
     use BelongsToOrganization;
 
@@ -101,6 +102,22 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function hasRole(Role $role): bool
     {
         return $this->role === $role;
+    }
+
+    /**
+     * OrganizationMember (ARCH-008): the user's one organisation (SEC-004).
+     */
+    public function organizationId(): string
+    {
+        return $this->organization_id;
+    }
+
+    /**
+     * OrganizationMember (ARCH-008): org admins administer their organisation.
+     */
+    public function administersOrganization(): bool
+    {
+        return $this->hasRole(Role::OrgAdmin);
     }
 
     /**
