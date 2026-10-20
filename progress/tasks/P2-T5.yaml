@@ -1,0 +1,9 @@
+id: P2-T5
+status: ready_to_merge
+commit: 4df423eaed75844af97a16a4787bef3fcc30c95f
+handoff: |
+  app/Modules/Courses: Models/Announcement (tenant-scoped, soft-deleted; migration announcements, composite FK to course_spaces cascade), Policies/AnnouncementPolicy; CourseSpacePolicy abilities manageAnnouncements (owner) and viewAnnouncements (owner; enrolled students only while active).
+  Actions Post/Update/Delete/ListAnnouncements; Events/AnnouncementPublished(organizationId, courseSpaceId, announcementId, authorId) is ShouldDispatchAfterCommit and dispatched only by posts in an active space (for P2-T6).
+  Routes POST/PUT/DELETE /courses/{id}/announcements[/{announcement}] (scoped bindings); ShowCourseSpace adds props announcements (newest first) and can.manageAnnouncements.
+  UI resources/js/components/courses/CourseAnnouncements.vue on pages/Courses/Show.vue; strings lang/{en,el}/courses.php.
+  Tests: tests/Feature/Courses/AnnouncementTest.php, tests/Browser/AnnouncementTest.php.
