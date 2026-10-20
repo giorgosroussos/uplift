@@ -1,0 +1,9 @@
+id: P2-T6
+status: ready_to_merge
+commit: 65795c0
+handoff: |
+  app/Modules/Notifications: Models/Notification (tenant-scoped, kind enum Enums/NotificationKind with sendsEmail() for DEC-001, data jsonb, MassPrunable 180 days, model:prune daily) and Models/NotificationPreference (one per user, no row = emails on); migration 2026_10_22_600000.
+  Listener SendAnnouncementNotifications on Courses AnnouncementPublished -> Actions/NotifyAnnouncementPublished: in-app rows written first, then queued Notifications/AnnouncementPublishedEmail (on-demand mail route, user locale else org default, INT-001 tries 6/timeout 10/backoff; failures logged with ids only, never block the post).
+  Routes (tenant+auth+verified): GET notifications, POST notifications/read-all, POST notifications/{n}/{open,read,unread} (NotificationPolicy: own only; open 404s when Gate viewAnnouncements denies), GET/PUT settings/notifications.
+  UI: pages/Notifications/{Index,Settings}.vue (page prop `entries`), components/NotificationBell.vue in AppSidebarHeader (shared prop notifications.unread_count via Http/SharedNotifications), menu link in UserMenuContent; strings lang/{en,el}/notifications.php.
+  Tests: tests/Feature/Notifications/{AnnouncementNotification,NotificationCentre}Test.php, tests/Browser/NotificationTest.php, resources/js/lib/notificationGroups.test.ts. Later kinds: add a NotificationKind case and a listener.
