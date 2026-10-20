@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-2 — Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications
 
-_design v1.4.0 · cc1c2e1e847f_
+_design v2.0.0 · 6e9830763376_
 
 Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit
 
@@ -15,9 +15,10 @@ Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP
 | P2-T4 | Course spaces and enrolment | — | CMP-Courses |
 | P2-T5 | Announcements | P2-T4 | CMP-Courses |
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications |
-| P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3 | CMP-Audit |
+| P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3, P2-T8 | CMP-Audit |
+| P2-T8 | Archived course spaces hidden and emptied | P2-T4 | CMP-Courses |
 
-Execution waves: [P2-T1, P2-T4] → [P2-T2, P2-T5] → [P2-T3, P2-T6] → [P2-T7]
+Execution waves: [P2-T1, P2-T4] → [P2-T2, P2-T5] → [P2-T3, P2-T6, P2-T8] → [P2-T7]
 
 ## Out of scope (do not build)
 
@@ -77,7 +78,7 @@ Actors: ACT-Teacher · Goal: Create and edit a course space and manage its enrol
 
 Main flow:
 1. Teacher creates a course space with title, description and enrolment policy (open or enrolment key)
-2. Edits it, archives it when the course ends
+2. Edits it, archives it when the course ends after confirming that all students are unenrolled (DATA-012)
 3. Views enrolled students, adds or removes students
 
 Exceptions:
@@ -100,6 +101,15 @@ Exceptions:
 #### UC-008 — Post and read announcements (should)
 
 Actors: ACT-Teacher, ACT-Student · Goal: Teacher posts announcements in a course space; students read them
+
+Main flow:
+1. Teacher opens their course space and posts an announcement with title and body; it is published at once
+2. Enrolled students are notified (P2-T6) and read it in the course space, newest first
+3. The teacher may edit or delete it later; an edit notifies nobody
+
+Exceptions:
+- Not the owning teacher: posting, editing and deleting are refused
+- Archived space: the teacher may still post and edit, but nobody is notified and students cannot see the space (DATA-012)
 
 #### UC-007 — View notifications (should)
 
@@ -187,7 +197,7 @@ States: initial `active`; allowed transitions: `active -> archived`, `archived -
 
 #### ENT-Enrolment — A student's enrolment in a course space (unique per pair)
 
-Owned by CMP-Courses · retention: Kept with the course space; follows the student's erasure (SEC-003) · audit: no
+Owned by CMP-Courses · retention: Deleted when the course space is archived (DATA-012); follows the student's erasure (SEC-003) · audit: no
 
 | attribute | type | storage | notes |
 |---|---|---|---|
@@ -272,7 +282,7 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST rate-limit enrolment key attempts to 10 per minute per user  (SEC-010)
 - MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count  (SEC-010)
 - MUST rate-limit the live subdomain availability check to 60 requests per minute per IP  (SEC-010)
-- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
+- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes, course space archiving and platform admin actions  (SEC-010)
 - MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory  (SEC-010)
 - MUST run composer audit and npm audit in CI  (SEC-010)
 - MUST require TOTP MFA for ROLE-PlatformAdmin  (SEC-011)
@@ -284,6 +294,15 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST serve the organisation logo through a tenant route from a private Storage disk  (DATA-011)
 - MUST use the organisation's default_locale for guests and for users without a locale  (DATA-011)
 - MUST dispatch App\Modules\Tenancy\Events\OrganizationSettingsChanged(organizationId, actorId, changes {field: {from, to}}) after commit; MUST NOT put file contents in changes  (DATA-011)
+- MUST delete every enrolment of a course space in the same transaction that archives it  (DATA-012)
+- MUST ask the teacher to confirm archiving, stating that all students are unenrolled  (DATA-012)
+- MUST NOT show an archived course space, its activities or its announcements to students; requests for them return 404  (DATA-012)
+- MUST dispatch App\Modules\Courses\Events\CourseSpaceArchived(organizationId, courseSpaceId, actorId, removedEnrolments) after commit  (DATA-012)
+- MUST let only the owning teacher of the course space post, edit and delete its announcements  (DATA-013)
+- MUST let only the owning teacher and students enrolled in the course space read its announcements  (DATA-013)
+- MUST set published_at to the posting time; MUST NOT support drafts or scheduled announcements  (DATA-013)
+- MUST dispatch App\Modules\Courses\Events\AnnouncementPublished(organizationId, courseSpaceId, announcementId, authorId) after commit when posting in an active course space, and on no other occasion  (DATA-013)
+- MUST soft-delete announcements  (DATA-013)
 - MUST NOT send email for notification kinds other than those listed in DEC-001  (DEC-001)
 - MUST submit live answers through HTTP endpoints, never websocket client events (whisper)  (ARCH-006)
 - MUST derive client countdowns from server-sent ends_at and server_now  (ARCH-006)
@@ -354,13 +373,22 @@ Standing constraints from deferred decisions (apply now):
 - [UC-033] Given an org admin changes accent colour and leaderboard, When the save commits, Then one OrganizationSettingsChanged is dispatched with both fields as {from, to}
 - [UC-033] Given an org admin submits a different subdomain, When saved, Then the subdomain is unchanged
 - [UC-021] Given a teacher, When they create a course space, Then they are its owner and it is visible only within their organisation
-- [UC-021] Given an archived course space, Then students can view their results but cannot submit to its activities
+- [UC-021] Given space S with 3 enrolled students, When its teacher archives it, Then S has no enrolments and one CourseSpaceArchived with removedEnrolments 3 is dispatched
+- [UC-021] Given an archived space S, When a formerly enrolled student lists their spaces, browses the catalogue or opens S, Then S is absent and opening it returns 404
+- [UC-021] Given an archived space S, When its teacher or an org admin of the organisation opens it, Then they can view it
+- [UC-021] Given an archived space S, When its teacher restores it, Then S is active with no enrolments
 - [UC-021] Given a space owned by teacher A, When teacher B tries to edit it or its activities, Then it is refused
 - [UC-021] Given an org admin, When they open any course space of their organisation, Then they can view it
 - [UC-011] Given a space with policy open, When a student enrols, Then they are enrolled without a key
 - [UC-011] Given a space with policy key and key 'K7P2Q', When a student enters 'K7P2Q', Then they are enrolled; When they enter 'WRONG', Then they are not enrolled
 - [UC-011] Given a student already enrolled, When they enrol again, Then exactly 1 enrolment exists
 - [UC-011] Given a student of 'acme', When they browse the catalogue, Then no course space of another organisation is listed
+- [UC-008] Given teacher A owns space S, When A posts 'Exam moved', Then it is shown to A and to every student enrolled in S, with published_at set, and AnnouncementPublished is dispatched once
+- [UC-008] Given space S of teacher A, When teacher B, an org admin or a student tries to post, edit or delete in S, Then it is refused and nothing changes
+- [UC-008] Given an announcement in S, When a student not enrolled in S, another teacher or an org admin requests S's announcements, Then none is shown
+- [UC-008] Given A edits an announcement, Then title and body change, published_at is unchanged and no AnnouncementPublished is dispatched
+- [UC-008] Given A deletes an announcement, Then it is soft-deleted and no longer shown
+- [UC-008] Given S is archived, When A posts, Then it is stored and no AnnouncementPublished is dispatched
 - [OWN-001] Given a ROLE-Student user, When they read or modify an ENT-User record the rule does not grant them (A student or teacher reads and edits only their own user record; an org admin manages only users of their own organisation), Then access is denied and nothing changes
 - [OWN-001] Given a ROLE-Teacher user, When they read or modify an ENT-User record the rule does not grant them (A student or teacher reads and edits only their own user record; an org admin manages only users of their own organisation), Then access is denied and nothing changes
 - [OWN-001] Given a ROLE-OrgAdmin user, When they read or modify an ENT-User record the rule does not grant them (A student or teacher reads and edits only their own user record; an org admin manages only users of their own organisation), Then access is denied and nothing changes

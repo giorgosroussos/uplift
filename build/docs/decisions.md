@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v1.4.0 · source cc1c2e1e847f_
+_Generated document · design v2.0.0 · source 6e9830763376_
 
 
 ## Scope
@@ -358,6 +358,41 @@ _affects UC-001, UC-033 · since v1.3.0_
 
 _affects UC-033, P2-T3, P2-T7 · since v1.4.0_
 
+### DATA-012 — Archived course spaces are hidden from students and emptied · decided
+
+> Engineer: “Θα έλα οι archived course space να μην εμφανίζονται στους φοιτητές και να μπορεί να τους δεί μονο ο teacher. Επίσης ίσως αν ένα corse space μπαίνει archived να αδείαζει από εγγεγραμμένους φοιτητές”
+
+**Decision:** Archiving a course space deletes all its enrolments, after a confirmation in the UI, and hides it from students: it is absent from their lists and the catalogue and opening it returns 404. Only the owning teacher (and org admins, OWN-004) see an archived space. Restoring it gives an active space with no students; they enrol again. Courses dispatches CourseSpaceArchived, which is audited
+
+**Why:** Chosen by the engineer knowing it is irreversible: students lose access to the space's results and later per-class analytics lose its roster (CR-P2-T5-1)
+
+**Rejected:**
+- Hide but keep enrolments: reversible, keeps the roster
+- Read-only access for enrolled students (previous UC-021 criterion)
+
+**Constraints for implementation:**
+- `MUST delete every enrolment of a course space in the same transaction that archives it`
+- `MUST ask the teacher to confirm archiving, stating that all students are unenrolled`
+- `MUST NOT show an archived course space, its activities or its announcements to students; requests for them return 404`
+- `MUST dispatch App\Modules\Courses\Events\CourseSpaceArchived(organizationId, courseSpaceId, actorId, removedEnrolments) after commit`
+
+_affects UC-008, UC-011, UC-021, P2-T7, P2-T8 · since v2.0.0_
+
+### DATA-013 — Announcements · decided · source: inferred
+
+**Decision:** Announcements are stored in an announcements table in Courses (composite FK to course_spaces, cascade; author_id restrict; soft delete per DATA-007). Posting publishes at once (no drafts or scheduling). The owning teacher posts, edits (title, body) and soft-deletes, also in an archived space; an edit keeps published_at and notifies nobody. The owning teacher and enrolled students read them; org admins, other teachers and non-enrolled students do not. Posting in an active space dispatches AnnouncementPublished for P2-T6; posting in an archived space dispatches nothing
+
+**Why:** Closes the gaps of UC-008 found in CR-P2-T5-1
+
+**Constraints for implementation:**
+- `MUST let only the owning teacher of the course space post, edit and delete its announcements`
+- `MUST let only the owning teacher and students enrolled in the course space read its announcements`
+- `MUST set published_at to the posting time; MUST NOT support drafts or scheduled announcements`
+- `MUST dispatch App\Modules\Courses\Events\AnnouncementPublished(organizationId, courseSpaceId, announcementId, authorId) after commit when posting in an active course space, and on no other occasion`
+- `MUST soft-delete announcements`
+
+_affects UC-008, P2-T5, P2-T6 · since v2.0.0_
+
 ## Security
 
 ### SEC-001 — Authentication · superseded
@@ -487,7 +522,7 @@ _affects UC-013, ENT-PollParticipation · since v0.1.0_
 - `MUST rate-limit enrolment key attempts to 10 per minute per user`
 - `MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count`
 - `MUST rate-limit the live subdomain availability check to 60 requests per minute per IP`
-- `MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions`
+- `MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes, course space archiving and platform admin actions`
 - `MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory`
 - `MUST run composer audit and npm audit in CI`
 

@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v1.4.0 · source cc1c2e1e847f_
+_Generated document · design v2.0.0 · source 6e9830763376_
 
 
 ## Entity–relationship diagram
@@ -434,7 +434,7 @@ stateDiagram-v2
 
 #### ENT-Enrolment — A student's enrolment in a course space (unique per pair)
 
-Owned by CMP-Courses · retention: Kept with the course space; follows the student's erasure (SEC-003) · audit: no
+Owned by CMP-Courses · retention: Deleted when the course space is archived (DATA-012); follows the student's erasure (SEC-003) · audit: no
 
 | attribute | type | storage | notes |
 |---|---|---|---|
@@ -946,3 +946,5 @@ Owned by CMP-Notifications · retention: Deleted 180 days after creation · audi
 | DATA-009 | Live answer storage | decided (default) | LiveAnswer.response is JSONB: a snapshot used only for the answer distribution and XP (exception to DATA-001); self-paced answers stay structured |
 | DATA-010 | Initial settings of a registered organisation | decided (inferred) | Sign-up asks for none of the organisation settings. A new organisation gets student terms Μαθητής / Student, teacher terms Καθηγητής / Teacher, grading scale 0-10, leaderboard enabled, and as default locale the UI locale the visitor used for sign-up; all are changeable later (UC-033) |
 | DATA-011 | Organisation settings format, effect and change event | decided (inferred) | The subdomain is not editable by the organisation. accent_color is #RRGGBB or empty (theme default); the logo may be removed (the app logo is shown instead) and is served through a tenant route from a private Storage disk. Settings are shared with every page as the Inertia prop organization; the accent colour is the app's primary colour, the logo appears in the app shell and the login page header, and default_locale is the locale for guests and for users without their own. Using the student/teacher terms in screens is up to later tasks. After each change Tenancy dispatches OrganizationSettingsChanged, which P2-T7 audits |
+| DATA-012 | Archived course spaces are hidden from students and emptied | decided | Archiving a course space deletes all its enrolments, after a confirmation in the UI, and hides it from students: it is absent from their lists and the catalogue and opening it returns 404. Only the owning teacher (and org admins, OWN-004) see an archived space. Restoring it gives an active space with no students; they enrol again. Courses dispatches CourseSpaceArchived, which is audited |
+| DATA-013 | Announcements | decided (inferred) | Announcements are stored in an announcements table in Courses (composite FK to course_spaces, cascade; author_id restrict; soft delete per DATA-007). Posting publishes at once (no drafts or scheduling). The owning teacher posts, edits (title, body) and soft-deletes, also in an archived space; an edit keeps published_at and notifies nobody. The owning teacher and enrolled students read them; org admins, other teachers and non-enrolled students do not. Posting in an active space dispatches AnnouncementPublished for P2-T6; posting in an archived space dispatches nothing |

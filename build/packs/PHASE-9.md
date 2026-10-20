@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-9 — Ready for real users: GDPR and minors hardening, production hosting and operations, remaining could use cases
 
-_design v1.4.0 · cc1c2e1e847f_
+_design v2.0.0 · 6e9830763376_
 
 Depends on: PHASE-7, PHASE-8 · environment: development · components: CMP-Identity, CMP-Notifications, CMP-Tenancy
 

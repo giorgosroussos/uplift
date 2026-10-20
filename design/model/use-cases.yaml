@@ -95,7 +95,27 @@ use_cases:
   # Common
   - {id: UC-006, title: Manage my profile, actors: [ACT-Student, ACT-Teacher, ACT-OrgAdmin], goal: "Edit personal details, password and notification preferences", priority: should, source: inferred, confirmed: true}
   - {id: UC-007, title: View notifications, actors: [ACT-Student, ACT-Teacher, ACT-OrgAdmin], goal: "See notifications grouped, mark read/unread", priority: should, source: inferred, confirmed: true}
-  - {id: UC-008, title: Post and read announcements, actors: [ACT-Teacher, ACT-Student], goal: "Teacher posts announcements in a course space; students read them", priority: should, source: inferred, confirmed: true}
+  - id: UC-008
+    title: Post and read announcements
+    actors: [ACT-Teacher, ACT-Student]
+    goal: "Teacher posts announcements in a course space; students read them"
+    priority: should
+    source: inferred
+    confirmed: true
+    main_flow:
+      - "Teacher opens their course space and posts an announcement with title and body; it is published at once"
+      - "Enrolled students are notified (P2-T6) and read it in the course space, newest first"
+      - "The teacher may edit or delete it later; an edit notifies nobody"
+    exceptions:
+      - "Not the owning teacher: posting, editing and deleting are refused"
+      - "Archived space: the teacher may still post and edit, but nobody is notified and students cannot see the space (DATA-012)"
+    acceptance_criteria:
+      - "Given teacher A owns space S, When A posts 'Exam moved', Then it is shown to A and to every student enrolled in S, with published_at set, and AnnouncementPublished is dispatched once"
+      - "Given space S of teacher A, When teacher B, an org admin or a student tries to post, edit or delete in S, Then it is refused and nothing changes"
+      - "Given an announcement in S, When a student not enrolled in S, another teacher or an org admin requests S's announcements, Then none is shown"
+      - "Given A edits an announcement, Then title and body change, published_at is unchanged and no AnnouncementPublished is dispatched"
+      - "Given A deletes an announcement, Then it is soft-deleted and no longer shown"
+      - "Given S is archived, When A posts, Then it is stored and no AnnouncementPublished is dispatched"
   # Student
   - {id: UC-010, title: Student dashboard, actors: [ACT-Student], goal: "See enrolled spaces, upcoming activities and deadlines, recent grades, gamification snapshot", priority: should, source: inferred, confirmed: true}
   - id: UC-011
@@ -247,13 +267,16 @@ use_cases:
     confirmed: true
     main_flow:
       - "Teacher creates a course space with title, description and enrolment policy (open or enrolment key)"
-      - "Edits it, archives it when the course ends"
+      - "Edits it, archives it when the course ends after confirming that all students are unenrolled (DATA-012)"
       - "Views enrolled students, adds or removes students"
     exceptions:
       - "Another teacher's space: the teacher cannot edit it"
     acceptance_criteria:
       - "Given a teacher, When they create a course space, Then they are its owner and it is visible only within their organisation"
-      - "Given an archived course space, Then students can view their results but cannot submit to its activities"
+      - "Given space S with 3 enrolled students, When its teacher archives it, Then S has no enrolments and one CourseSpaceArchived with removedEnrolments 3 is dispatched"
+      - "Given an archived space S, When a formerly enrolled student lists their spaces, browses the catalogue or opens S, Then S is absent and opening it returns 404"
+      - "Given an archived space S, When its teacher or an org admin of the organisation opens it, Then they can view it"
+      - "Given an archived space S, When its teacher restores it, Then S is active with no enrolments"
       - "Given a space owned by teacher A, When teacher B tries to edit it or its activities, Then it is refused"
       - "Given an org admin, When they open any course space of their organisation, Then they can view it"
   - id: UC-022

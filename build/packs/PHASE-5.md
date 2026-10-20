@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-5 — Live quiz end to end: lobby or scheduled start, common time window, live monitoring, reconnection, final ranking
 
-_design v1.4.0 · cc1c2e1e847f_
+_design v2.0.0 · 6e9830763376_
 
 Depends on: PHASE-4 · environment: development · components: CMP-Live, CMP-Assessment
 
@@ -152,7 +152,7 @@ Owned by CMP-Live · retention: As ENT-LiveParticipant · audit: no
 - MUST rate-limit enrolment key attempts to 10 per minute per user  (SEC-010)
 - MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count  (SEC-010)
 - MUST rate-limit the live subdomain availability check to 60 requests per minute per IP  (SEC-010)
-- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes and platform admin actions  (SEC-010)
+- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes, course space archiving and platform admin actions  (SEC-010)
 - MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory  (SEC-010)
 - MUST run composer audit and npm audit in CI  (SEC-010)
 - MUST submit live answers through HTTP endpoints, never websocket client events (whisper)  (ARCH-006)

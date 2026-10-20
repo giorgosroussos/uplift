@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Architecture and stack
 
-_Generated document · design v1.4.0 · source cc1c2e1e847f_
+_Generated document · design v2.0.0 · source 6e9830763376_
 
 
 **Style:** modular-monolith · **database:** postgresql

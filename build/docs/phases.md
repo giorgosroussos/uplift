@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v1.4.0 · source cc1c2e1e847f_
+_Generated document · design v2.0.0 · source 6e9830763376_
 
 
 ## Phase map
@@ -160,9 +160,10 @@ Depends on: PHASE-1 · use cases: UC-005, UC-032, UC-006, UC-033, UC-021, UC-011
 | P2-T2 | Profile, nickname, language and optional MFA for org admins | P2-T1 | CMP-Identity |  |
 | P2-T3 | Organisation settings | P2-T1 | CMP-Tenancy, CMP-Identity | yes |
 | P2-T4 | Course spaces and enrolment | — | CMP-Courses | yes |
-| P2-T5 | Announcements | P2-T4 | CMP-Courses |  |
+| P2-T5 | Announcements | P2-T4 | CMP-Courses | yes |
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications | yes |
-| P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3 | CMP-Audit | yes |
+| P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3, P2-T8 | CMP-Audit | yes |
+| P2-T8 | Archived course spaces hidden and emptied | P2-T4 | CMP-Courses |  |
 
 Task waves:
 
@@ -180,6 +181,7 @@ flowchart LR
   subgraph W3["Wave 3"]
     P2_T3["P2-T3"]
     P2_T6["P2-T6"]
+    P2_T8["P2-T8"]
   end
   W2 --> W3
   subgraph W4["Wave 4"]
@@ -190,6 +192,7 @@ flowchart LR
 
 Serialised:
 - P2-T3 serialised after P2-T2 (writes CMP-Identity)
+- P2-T8 serialised after P2-T5 (writes CMP-Courses)
 
 Out of scope:
 - Activities of any type (PHASE-3, PHASE-4)

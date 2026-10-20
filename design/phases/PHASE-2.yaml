@@ -4,7 +4,7 @@ depends_on: [PHASE-1]
 use_cases: [UC-005, UC-032, UC-006, UC-033, UC-021, UC-011, UC-008, UC-007]
 entities: [ENT-User, ENT-Invitation, ENT-Organization, ENT-CourseSpace, ENT-Enrolment, ENT-Announcement, ENT-Notification]
 components: [CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit]
-decisions: [SEC-004, SEC-007, SEC-008, SEC-010, SEC-011, SCOPE-006, SCOPE-007, DATA-002, DATA-011, DEC-001, ARCH-006, ARCH-008]
+decisions: [SEC-004, SEC-007, SEC-008, SEC-010, SEC-011, SCOPE-006, SCOPE-007, DATA-002, DATA-011, DATA-012, DATA-013, DEC-001, ARCH-006, ARCH-008]
 environment: development
 out_of_scope:
   - "Activities of any type (PHASE-3, PHASE-4)"
@@ -35,9 +35,10 @@ tasks:
     touches: {writes: [CMP-Courses], reads: [CMP-Identity], migrations: true}
   - id: P2-T5
     title: Announcements
+    description: "Announcements table, post/edit/soft-delete by the owning teacher, reading by the teacher and enrolled students, AnnouncementPublished for P2-T6 (DATA-013)"
     depends_on: [P2-T4]
     use_cases: [UC-008]
-    touches: {writes: [CMP-Courses]}
+    touches: {writes: [CMP-Courses], migrations: true}
   - id: P2-T6
     title: Notifications in-app and by email
     description: "Notification model, notification centre, queued mail with retries (INT-001) for invitations and announcements; other DEC-001 kinds are added by later phases' listeners"
@@ -46,6 +47,12 @@ tasks:
     touches: {writes: [CMP-Notifications], reads: [CMP-Identity, CMP-Courses], migrations: true}
   - id: P2-T7
     title: Audit entries for registration, users and settings
-    description: "Listeners writing audit entries for organisation registration (OrganizationRegistered: action organization.registered, actor_type user with actor_id = new admin, subject organization, changes {subdomain}; one entry), role changes, user deactivation and organisation settings changes (OrganizationSettingsChanged: action organization.settings_changed, actor_type user with actor_id = actorId, subject organization, changes as dispatched; one entry per save); foreign key audit_entries.organization_id -> organizations.id (on delete restrict)"
-    depends_on: [P2-T1, P2-T3]
-    touches: {writes: [CMP-Audit], reads: [CMP-Identity, CMP-Tenancy], migrations: true}
+    description: "Listeners writing audit entries for organisation registration (OrganizationRegistered: action organization.registered, actor_type user with actor_id = new admin, subject organization, changes {subdomain}; one entry), role changes, user deactivation and organisation settings changes (OrganizationSettingsChanged: action organization.settings_changed, actor_type user with actor_id = actorId, subject organization, changes as dispatched; one entry per save), course space archiving (CourseSpaceArchived: action course_space.archived, actor_type user with actor_id = actorId, subject course_space, changes {removed_enrolments}; one entry); foreign key audit_entries.organization_id -> organizations.id (on delete restrict)"
+    depends_on: [P2-T1, P2-T3, P2-T8]
+    touches: {writes: [CMP-Audit], reads: [CMP-Identity, CMP-Tenancy, CMP-Courses], migrations: true}
+  - id: P2-T8
+    title: Archived course spaces hidden and emptied
+    description: "Realigns P2-T4 with DATA-012: archiving deletes all enrolments in the same transaction after a UI confirmation and dispatches CourseSpaceArchived; archived spaces are hidden from students (404) and visible only to the owning teacher and org admins; restore gives an empty active space; drop the viewResults-after-archive ability"
+    depends_on: [P2-T4]
+    use_cases: [UC-021]
+    touches: {writes: [CMP-Courses]}

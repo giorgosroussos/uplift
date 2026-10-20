@@ -1,0 +1,57 @@
+id: CR-P2-T5-1
+raised_by: implementation-agent
+task: P2-T5
+status: accepted
+problem: >
+  UC-008 ("Teacher posts announcements in a course space; students read
+  them") and ENT-Announcement leave the following undefined or contradictory:
+  (a) Storage. P2-T5 has touches.migrations false (brief: "migrations: no"),
+  but no announcements table exists on main, so ENT-Announcement cannot be
+  stored without a migration. The schema needs decisions on what happens to
+  author_id when the author user is deleted, and on soft deletes (DATA-007's
+  decision text lists Announcement as soft-deleted, but ENT-Announcement
+  itself says nothing about it).
+  (b) Edit and delete. UC-008 covers posting and reading only. May the
+  owning teacher edit or delete an announcement? If editing is allowed,
+  does an edit notify the students again (DEC-001, AnnouncementPublished)?
+  (c) Readers. Who may read announcements? OWN-004 lets an org admin view
+  every course space of the organisation, and SEC-007 restricts only
+  grades, answers and submissions, so whether org admins see announcements
+  is undefined. Also undefined: whether enrolled students still read them
+  once the space is archived, and whether students who are not enrolled see
+  them on a space they can open through the catalogue.
+  (d) Status. May the teacher post (or edit) in an archived space, or only
+  in an active one?
+  (e) published_at. The attribute is nullable, but nothing says whether
+  announcements can be drafts (null) or scheduled for later, or whether
+  posting publishes at once.
+affects: [UC-008, ENT-Announcement, CMP-Courses, P2-T5, P2-T6, DEC-001, DATA-007, OWN-004]
+proposal: >
+  Confirm the implementation already on branch P2-T5 (commit 3ce7714), or
+  say what to change:
+  (a) P2-T5 gets migrations: true. Add an announcements table in CMP-Courses
+  with a composite FK (organization_id, course_space_id) to course_spaces
+  (cascade on delete, as the relation says) and author_id FK to users with
+  restrict on delete (the same as course_spaces.teacher_id). The table is
+  soft-deleted (deleted_at), following DATA-007.
+  (b) Only the owning teacher of the space edits (title, body) and
+  soft-deletes announcements. An edit keeps published_at and does not
+  dispatch AnnouncementPublished again, so students are not notified again.
+  (c) The owning teacher and the enrolled students read the space's
+  announcements, also after the space is archived. Org admins, other
+  teachers and students who are not enrolled see none.
+  (d) The owning teacher may post, edit and delete whatever the space's
+  status is, like the existing update ability.
+  (e) There are no drafts or scheduling. Posting sets published_at to now and
+  dispatches App\Modules\Courses\Events\AnnouncementPublished(organizationId,
+  courseSpaceId, announcementId, authorId) after commit, for P2-T6 to use.
+resolution: >
+  Accepted in design v2.0.0. DATA-013 records the proposal (a), (b), (c), (e)
+  as is: announcements table with migrations, owner edits/soft-deletes
+  without re-notifying, readers = owning teacher + enrolled students, no
+  drafts, AnnouncementPublished after commit. (d) changed: the teacher may
+  post and edit in an archived space, but nothing is dispatched there.
+  Wider change by the engineer (DATA-012): archiving deletes all enrolments
+  and hides the space from students; realigned in new task P2-T8, audited
+  by P2-T7 (course_space.archived). UC-008 has a flow and criteria; the
+  UC-021 criterion "students can view their results" is replaced.

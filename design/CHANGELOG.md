@@ -1,5 +1,9 @@
 # Design changelog
 
+## v2.0.0 — 2026-10-20
+
+- Announcements specified; archiving a course space hides it from students and deletes its enrolments (new task P2-T8) (CR-P2-T5-1)
+
 ## v1.4.0 — 2026-10-20
 
 - Organisation settings: Tenancy authorisation contract, fixed subdomain, settings effect and change event (CR-P2-T3-1)

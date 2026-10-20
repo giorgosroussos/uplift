@@ -97,7 +97,7 @@ entities:
       - {name: course_space_id, type: uuid, ref: ENT-CourseSpace, required: true}
       - {name: student_id, type: uuid, ref: ENT-User, required: true}
       - {name: enrolled_at, type: timestamp, required: true}
-    retention: "Kept with the course space; follows the student's erasure (SEC-003)"
+    retention: "Deleted when the course space is archived (DATA-012); follows the student's erasure (SEC-003)"
     used_by: [UC-011, UC-021]
 
   - id: ENT-Announcement

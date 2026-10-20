@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v1.4.0 · source cc1c2e1e847f_
+_Generated document · design v2.0.0 · source 6e9830763376_
 
 
 ## Actors
@@ -217,6 +217,23 @@ Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: See notifications groupe
 
 Actors: ACT-Teacher, ACT-Student · Goal: Teacher posts announcements in a course space; students read them
 
+Main flow:
+1. Teacher opens their course space and posts an announcement with title and body; it is published at once
+2. Enrolled students are notified (P2-T6) and read it in the course space, newest first
+3. The teacher may edit or delete it later; an edit notifies nobody
+
+Exceptions:
+- Not the owning teacher: posting, editing and deleting are refused
+- Archived space: the teacher may still post and edit, but nobody is notified and students cannot see the space (DATA-012)
+
+Acceptance criteria:
+- Given teacher A owns space S, When A posts 'Exam moved', Then it is shown to A and to every student enrolled in S, with published_at set, and AnnouncementPublished is dispatched once
+- Given space S of teacher A, When teacher B, an org admin or a student tries to post, edit or delete in S, Then it is refused and nothing changes
+- Given an announcement in S, When a student not enrolled in S, another teacher or an org admin requests S's announcements, Then none is shown
+- Given A edits an announcement, Then title and body change, published_at is unchanged and no AnnouncementPublished is dispatched
+- Given A deletes an announcement, Then it is soft-deleted and no longer shown
+- Given S is archived, When A posts, Then it is stored and no AnnouncementPublished is dispatched
+
 #### UC-010 — Student dashboard (should)
 
 Actors: ACT-Student · Goal: See enrolled spaces, upcoming activities and deadlines, recent grades, gamification snapshot
@@ -376,7 +393,7 @@ Actors: ACT-Teacher · Goal: Create and edit a course space and manage its enrol
 
 Main flow:
 1. Teacher creates a course space with title, description and enrolment policy (open or enrolment key)
-2. Edits it, archives it when the course ends
+2. Edits it, archives it when the course ends after confirming that all students are unenrolled (DATA-012)
 3. Views enrolled students, adds or removes students
 
 Exceptions:
@@ -384,7 +401,10 @@ Exceptions:
 
 Acceptance criteria:
 - Given a teacher, When they create a course space, Then they are its owner and it is visible only within their organisation
-- Given an archived course space, Then students can view their results but cannot submit to its activities
+- Given space S with 3 enrolled students, When its teacher archives it, Then S has no enrolments and one CourseSpaceArchived with removedEnrolments 3 is dispatched
+- Given an archived space S, When a formerly enrolled student lists their spaces, browses the catalogue or opens S, Then S is absent and opening it returns 404
+- Given an archived space S, When its teacher or an org admin of the organisation opens it, Then they can view it
+- Given an archived space S, When its teacher restores it, Then S is active with no enrolments
 - Given a space owned by teacher A, When teacher B tries to edit it or its activities, Then it is refused
 - Given an org admin, When they open any course space of their organisation, Then they can view it
 
