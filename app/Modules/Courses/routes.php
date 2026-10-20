@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Courses\Http\Controllers\AnnouncementController;
 use App\Modules\Courses\Http\Controllers\CatalogueController;
 use App\Modules\Courses\Http\Controllers\CourseSpaceController;
 use App\Modules\Courses\Http\Controllers\CourseSpaceStatusController;
@@ -34,4 +35,13 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
     Route::delete('courses/{courseSpace}/students/{enrolment}', [CourseStudentController::class, 'destroy'])
         ->scopeBindings()
         ->name('courses.students.destroy');
+
+    // UC-008: announcements are read on the course space page.
+    Route::post('courses/{courseSpace}/announcements', [AnnouncementController::class, 'store'])->name('courses.announcements.store');
+    Route::put('courses/{courseSpace}/announcements/{announcement}', [AnnouncementController::class, 'update'])
+        ->scopeBindings()
+        ->name('courses.announcements.update');
+    Route::delete('courses/{courseSpace}/announcements/{announcement}', [AnnouncementController::class, 'destroy'])
+        ->scopeBindings()
+        ->name('courses.announcements.destroy');
 });

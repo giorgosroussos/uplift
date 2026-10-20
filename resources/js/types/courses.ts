@@ -51,6 +51,19 @@ export type StudentOption = {
     email: string;
 };
 
+export type Announcement = {
+    id: string;
+    title: string;
+    body: string;
+    author: string;
+    published_at: string | null;
+};
+
+export type AnnouncementForm = {
+    title: string;
+    body: string;
+};
+
 export type Paginated<T> = {
     data: T[];
     current_page: number;

@@ -73,6 +73,23 @@ class CourseSpacePolicy
     }
 
     /**
+     * Post, edit and delete announcements of the space (UC-008, SCOPE-007).
+     */
+    public function manageAnnouncements(User $actor, CourseSpace $space): bool
+    {
+        return $this->owns($actor, $space);
+    }
+
+    /**
+     * Read the announcements of the space (UC-008): its owning teacher and
+     * its enrolled students, also once archived.
+     */
+    public function viewAnnouncements(User $actor, CourseSpace $space): bool
+    {
+        return $this->owns($actor, $space) || $this->viewResults($actor, $space);
+    }
+
+    /**
      * A student enrols only in an active space of their organisation; the
      * enrolment key is checked by the action.
      */

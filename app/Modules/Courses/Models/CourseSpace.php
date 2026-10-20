@@ -170,6 +170,14 @@ class CourseSpace extends Model
     }
 
     /**
+     * @return HasMany<Announcement, $this>
+     */
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(Announcement::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
