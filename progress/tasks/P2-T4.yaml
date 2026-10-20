@@ -1,0 +1,9 @@
+id: P2-T4
+status: ready_to_merge
+commit: 617c433
+handoff: |
+  app/Modules/Courses: Models/CourseSpace (tenant-scoped, Enums/CourseSpaceStatus state model via transitionTo(), Enums/EnrolmentPolicy, enrolment_key hidden, isOwnedBy/hasEnrolled/acceptsKey) and Models/Enrolment (unique org+space+student, composite FK to course_spaces(organization_id,id)); factories ->withKey(), ->archived().
+  Policies/CourseSpacePolicy (OWN-004; Gate abilities for later modules: manageActivities = owner, participate = enrolled + active, viewResults = enrolled) and Policies/EnrolmentPolicy (OWN-003); teachers view only own spaces, org admins view all (count only, no students/key).
+  Actions: Create/Update/ChangeCourseSpaceStatus, EnrolInCourseSpace (idempotent, wrong key/archived -> validation error), EnrolStudent, Add/RemoveStudentFromCourseSpace, ListCourseSpaces, BrowseCatalogue, ShowCourseSpace.
+  Routes (routes.php, tenant+auth+verified): /courses, /courses/{id}[/edit|/archive|/restore|/enrolment|/students], /catalogue; limiter 'enrolment-key' 10/min/user. Pages resources/js/pages/Courses/*, strings lang/{en,el}/courses.php, sidebar items in AppSidebar.vue.
+  Tests: tests/Feature/Courses/{CourseSpace,Enrolment,CourseOwnership}Test.php, tests/Browser/CourseSpaceTest.php.
