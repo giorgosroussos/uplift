@@ -164,6 +164,8 @@ it('refuses a user without a password (SSO-only account)', function () {
 });
 
 it('rejects a 6th attempt within the minute after 5 failed ones without checking the password', function () {
+    $this->freezeTime();
+
     foreach (range(1, 5) as $attempt) {
         $this->withServerVariables(['REMOTE_ADDR' => "10.0.0.{$attempt}"])
             ->post($this->tenantUrl($this->acme, 'login'), credentials(password: 'wrong-password'))

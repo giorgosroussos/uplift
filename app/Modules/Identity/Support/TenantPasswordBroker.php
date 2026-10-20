@@ -11,10 +11,11 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Hashing\Hasher;
 
 /**
- * Sending a reset link costs the same whether or not the email has an
- * account (UC-004): an unknown email and a throttled request pay a dummy
- * token hash inside the framework's Timebox, because hashing the real token
- * with argon2id takes longer than the Timebox itself.
+ * Sending a reset link and resetting a password cost the same whether or not
+ * the email has an account (UC-004): an unknown email and a throttled request
+ * pay a dummy token hash, and an unknown email pays a dummy token check,
+ * inside the framework's Timebox, because argon2id takes longer than the
+ * Timebox itself.
  */
 class TenantPasswordBroker extends PasswordBroker
 {
@@ -26,6 +27,26 @@ class TenantPasswordBroker extends PasswordBroker
         int $timeboxDuration = 200000,
     ) {
         parent::__construct($tokens, $users, $dispatcher, timeboxDuration: $timeboxDuration);
+    }
+
+    /**
+     * An unknown email pays the same token check as a registered one.
+     *
+     * @param  array<string, mixed>  $credentials
+     */
+    protected function validateReset(#[\SensitiveParameter] array $credentials)
+    {
+        if (is_null($user = $this->getUser($credentials))) {
+            EqualWork::check($this->hasher, (string) ($credentials['token'] ?? ''));
+
+            return static::INVALID_USER;
+        }
+
+        if (! $this->tokens->exists($user, (string) ($credentials['token'] ?? ''))) {
+            return static::INVALID_TOKEN;
+        }
+
+        return $user;
     }
 
     /**

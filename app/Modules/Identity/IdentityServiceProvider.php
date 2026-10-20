@@ -7,6 +7,7 @@ use App\Modules\Identity\Actions\ResetUserPassword;
 use App\Modules\Identity\Contracts\IdentityProviderResolver;
 use App\Modules\Identity\Http\LoginPage;
 use App\Modules\Identity\Http\Middleware\EnsureAccountIsActive;
+use App\Modules\Identity\Http\Responses\PasswordResetFailedResponse;
 use App\Modules\Identity\Http\Responses\PasswordResetLinkRequestedResponse;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Policies\UserPolicy;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Contracts\FailedPasswordResetResponse;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\LoginRateLimiter;
@@ -48,6 +50,7 @@ class IdentityServiceProvider extends ModuleServiceProvider
 
         $this->app->bind(SuccessfulPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestedResponse::class);
         $this->app->bind(FailedPasswordResetLinkRequestResponse::class, PasswordResetLinkRequestedResponse::class);
+        $this->app->bind(FailedPasswordResetResponse::class, PasswordResetFailedResponse::class);
 
         if (! $this->app->isProduction()) {
             $this->app->singleton(UncompromisedVerifier::class, OfflineUncompromisedVerifier::class);
