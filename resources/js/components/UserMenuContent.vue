@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut } from '@lucide/vue';
+import { LogOut, Settings } from '@lucide/vue';
 import {
     DropdownMenuItem,
     DropdownMenuLabel,
@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
 import { logout } from '@/routes';
+import { edit as profileSettings } from '@/routes/settings/profile';
 import type { User } from '@/types';
 
 type Props = {
@@ -27,6 +28,17 @@ defineProps<Props>();
             <UserInfo :user="user" :show-email="true" />
         </div>
     </DropdownMenuLabel>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem :as-child="true">
+        <Link
+            class="block w-full cursor-pointer"
+            :href="profileSettings()"
+            data-test="settings-link"
+        >
+            <Settings class="mr-2 h-4 w-4" />
+            {{ $t('profile.nav') }}
+        </Link>
+    </DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
         <Link

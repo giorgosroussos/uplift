@@ -11,7 +11,9 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * UC-032 step 3: an org admin changes a user's role. The last active org
- * admin cannot be demoted. Dispatches UserRoleChanged (audited, SEC-010).
+ * admin cannot be demoted. A user who stops being an org admin loses their
+ * MFA in the same transaction (SEC-012). Dispatches UserRoleChanged
+ * (audited, SEC-010).
  */
 final class ChangeUserRole
 {
@@ -34,7 +36,18 @@ final class ChangeUserRole
             }
 
             $from = $locked->role;
-            $locked->forceFill(['role' => $role])->save();
+            $changes = ['role' => $role];
+
+            // MFA is offered only to org admins (SEC-011, SEC-012).
+            if ($from === Role::OrgAdmin) {
+                $changes += [
+                    'two_factor_secret' => null,
+                    'two_factor_recovery_codes' => null,
+                    'two_factor_confirmed_at' => null,
+                ];
+            }
+
+            $locked->forceFill($changes)->save();
 
             return $from;
         });
