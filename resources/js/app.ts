@@ -6,8 +6,13 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import { initializeEcho } from '@/lib/echo';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { resolveLanguage } from '@/lib/i18n';
+import { initializeOrganizationTheme } from '@/lib/organizationTheme';
 
 initializeEcho();
+
+// The organisation's accent colour as primary colour (DATA-011); registered
+// before the app starts so the first page is themed too.
+initializeOrganizationTheme();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Uplift';
 
