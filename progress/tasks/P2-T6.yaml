@@ -1,0 +1,5 @@
+id: P2-T6
+status: blocked
+commit: null
+handoff: |
+  Blocked on progress/requests/CR-P2-T6-1.yaml: invitation 'email not delivered' + resend needs Identity writes and an ENT-Invitation attribute; UC-007 grouping/centre and announcement notification content are undefined. Nothing implemented yet.
