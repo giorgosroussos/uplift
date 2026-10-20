@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\Model;
  * Entries are never updated or deleted by application code; only the
  * retention prune (2 years) removes them, as a mass delete.
  *
+ * Deliberately not tenant-scoped (no BelongsToOrganization): organization_id
+ * is null for platform-level actions and only platform admins read entries
+ * (SEC-006); the exemption is listed in tests/Architecture/TenantIsolationTest.
+ *
  * @property string $id
  * @property string|null $organization_id
  * @property ActorType $actor_type
