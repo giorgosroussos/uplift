@@ -1,0 +1,5 @@
+id: P2-T2
+status: blocked
+commit: none
+handoff: |
+  Blocked on progress/requests/CR-P2-T2-1.yaml: TOTP MFA needs users columns but the task has no migrations; profile field scope undefined.

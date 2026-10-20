@@ -1,0 +1,54 @@
+id: CR-P2-T2-1
+raised_by: implementation-agent
+task: P2-T2
+status: open
+problem: >
+  P2-T2 ("Profile, nickname, language and optional MFA for org admins",
+  UC-006 "Edit personal details, password and notification preferences")
+  cannot be built from the spec as it stands:
+  (a) MFA storage. SEC-011 / the security decision require optional TOTP MFA
+  via Fortify for ROLE-OrgAdmin. TOTP needs a per-user secret, recovery codes
+  and a confirmation timestamp. ENT-User has no such attributes, no users
+  column on main holds them, and P2-T2 has touches.migrations false (brief:
+  "migrations: no"). There is no other entity to store them in.
+  (b) MFA behaviour. Undefined: whether enabling requires confirming a first
+  code and re-entering the password; what an org admin who enabled MFA loses
+  when demoted to teacher/student (MFA is "not offered to teachers and
+  students"); whether an org admin may reset another admin's MFA; rate limit
+  of the two-factor challenge at login.
+  (c) Personal details. Undefined which fields a user may edit: may the email
+  be changed (it must stay unique platform-wide, SEC-004, and re-verified)?
+  May students edit date_of_birth / is_minor? Is the avatar an uploaded image
+  (SEC-010 lists accepted uploads only for logo and CSV, so no type/size/disk
+  rule exists for avatars) or a choice from a preset set?
+  (d) Nickname rules. Only "unique within the organisation" is given
+  (security decision); no length or allowed characters.
+  (e) Notification preferences. UC-006 names them, but no entity or attribute
+  stores them, the task title omits them, and DEC-001 does not say whether a
+  user may opt out of the listed email kinds.
+  (f) Account deletion. The starter kit's profile page offers "delete
+  account"; erasure is governed by SEC-003 / UC-039. Should P2-T2 offer it?
+affects: [UC-006, ENT-User, CMP-Identity, P2-T2, SEC-011, SEC-010, SEC-004, DEC-001, P2-T6]
+proposal: >
+  (a) P2-T2 gets migrations: true. Add to ENT-User / users:
+  two_factor_secret (text, nullable, sensitive, encrypted),
+  two_factor_recovery_codes (text, nullable, sensitive, encrypted),
+  two_factor_confirmed_at (timestamptz, nullable); User uses Fortify's
+  TwoFactorAuthenticatable. These fields MUST NOT be logged.
+  (b) Fortify Features::twoFactorAuthentication(confirm: true,
+  confirmPassword: true); enabling/disabling allowed only to ROLE-OrgAdmin
+  (403 for others, settings hidden); login challenge rate-limited 5/min per
+  login session; when an org admin's role changes away from org_admin, their
+  2FA columns are cleared in the same transaction; no admin-initiated reset
+  in this phase.
+  (c) Editable: name, nickname, avatar, locale (el | en | null = organisation
+  default). Email, role, date_of_birth and is_minor are not editable by the
+  user. Avatar: png or jpg up to 2 MB, stored on a private Storage disk and
+  served through a tenant route authorised like the user (or drop avatar
+  editing from P2-T2 if a preset set is preferred).
+  (d) Nickname: 3-30 characters, letters (any script), digits, '_' , '-' and
+  '.', trimmed, unique per organisation case-insensitively.
+  (e) Notification preferences are not part of P2-T2; P2-T6 or a later task
+  owns them if wanted (decide whether DEC-001 emails may be opted out of).
+  (f) No account deletion in P2-T2 (left to UC-039). Password change requires
+  the current password, applies SEC-010 rules and invalidates other sessions.
