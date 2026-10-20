@@ -1,0 +1,40 @@
+id: CR-P1-T4-1
+raised_by: implementation-agent
+task: P1-T4
+status: open
+problem: >
+  UC-001 collects only organisation name, subdomain and the admin's name,
+  email and password, but ENT-Organization requires student_term_el,
+  student_term_en, teacher_term_el, teacher_term_en, grading_scale,
+  leaderboard_enabled and default_locale (all required, no defaults in
+  design/model/data.yaml or the organizations migration). The design does not
+  say which values a newly registered organisation gets, nor whether the
+  sign-up form should ask for any of them (DATA decision "each organisation
+  chooses its grading scale"). These values drive grading display, the
+  leaderboard and the language of mails, so they are product decisions.
+  Secondary gaps in the same flow:
+  (a) Session cookies are host-only (SEC-010), so the admin cannot stay logged
+  in when redirected from the apex domain to the subdomain. Where exactly does
+  step 5 land (the subdomain login page with a "check your email to verify"
+  notice?), and is the verification mail sent at registration?
+  (b) "Rate-limit organisation registration to 3 per hour per IP": does every
+  submitted sign-up count (including ones rejected by validation, e.g. a taken
+  subdomain), or only successful registrations?
+affects:
+  - design/model/data.yaml (ENT-Organization initial values)
+  - design/model/use-cases.yaml (UC-001 steps 2-5)
+  - design/decisions/security.yaml (SEC-010 registration rate limit)
+  - P1-T4
+proposal: >
+  Initial values on registration: student_term_el "Μαθητής",
+  student_term_en "Student", teacher_term_el "Καθηγητής", teacher_term_en
+  "Teacher", grading_scale scale_0_10, leaderboard_enabled true,
+  default_locale = the UI locale the visitor used for sign-up (el or en);
+  none asked on the form, all changeable later via UC-033.
+  (a) Send the verification mail (queued) at registration and redirect to
+  the organisation subdomain's login page, which shows a notice that a
+  verification link was sent; the admin logs in there and reaches the
+  verify-email page until verified.
+  (b) Count only successful registrations (3 per hour per IP), so failed
+  validation does not lock out a visitor; the live subdomain check gets its
+  own generous limit (60 per minute per IP).

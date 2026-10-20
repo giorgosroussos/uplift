@@ -1,0 +1,5 @@
+id: P1-T4
+status: blocked
+commit: null
+handoff: |
+  Blocked on progress/requests/CR-P1-T4-1.yaml (initial values of a registered organisation, post-registration landing, rate-limit counting). No code yet.
