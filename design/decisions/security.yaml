@@ -127,3 +127,18 @@ decisions:
     constraints: ["MUST require TOTP MFA for ROLE-PlatformAdmin", "MUST offer optional TOTP MFA to ROLE-OrgAdmin"]
     supersedes: SEC-001
     since: 0.1.0
+  - id: SEC-012
+    area: security
+    title: Optional MFA for org admins
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "TOTP MFA through Fortify (confirm: true, confirmPassword: true), offered only to org admins. The secret and recovery codes are stored encrypted on the user. The two-factor challenge at login is limited to 5 attempts per minute per login session. When a user stops being an org admin, their MFA is cleared in the same transaction. No admin may reset another admin's MFA in this phase"
+    rationale: "Closes the MFA gaps of SEC-011 found in CR-P2-T2-1"
+    constraints:
+      - "MUST let only org admins enable or disable MFA; other roles get 403 and the settings are hidden"
+      - "MUST require the current password and a valid first TOTP code to enable MFA"
+      - "MUST rate-limit the two-factor challenge to 5 attempts per minute per login session"
+      - "MUST clear two_factor_secret, two_factor_recovery_codes and two_factor_confirmed_at in the same transaction that changes a user's role away from org_admin"
+    affects: [UC-006, P2-T2]
+    since: 2.1.0

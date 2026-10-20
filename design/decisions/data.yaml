@@ -152,3 +152,35 @@ decisions:
       - "MUST soft-delete announcements"
     affects: [UC-008, P2-T5, P2-T6]
     since: 2.0.0
+  - id: DATA-014
+    area: data
+    title: Profile fields, avatars and nicknames
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "A user edits their name, nickname, avatar and locale (el, en, or empty = organisation default). Email, role, date_of_birth and is_minor are not editable by the user. The avatar is chosen from 12 SVG avatars bundled with the app (keys avatar-01 to avatar-12); there are no uploads, and without a choice the UI shows the user's initials. Nicknames are 3-30 characters (letters of any script, digits, '_', '-', '.'), trimmed, unique within the organisation ignoring case. Password change requires the current password, applies SEC-010 and ends the user's other sessions. There is no self-service account deletion (UC-039)"
+    rationale: "Closes the profile gaps of CR-P2-T2-1; preset avatars keep photos of minors off leaderboards and live broadcasts"
+    alternatives_rejected: ["Uploaded avatar images: personal data of minors on leaderboards and broadcasts, plus a new upload rule"]
+    constraints:
+      - "MUST NOT let a user change their own email, role, date_of_birth or is_minor"
+      - "MUST accept as avatar only one of the keys avatar-01 to avatar-12, or empty"
+      - "MUST NOT accept avatar uploads"
+      - "MUST accept nicknames of 3-30 characters made of letters, digits, '_', '-' and '.', unique within the organisation ignoring case"
+      - "MUST require the current password to change the password and end the user's other sessions"
+      - "MUST NOT offer self-service account deletion"
+    affects: [UC-006, P2-T2]
+    since: 2.1.0
+  - id: DATA-015
+    area: data
+    title: Invitation delivery failure and resend
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "When the invitation email fails after its last retry (INT-001), Identity sets email_failed_at on the invitation and the Users page shows 'Email not delivered' with a Resend button. Any org admin of the organisation may resend a pending or expired invitation: a new token is issued (the old link stops working), expires_at restarts at 7 days, the invitation becomes pending, email_failed_at is cleared and the email is queued again"
+    rationale: "The invitation email, its list and ENT-Invitation belong to Identity, which may not depend on Notifications (CR-P2-T6-1)"
+    constraints:
+      - "MUST set email_failed_at from the invitation notification's failed hook after the last retry, logging ids only"
+      - "MUST let only org admins of the invitation's organisation resend it, and only while it is pending or expired"
+      - "MUST issue a new token on resend, invalidate the old one, restart expires_at at 7 days and clear email_failed_at"
+    affects: [UC-032, P2-T9]
+    since: 2.1.0

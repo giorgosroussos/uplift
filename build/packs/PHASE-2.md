@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-2 — Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications
 
-_design v2.0.0 · 6e9830763376_
+_design v2.1.0 · dcadfdfa5719_
 
 Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit
 
@@ -17,8 +17,9 @@ Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications |
 | P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3, P2-T8 | CMP-Audit |
 | P2-T8 | Archived course spaces hidden and emptied | P2-T4 | CMP-Courses |
+| P2-T9 | Invitation delivery failure and resend | P2-T1 | CMP-Identity |
 
-Execution waves: [P2-T1, P2-T4] → [P2-T2, P2-T5] → [P2-T3, P2-T6, P2-T8] → [P2-T7]
+Execution waves: [P2-T1, P2-T4] → [P2-T2, P2-T5] → [P2-T3, P2-T6, P2-T8] → [P2-T7, P2-T9]
 
 ## Out of scope (do not build)
 
@@ -57,7 +58,17 @@ Exceptions:
 
 #### UC-006 — Manage my profile (should)
 
-Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: Edit personal details, password and notification preferences
+Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: Edit name, nickname, avatar, language and password; org admins also manage optional MFA
+
+Main flow:
+1. User opens their settings and edits name, nickname, avatar (from the preset set) and language (el, en or organisation default)
+2. Changes the password by entering the current one; other sessions end
+3. An org admin enables MFA by confirming the password and a first TOTP code, and may disable it
+
+Exceptions:
+- Nickname taken in the organisation (ignoring case) or invalid: not saved, the field shows the reason
+- Wrong current password: password not changed
+- Email, role, date of birth and minor flag are shown but not editable
 
 #### UC-033 — Configure organisation (should)
 
@@ -113,7 +124,13 @@ Exceptions:
 
 #### UC-007 — View notifications (should)
 
-Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: See notifications grouped, mark read/unread
+Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: See notifications grouped by day, mark read/unread, and turn notification emails off
+
+Main flow:
+1. User sees the unread count on the bell in the header and opens the notification centre
+2. Notifications are listed newest first, grouped by day, 20 per page
+3. Opening one marks it read and goes to its target; the user may mark entries unread or mark all as read
+4. In their settings the user may turn DEC-001 notification emails off or on
 
 ## Entities
 
@@ -135,6 +152,9 @@ Owned by CMP-Identity · retention: While the account exists; erasure and anonym
 | email_verified_at | timestamp | timestamptz |  |
 | is_active | boolean | boolean | required |
 | locale | enum | string |  |
+| two_factor_secret | text | text | sensitive |
+| two_factor_recovery_codes | text | text | sensitive |
+| two_factor_confirmed_at | timestamp | timestamptz |  |
 
 Relations: one-to-many → ENT-Enrolment (on delete cascade); one-to-many → ENT-XpEvent (on delete cascade)
 
@@ -151,8 +171,9 @@ Owned by CMP-Identity · retention: Deleted 30 days after it stops being pending
 | invited_by | uuid | uuid | → ENT-User, required |
 | expires_at | timestamp | timestamptz | required |
 | status | enum | string | required |
+| email_failed_at | timestamp | timestamptz |  |
 
-States: initial `pending`; allowed transitions: `pending -> accepted`, `pending -> revoked`, `pending -> expired`
+States: initial `pending`; allowed transitions: `pending -> accepted`, `pending -> revoked`, `pending -> expired`, `expired -> pending`
 
 #### ENT-Organization — A tenant: school, university, tutoring centre or company
 
@@ -231,6 +252,16 @@ Owned by CMP-Notifications · retention: Deleted 180 days after creation · audi
 | data | json | jsonb | required |
 | read_at | timestamp | timestamptz |  |
 
+#### ENT-NotificationPreference — A user's choice to receive DEC-001 notification emails (one per user)
+
+Owned by CMP-Notifications · retention: While the account exists · audit: no
+
+| attribute | type | storage | notes |
+|---|---|---|---|
+| organization_id | uuid | uuid | → ENT-Organization, required |
+| user_id | uuid | uuid | → ENT-User, required, unique |
+| email_enabled | boolean | boolean | required |
+
 ## Interfaces
 
 #### Laravel Mail / Notification mail channel (INT-001: CMP-Notifications ↔ EXT-002)
@@ -303,15 +334,33 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST set published_at to the posting time; MUST NOT support drafts or scheduled announcements  (DATA-013)
 - MUST dispatch App\Modules\Courses\Events\AnnouncementPublished(organizationId, courseSpaceId, announcementId, authorId) after commit when posting in an active course space, and on no other occasion  (DATA-013)
 - MUST soft-delete announcements  (DATA-013)
+- MUST NOT let a user change their own email, role, date_of_birth or is_minor  (DATA-014)
+- MUST accept as avatar only one of the keys avatar-01 to avatar-12, or empty  (DATA-014)
+- MUST NOT accept avatar uploads  (DATA-014)
+- MUST accept nicknames of 3-30 characters made of letters, digits, '_', '-' and '.', unique within the organisation ignoring case  (DATA-014)
+- MUST require the current password to change the password and end the user's other sessions  (DATA-014)
+- MUST NOT offer self-service account deletion  (DATA-014)
+- MUST set email_failed_at from the invitation notification's failed hook after the last retry, logging ids only  (DATA-015)
+- MUST let only org admins of the invitation's organisation resend it, and only while it is pending or expired  (DATA-015)
+- MUST issue a new token on resend, invalidate the old one, restart expires_at at 7 days and clear email_failed_at  (DATA-015)
 - MUST NOT send email for notification kinds other than those listed in DEC-001  (DEC-001)
+- MUST create the in-app notification even when the email fails  (DEC-002)
+- MUST NOT put the announcement body or personal data in notification data or announcement emails  (DEC-002)
+- MUST NOT send DEC-001 notification emails to a user who turned them off; MUST always send account emails  (DEC-002)
+- MUST let a user read and change only their own notifications and notification preference  (DEC-002)
+- MUST send notification emails in the user's locale, else the organisation's default_locale  (DEC-002)
+- MUST let only org admins enable or disable MFA; other roles get 403 and the settings are hidden  (SEC-012)
+- MUST require the current password and a valid first TOTP code to enable MFA  (SEC-012)
+- MUST rate-limit the two-factor challenge to 5 attempts per minute per login session  (SEC-012)
+- MUST clear two_factor_secret, two_factor_recovery_codes and two_factor_confirmed_at in the same transaction that changes a user's role away from org_admin  (SEC-012)
 - MUST submit live answers through HTTP endpoints, never websocket client events (whisper)  (ARCH-006)
 - MUST derive client countdowns from server-sent ends_at and server_now  (ARCH-006)
 - MUST fall back to HTTP polling every 2 seconds when the websocket connection is lost  (ARCH-006)
 - MUST log external calls with ids only, never emails or names  (ARCH-006)
 - MUST authorise organisation settings in Tenancy's OrganizationPolicy through the OrganizationMember contract; MUST NOT reference Identity classes or role strings from Tenancy  (ARCH-008)
 - MUST allow updating an organisation's settings only to a user who implements OrganizationMember, belongs to that organisation and administers it  (ARCH-008)
-- MUST NOT write ENT-User fields name, nickname, email, password, date_of_birth, is_minor to logs or error messages
-- MUST encrypt ENT-User fields password at rest
+- MUST NOT write ENT-User fields name, nickname, email, password, date_of_birth, is_minor, two_factor_secret, two_factor_recovery_codes to logs or error messages
+- MUST encrypt ENT-User fields password, two_factor_secret, two_factor_recovery_codes at rest
 - MUST reject ENT-Invitation state transitions that are not listed in its state model
 - MUST NOT write ENT-Invitation fields email, token_hash to logs or error messages
 - MUST encrypt ENT-Invitation fields token_hash at rest
@@ -364,6 +413,14 @@ Standing constraints from deferred decisions (apply now):
 - [UC-032] Given an organisation with exactly 1 active org admin, When that admin deactivates or demotes themselves, Then it is rejected
 - [UC-032] Given a deactivated user with an open session, When they make their next request, Then they are logged out
 - [UC-032] Given an admin of 'acme', When they request the user list, Then no user of another organisation appears
+- [UC-006] Given a student of 'acme', When they set nickname 'Fox_7', avatar avatar-03 and language en, Then these are saved and leaderboards and broadcasts use them
+- [UC-006] Given a user 'Fox_7' in 'acme', When another user of 'acme' sets nickname 'fox_7', Then it is rejected; a user of 'beta' may use it
+- [UC-006] Given nicknames 'ab', a 31-character one, 'fox 7' and 'fox@7', When saved, Then each is rejected; 'Αλεπού.7' is accepted
+- [UC-006] Given a user, When they submit a new email, role, date_of_birth or is_minor, Then none changes
+- [UC-006] Given a user with two sessions, When they change their password with the correct current one, Then the other session is logged out; with a wrong current one nothing changes
+- [UC-006] Given a teacher or student, When they try to enable MFA, Then it is refused with 403
+- [UC-006] Given an org admin with MFA, When an admin demotes them to teacher, Then their MFA columns are empty and they log in without a code
+- [UC-006] Given an org admin with MFA, When they enter 6 wrong codes within a minute, Then the 6th attempt is throttled
 - [UC-033] Given an org admin of 'acme', When they set accent colour #1A2B3C and leaderboard off, Then acme's settings are saved and the shared prop organization shows them
 - [UC-033] Given a teacher or student of 'acme', When they try to view or update acme's settings, Then the request is refused with 403
 - [UC-033] Given an org admin of 'beta', When they try to update acme's settings, Then the request is refused and acme is unchanged
@@ -389,6 +446,12 @@ Standing constraints from deferred decisions (apply now):
 - [UC-008] Given A edits an announcement, Then title and body change, published_at is unchanged and no AnnouncementPublished is dispatched
 - [UC-008] Given A deletes an announcement, Then it is soft-deleted and no longer shown
 - [UC-008] Given S is archived, When A posts, Then it is stored and no AnnouncementPublished is dispatched
+- [UC-007] Given teacher A posts in space S with enrolled students X and Y, Then X and Y each get one announcement_published entry and one queued email in their locale with the space name, title and link, and A gets none
+- [UC-007] Given the mail transport fails for X, Then X still has the in-app entry
+- [UC-007] Given X turned notification emails off, When A posts, Then X gets the in-app entry and no email; a password reset email is still sent to X
+- [UC-007] Given X has 3 unread notifications, When X marks all as read, Then the bell shows 0
+- [UC-007] Given user X, When they request or mark the notifications of user Y, Then it is refused and nothing changes
+- [UC-007] Given an announcement is deleted after posting, When X opens its notification, Then the course space opens without it; if S is archived, Then it returns 404
 - [OWN-001] Given a ROLE-Student user, When they read or modify an ENT-User record the rule does not grant them (A student or teacher reads and edits only their own user record; an org admin manages only users of their own organisation), Then access is denied and nothing changes
 - [OWN-001] Given a ROLE-Teacher user, When they read or modify an ENT-User record the rule does not grant them (A student or teacher reads and edits only their own user record; an org admin manages only users of their own organisation), Then access is denied and nothing changes
 - [OWN-001] Given a ROLE-OrgAdmin user, When they read or modify an ENT-User record the rule does not grant them (A student or teacher reads and edits only their own user record; an org admin manages only users of their own organisation), Then access is denied and nothing changes

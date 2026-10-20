@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Security and compliance
 
-_Generated document · design v2.0.0 · source 6e9830763376_
+_Generated document · design v2.1.0 · source dcadfdfa5719_
 
 
 ## Trust boundaries
@@ -107,6 +107,8 @@ flowchart LR
 | ENT-User | password | sensitive | While the account exists; erasure and anonymisation periods are set by SEC-003 |
 | ENT-User | date_of_birth | personal | While the account exists; erasure and anonymisation periods are set by SEC-003 |
 | ENT-User | is_minor | personal | While the account exists; erasure and anonymisation periods are set by SEC-003 |
+| ENT-User | two_factor_secret | sensitive | While the account exists; erasure and anonymisation periods are set by SEC-003 |
+| ENT-User | two_factor_recovery_codes | sensitive | While the account exists; erasure and anonymisation periods are set by SEC-003 |
 | ENT-Invitation | email | personal | Deleted 30 days after it stops being pending |
 | ENT-Invitation | token_hash | sensitive | Deleted 30 days after it stops being pending |
 | ENT-TopicProposal | description | personal | Kept with the activity; follows the student's erasure (SEC-003) |
@@ -134,3 +136,4 @@ flowchart LR
 | SEC-009 | Poll anonymity for teachers | decided | Teachers see vote counts per option only; never who voted or what any student voted |
 | SEC-010 | Security baseline | decided (default) | argon2id passwords (min 8, uncompromised check); host-only session cookie per subdomain with CSRF; private/presence Reverb channels authorised by the same Policies; rate limits; audit log; restricted uploads; security headers; dependency audits; OWASP Top 10 baseline; GDPR in scope, no PCI |
 | SEC-011 | Authentication (official Vue starter kit) | decided | Authentication comes from the official Laravel Vue starter kit (Inertia + Vue + TypeScript, auth on Laravel Fortify) instead of the unmaintained Breeze. Email and password; TOTP MFA via Fortify, required for platform admins, optional for org admins, not offered to teachers and students; SSO via Socialite deferred (EXT-001) |
+| SEC-012 | Optional MFA for org admins | decided (inferred) | TOTP MFA through Fortify (confirm: true, confirmPassword: true), offered only to org admins. The secret and recovery codes are stored encrypted on the user. The two-factor challenge at login is limited to 5 attempts per minute per login session. When a user stops being an org admin, their MFA is cleared in the same transaction. No admin may reset another admin's MFA in this phase |

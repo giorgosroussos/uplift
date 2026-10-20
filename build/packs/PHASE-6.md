@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-6 — Gamification: XP ledger, levels, badges, per-course-space leaderboards
 
-_design v2.0.0 · 6e9830763376_
+_design v2.1.0 · dcadfdfa5719_
 
 Depends on: PHASE-5 · environment: development · components: CMP-Gamification
 

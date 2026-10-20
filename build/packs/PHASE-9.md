@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-9 — Ready for real users: GDPR and minors hardening, production hosting and operations, remaining could use cases
 
-_design v2.0.0 · 6e9830763376_
+_design v2.1.0 · dcadfdfa5719_
 
 Depends on: PHASE-7, PHASE-8 · environment: development · components: CMP-Identity, CMP-Notifications, CMP-Tenancy
 
@@ -54,6 +54,9 @@ Owned by CMP-Identity · retention: While the account exists; erasure and anonym
 | email_verified_at | timestamp | timestamptz |  |
 | is_active | boolean | boolean | required |
 | locale | enum | string |  |
+| two_factor_secret | text | text | sensitive |
+| two_factor_recovery_codes | text | text | sensitive |
+| two_factor_confirmed_at | timestamp | timestamptz |  |
 
 Relations: one-to-many → ENT-Enrolment (on delete cascade); one-to-many → ENT-XpEvent (on delete cascade)
 
@@ -88,8 +91,8 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 ## Constraints
 
 - MUST make the deploy script refuse or wait while any live session has status running  (OPS-002)
-- MUST NOT write ENT-User fields name, nickname, email, password, date_of_birth, is_minor to logs or error messages
-- MUST encrypt ENT-User fields password at rest
+- MUST NOT write ENT-User fields name, nickname, email, password, date_of_birth, is_minor, two_factor_secret, two_factor_recovery_codes to logs or error messages
+- MUST encrypt ENT-User fields password, two_factor_secret, two_factor_recovery_codes at rest
 - Emails are validated and compared case-insensitively.  (type email)
 - Timestamps are stored in UTC.  (type timestamp)
 - MUST enforce OWN-001 on every read and write of ENT-User: A student or teacher reads and edits only their own user record; an org admin manages only users of their own organisation

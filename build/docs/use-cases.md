@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v2.0.0 · source 6e9830763376_
+_Generated document · design v2.1.0 · source dcadfdfa5719_
 
 
 ## Actors
@@ -207,11 +207,45 @@ Acceptance criteria:
 
 #### UC-006 — Manage my profile (should)
 
-Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: Edit personal details, password and notification preferences
+Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: Edit name, nickname, avatar, language and password; org admins also manage optional MFA
+
+Main flow:
+1. User opens their settings and edits name, nickname, avatar (from the preset set) and language (el, en or organisation default)
+2. Changes the password by entering the current one; other sessions end
+3. An org admin enables MFA by confirming the password and a first TOTP code, and may disable it
+
+Exceptions:
+- Nickname taken in the organisation (ignoring case) or invalid: not saved, the field shows the reason
+- Wrong current password: password not changed
+- Email, role, date of birth and minor flag are shown but not editable
+
+Acceptance criteria:
+- Given a student of 'acme', When they set nickname 'Fox_7', avatar avatar-03 and language en, Then these are saved and leaderboards and broadcasts use them
+- Given a user 'Fox_7' in 'acme', When another user of 'acme' sets nickname 'fox_7', Then it is rejected; a user of 'beta' may use it
+- Given nicknames 'ab', a 31-character one, 'fox 7' and 'fox@7', When saved, Then each is rejected; 'Αλεπού.7' is accepted
+- Given a user, When they submit a new email, role, date_of_birth or is_minor, Then none changes
+- Given a user with two sessions, When they change their password with the correct current one, Then the other session is logged out; with a wrong current one nothing changes
+- Given a teacher or student, When they try to enable MFA, Then it is refused with 403
+- Given an org admin with MFA, When an admin demotes them to teacher, Then their MFA columns are empty and they log in without a code
+- Given an org admin with MFA, When they enter 6 wrong codes within a minute, Then the 6th attempt is throttled
 
 #### UC-007 — View notifications (should)
 
-Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: See notifications grouped, mark read/unread
+Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: See notifications grouped by day, mark read/unread, and turn notification emails off
+
+Main flow:
+1. User sees the unread count on the bell in the header and opens the notification centre
+2. Notifications are listed newest first, grouped by day, 20 per page
+3. Opening one marks it read and goes to its target; the user may mark entries unread or mark all as read
+4. In their settings the user may turn DEC-001 notification emails off or on
+
+Acceptance criteria:
+- Given teacher A posts in space S with enrolled students X and Y, Then X and Y each get one announcement_published entry and one queued email in their locale with the space name, title and link, and A gets none
+- Given the mail transport fails for X, Then X still has the in-app entry
+- Given X turned notification emails off, When A posts, Then X gets the in-app entry and no email; a password reset email is still sent to X
+- Given X has 3 unread notifications, When X marks all as read, Then the bell shows 0
+- Given user X, When they request or mark the notifications of user Y, Then it is refused and nothing changes
+- Given an announcement is deleted after posting, When X opens its notification, Then the course space opens without it; if S is archived, Then it returns 404
 
 #### UC-008 — Post and read announcements (should)
 

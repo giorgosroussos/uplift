@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v2.0.0 · source 6e9830763376_
+_Generated document · design v2.1.0 · source dcadfdfa5719_
 
 
 ## Phase map
@@ -157,13 +157,14 @@ Depends on: PHASE-1 · use cases: UC-005, UC-032, UC-006, UC-033, UC-021, UC-011
 | task | title | depends on | writes | migrations |
 |---|---|---|---|---|
 | P2-T1 | Invitations and user management | — | CMP-Identity | yes |
-| P2-T2 | Profile, nickname, language and optional MFA for org admins | P2-T1 | CMP-Identity |  |
+| P2-T2 | Profile, nickname, language and optional MFA for org admins | P2-T1 | CMP-Identity | yes |
 | P2-T3 | Organisation settings | P2-T1 | CMP-Tenancy, CMP-Identity | yes |
 | P2-T4 | Course spaces and enrolment | — | CMP-Courses | yes |
 | P2-T5 | Announcements | P2-T4 | CMP-Courses | yes |
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications | yes |
 | P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3, P2-T8 | CMP-Audit | yes |
 | P2-T8 | Archived course spaces hidden and emptied | P2-T4 | CMP-Courses |  |
+| P2-T9 | Invitation delivery failure and resend | P2-T1 | CMP-Identity | yes |
 
 Task waves:
 
@@ -186,6 +187,7 @@ flowchart LR
   W2 --> W3
   subgraph W4["Wave 4"]
     P2_T7["P2-T7"]
+    P2_T9["P2-T9"]
   end
   W3 --> W4
 ```
@@ -193,6 +195,8 @@ flowchart LR
 Serialised:
 - P2-T3 serialised after P2-T2 (writes CMP-Identity)
 - P2-T8 serialised after P2-T5 (writes CMP-Courses)
+- P2-T9 serialised after P2-T2 (writes CMP-Identity)
+- P2-T9 waits: max_parallel=3
 
 Out of scope:
 - Activities of any type (PHASE-3, PHASE-4)

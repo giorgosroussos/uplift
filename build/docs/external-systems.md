@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # External systems and constraints
 
-_Generated document · design v2.0.0 · source 6e9830763376_
+_Generated document · design v2.1.0 · source dcadfdfa5719_
 
 
 ## Context diagram
@@ -67,3 +67,4 @@ Prepare now:
 | id | title | status | decision |
 |---|---|---|---|
 | DEC-001 | Email notifications | decided | Besides account emails (invitation, password reset, verification), email is sent for: new announcement, new activity in an enrolled course space, new or final grade, topic approved or rejected, group invitation. Everything else is in-app only |
+| DEC-002 | Notification centre, announcement notifications and email opt-out | decided (inferred) | Every user has a notification centre page, newest first, grouped by day, 20 per page, with read/unread per entry and 'mark all as read'; users cannot delete notifications. A bell in the app header shows the unread count, refreshed on page load (no live broadcast). In PHASE-2 the only kind is announcement_published: one in-app entry per student enrolled when it is posted (author excluded), with course space and announcement titles as they were then; its link obeys the normal access rules. Its email carries the space name, the announcement title and a link, not the body. Emails go in the user's locale, else the organisation's default_locale. Each user has one on/off switch for DEC-001 notification emails, shown in their settings; account emails cannot be turned off and in-app entries are always created |

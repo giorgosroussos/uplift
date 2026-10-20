@@ -1,0 +1,83 @@
+id: CR-P2-T6-1
+raised_by: implementation-agent
+task: P2-T6
+status: accepted
+problem: >
+  (a) The only acceptance criterion of P2-T6 (INT-001) requires that "after
+  the last retry an invitation shows 'email not delivered' to the admin, who
+  can resend it". The invitation email is sent by CMP-Identity
+  (Actions/InviteUser, Notifications/InvitationNotification, P2-T1 handoff:
+  "P2-T6 must not send it again"), the invitation list and its actions live
+  in Identity (Actions/ListUsers, pages/Identity/Users.vue,
+  InvitationController), and ENT-Invitation has no attribute or state for a
+  failed delivery and no resend operation exists in any use case. P2-T6
+  writes only CMP-Notifications and reads Identity through interfaces only;
+  Identity may not depend on Notifications (may_depend_on: [CMP-Tenancy]).
+  So P2-T6 can neither record the failure on the invitation, nor show it in
+  the Users page, nor offer a resend. Undefined as well: what resend does
+  (same invitation and token or a new token; does expires_at restart at 7
+  days; may an expired-but-undelivered invitation be resent), who may resend
+  (any org admin of the organisation?), and whether the failure flag clears
+  on resend.
+  (b) UC-007 ("See notifications grouped, mark read/unread") has no main flow
+  or acceptance criteria. "Grouped" is undefined (by day, by kind, by course
+  space?), as are: where the notification centre lives (page, header bell
+  with unread count, both), pagination, "mark all as read", whether a user
+  may delete notifications, and whether new notifications arrive live
+  (broadcast on a private channel) or on the next page load.
+  (c) Content of the announcement notification is undefined: does the email
+  carry the announcement title and body or only the course space name and a
+  link; what the in-app entry shows (title snapshot at posting time or the
+  live title; what happens when the announcement is later edited, soft-
+  deleted, or the space archived / the student unenrolled); and in which
+  locale emails go (user's locale, else the organisation default_locale,
+  per DATA-011).
+  (d) Which in-app notification kinds exist in PHASE-2 besides "new
+  announcement" (e.g. does the org admin get an in-app entry when an
+  invitation is accepted or not delivered)? The task description says
+  "for invitations and announcements", but invitees have no account, so an
+  in-app notification for the invitation itself is impossible.
+affects: [P2-T6, CMP-Notifications, CMP-Identity, ENT-Invitation, ENT-Notification, UC-007, UC-032, UC-008, INT-001, DEC-001]
+proposal: >
+  (a) Give P2-T6 touches.writes CMP-Identity limited to the invitation
+  delivery state, or move this part to a new Identity task. Add to
+  ENT-Invitation a nullable timestamp email_failed_at. InvitationNotification
+  gets a failed() hook (called by the queue after the 6th attempt) that sets
+  email_failed_at (ids only in logs). ListUsers exposes email_failed (bool)
+  and Users.vue shows a destructive badge "Email not delivered" with a
+  "Resend" button. New Identity action ResendInvitation (org admin of the
+  same organisation, InvitationPolicy, pending invitations only, including
+  expired ones): issues a new token (old link stops working), restarts
+  expires_at at 7 days, clears email_failed_at, queues InvitationNotification
+  again and dispatches InvitationResent(organizationId, invitationId,
+  actorId) after commit. Route POST invitations/{invitation}/resend.
+  (b) Notification centre: a page /notifications (all roles) listing the
+  user's own notifications, newest first, grouped by day (Today, Yesterday,
+  earlier dates), 20 per page; each entry can be marked read/unread; "Mark
+  all as read"; no deletion by users (retention prunes after 180 days). A
+  bell in the app header with the unread count (Inertia shared prop
+  notifications.unread_count) links to the page; no live broadcast in this
+  task. Opening an entry marks it read and navigates to its target.
+  (c) Kind "announcement_published": one in-app notification per student
+  enrolled in the space at the time of the event (author excluded), data
+  {course_space_id, announcement_id, course_space_title, announcement_title}
+  snapshotted at posting time (no personal data); the link opens the course
+  space, where normal access rules apply (archived/unenrolled gives 404, a
+  deleted announcement is simply absent). Email (queued, INT-001 retries,
+  timeout 10s) to the same students with subject "New announcement in
+  <space>", the announcement title, and a link to the course space, not the
+  body. Locale: user's locale, else the organisation's default_locale. The
+  in-app notification is written synchronously in the listener (database)
+  so it exists even when mail fails.
+  (d) PHASE-2 in-app kinds: announcement_published only. No in-app
+  notifications for invitations (the admin sees the delivery state on the
+  Users page per (a)).
+resolution: >
+  Accepted in design v2.1.0. (a) Moved to a new Identity task P2-T9
+  (DATA-015): email_failed_at, badge and Resend as proposed; no
+  InvitationResent event (nothing consumes it). P2-T6 writes Notifications
+  only. (b), (c), (d) as proposed, recorded in DEC-002: centre page grouped
+  by day, bell refreshed on page load, announcement_published only, email
+  with title and link but not the body, user locale else organisation
+  default. P2-T6 also builds the notification email on/off switch from
+  CR-P2-T2-1. UC-007 has a flow and acceptance criteria.

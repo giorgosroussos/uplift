@@ -9,3 +9,19 @@ decisions:
     constraints: ["MUST NOT send email for notification kinds other than those listed in DEC-001"]
     affects: [EXT-002, UC-007, UC-008, UC-022, UC-026, UC-027, UC-019]
     since: 0.1.0
+  - id: DEC-002
+    area: external
+    title: Notification centre, announcement notifications and email opt-out
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "Every user has a notification centre page, newest first, grouped by day, 20 per page, with read/unread per entry and 'mark all as read'; users cannot delete notifications. A bell in the app header shows the unread count, refreshed on page load (no live broadcast). In PHASE-2 the only kind is announcement_published: one in-app entry per student enrolled when it is posted (author excluded), with course space and announcement titles as they were then; its link obeys the normal access rules. Its email carries the space name, the announcement title and a link, not the body. Emails go in the user's locale, else the organisation's default_locale. Each user has one on/off switch for DEC-001 notification emails, shown in their settings; account emails cannot be turned off and in-app entries are always created"
+    rationale: "Closes the gaps of UC-007 and of the announcement notification (CR-P2-T6-1) and the notification preferences of UC-006 (CR-P2-T2-1)"
+    constraints:
+      - "MUST create the in-app notification even when the email fails"
+      - "MUST NOT put the announcement body or personal data in notification data or announcement emails"
+      - "MUST NOT send DEC-001 notification emails to a user who turned them off; MUST always send account emails"
+      - "MUST let a user read and change only their own notifications and notification preference"
+      - "MUST send notification emails in the user's locale, else the organisation's default_locale"
+    affects: [UC-006, UC-007, P2-T6]
+    since: 2.1.0

@@ -44,6 +44,9 @@ entities:
       - {name: email_verified_at, type: timestamp}
       - {name: is_active, type: boolean, required: true}
       - {name: locale, type: enum, values: [el, en]}
+      - {name: two_factor_secret, type: text, sensitivity: sensitive}
+      - {name: two_factor_recovery_codes, type: text, sensitivity: sensitive}
+      - {name: two_factor_confirmed_at, type: timestamp}
     relations:
       - {to: ENT-Enrolment, type: one-to-many, on_delete: cascade, label: enrolled via}
       - {to: ENT-XpEvent, type: one-to-many, on_delete: cascade, label: earns}
@@ -63,7 +66,8 @@ entities:
       - {name: invited_by, type: uuid, ref: ENT-User, required: true}
       - {name: expires_at, type: timestamp, required: true}
       - {name: status, type: enum, values: [pending, accepted, revoked, expired], required: true}
-    states: {initial: pending, transitions: ["pending -> accepted", "pending -> revoked", "pending -> expired"]}
+      - {name: email_failed_at, type: timestamp}
+    states: {initial: pending, transitions: ["pending -> accepted", "pending -> revoked", "pending -> expired", "expired -> pending"]}
     retention: "Deleted 30 days after it stops being pending"
     used_by: [UC-005, UC-032]
 
@@ -578,3 +582,15 @@ entities:
     retention: "Deleted 180 days after creation"
     ownership_not_needed: "Holds references only, not personal data"
     used_by: [UC-007]
+
+  - id: ENT-NotificationPreference
+    description: "A user's choice to receive DEC-001 notification emails (one per user)"
+    source: inferred
+    confirmed: true
+    attributes:
+      - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
+      - {name: user_id, type: uuid, ref: ENT-User, required: true, unique: true}
+      - {name: email_enabled, type: boolean, required: true}
+    retention: "While the account exists"
+    ownership_not_needed: "Read and changed only by its user (DEC-002)"
+    used_by: [UC-006, UC-007]

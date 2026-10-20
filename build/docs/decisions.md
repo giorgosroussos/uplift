@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v2.0.0 · source 6e9830763376_
+_Generated document · design v2.1.0 · source dcadfdfa5719_
 
 
 ## Scope
@@ -239,6 +239,21 @@ _affects UC-024, UC-025, ENT-LiveSession · since v0.1.0_
 
 _affects EXT-002, UC-007, UC-008, UC-022, UC-026, UC-027, UC-019 · since v0.1.0_
 
+### DEC-002 — Notification centre, announcement notifications and email opt-out · decided · source: inferred
+
+**Decision:** Every user has a notification centre page, newest first, grouped by day, 20 per page, with read/unread per entry and 'mark all as read'; users cannot delete notifications. A bell in the app header shows the unread count, refreshed on page load (no live broadcast). In PHASE-2 the only kind is announcement_published: one in-app entry per student enrolled when it is posted (author excluded), with course space and announcement titles as they were then; its link obeys the normal access rules. Its email carries the space name, the announcement title and a link, not the body. Emails go in the user's locale, else the organisation's default_locale. Each user has one on/off switch for DEC-001 notification emails, shown in their settings; account emails cannot be turned off and in-app entries are always created
+
+**Why:** Closes the gaps of UC-007 and of the announcement notification (CR-P2-T6-1) and the notification preferences of UC-006 (CR-P2-T2-1)
+
+**Constraints for implementation:**
+- `MUST create the in-app notification even when the email fails`
+- `MUST NOT put the announcement body or personal data in notification data or announcement emails`
+- `MUST NOT send DEC-001 notification emails to a user who turned them off; MUST always send account emails`
+- `MUST let a user read and change only their own notifications and notification preference`
+- `MUST send notification emails in the user's locale, else the organisation's default_locale`
+
+_affects UC-006, UC-007, P2-T6 · since v2.1.0_
+
 ## Data
 
 ### DATA-001 — Activity type modelling and JSONB use · decided
@@ -393,6 +408,38 @@ _affects UC-008, UC-011, UC-021, P2-T7, P2-T8 · since v2.0.0_
 
 _affects UC-008, P2-T5, P2-T6 · since v2.0.0_
 
+### DATA-014 — Profile fields, avatars and nicknames · decided · source: inferred
+
+**Decision:** A user edits their name, nickname, avatar and locale (el, en, or empty = organisation default). Email, role, date_of_birth and is_minor are not editable by the user. The avatar is chosen from 12 SVG avatars bundled with the app (keys avatar-01 to avatar-12); there are no uploads, and without a choice the UI shows the user's initials. Nicknames are 3-30 characters (letters of any script, digits, '_', '-', '.'), trimmed, unique within the organisation ignoring case. Password change requires the current password, applies SEC-010 and ends the user's other sessions. There is no self-service account deletion (UC-039)
+
+**Why:** Closes the profile gaps of CR-P2-T2-1; preset avatars keep photos of minors off leaderboards and live broadcasts
+
+**Rejected:**
+- Uploaded avatar images: personal data of minors on leaderboards and broadcasts, plus a new upload rule
+
+**Constraints for implementation:**
+- `MUST NOT let a user change their own email, role, date_of_birth or is_minor`
+- `MUST accept as avatar only one of the keys avatar-01 to avatar-12, or empty`
+- `MUST NOT accept avatar uploads`
+- `MUST accept nicknames of 3-30 characters made of letters, digits, '_', '-' and '.', unique within the organisation ignoring case`
+- `MUST require the current password to change the password and end the user's other sessions`
+- `MUST NOT offer self-service account deletion`
+
+_affects UC-006, P2-T2 · since v2.1.0_
+
+### DATA-015 — Invitation delivery failure and resend · decided · source: inferred
+
+**Decision:** When the invitation email fails after its last retry (INT-001), Identity sets email_failed_at on the invitation and the Users page shows 'Email not delivered' with a Resend button. Any org admin of the organisation may resend a pending or expired invitation: a new token is issued (the old link stops working), expires_at restarts at 7 days, the invitation becomes pending, email_failed_at is cleared and the email is queued again
+
+**Why:** The invitation email, its list and ENT-Invitation belong to Identity, which may not depend on Notifications (CR-P2-T6-1)
+
+**Constraints for implementation:**
+- `MUST set email_failed_at from the invitation notification's failed hook after the last retry, logging ids only`
+- `MUST let only org admins of the invitation's organisation resend it, and only while it is pending or expired`
+- `MUST issue a new token on resend, invalidate the old one, restart expires_at at 7 days and clear email_failed_at`
+
+_affects UC-032, P2-T9 · since v2.1.0_
+
 ## Security
 
 ### SEC-001 — Authentication · superseded
@@ -544,6 +591,20 @@ _since v0.1.0_
 - `MUST offer optional TOTP MFA to ROLE-OrgAdmin`
 
 _supersedes SEC-001 · since v0.1.0_
+
+### SEC-012 — Optional MFA for org admins · decided · source: inferred
+
+**Decision:** TOTP MFA through Fortify (confirm: true, confirmPassword: true), offered only to org admins. The secret and recovery codes are stored encrypted on the user. The two-factor challenge at login is limited to 5 attempts per minute per login session. When a user stops being an org admin, their MFA is cleared in the same transaction. No admin may reset another admin's MFA in this phase
+
+**Why:** Closes the MFA gaps of SEC-011 found in CR-P2-T2-1
+
+**Constraints for implementation:**
+- `MUST let only org admins enable or disable MFA; other roles get 403 and the settings are hidden`
+- `MUST require the current password and a valid first TOTP code to enable MFA`
+- `MUST rate-limit the two-factor challenge to 5 attempts per minute per login session`
+- `MUST clear two_factor_secret, two_factor_recovery_codes and two_factor_confirmed_at in the same transaction that changes a user's role away from org_admin`
+
+_affects UC-006, P2-T2 · since v2.1.0_
 
 ## Architecture
 

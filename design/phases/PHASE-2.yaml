@@ -2,9 +2,9 @@ id: PHASE-2
 goal: "Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications"
 depends_on: [PHASE-1]
 use_cases: [UC-005, UC-032, UC-006, UC-033, UC-021, UC-011, UC-008, UC-007]
-entities: [ENT-User, ENT-Invitation, ENT-Organization, ENT-CourseSpace, ENT-Enrolment, ENT-Announcement, ENT-Notification]
+entities: [ENT-User, ENT-Invitation, ENT-Organization, ENT-CourseSpace, ENT-Enrolment, ENT-Announcement, ENT-Notification, ENT-NotificationPreference]
 components: [CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit]
-decisions: [SEC-004, SEC-007, SEC-008, SEC-010, SEC-011, SCOPE-006, SCOPE-007, DATA-002, DATA-011, DATA-012, DATA-013, DEC-001, ARCH-006, ARCH-008]
+decisions: [SEC-004, SEC-007, SEC-008, SEC-010, SEC-011, SCOPE-006, SCOPE-007, DATA-002, DATA-011, DATA-012, DATA-013, DATA-014, DATA-015, DEC-001, DEC-002, SEC-012, ARCH-006, ARCH-008]
 environment: development
 out_of_scope:
   - "Activities of any type (PHASE-3, PHASE-4)"
@@ -20,9 +20,10 @@ tasks:
     touches: {writes: [CMP-Identity], migrations: true}
   - id: P2-T2
     title: Profile, nickname, language and optional MFA for org admins
+    description: "Profile settings per DATA-014 (name, nickname, preset avatar, locale, password); optional TOTP MFA for org admins per SEC-012, including clearing MFA in the existing role-change action when a user stops being org_admin. Notification preferences are P2-T6"
     depends_on: [P2-T1]
     use_cases: [UC-006]
-    touches: {writes: [CMP-Identity]}
+    touches: {writes: [CMP-Identity], migrations: true}
   - id: P2-T3
     title: Organisation settings
     description: "Logo upload, accent colour, terminology in Greek and English, grading scale, leaderboard on/off, default language (subdomain not editable); OrganizationMember contract and OrganizationPolicy in Tenancy (ARCH-008), implemented by Identity's User (the only Identity file this task changes); shared prop organization, accent as primary colour, logo in app shell and login header, default_locale fallback; dispatches OrganizationSettingsChanged (DATA-011)"
@@ -41,10 +42,10 @@ tasks:
     touches: {writes: [CMP-Courses], migrations: true}
   - id: P2-T6
     title: Notifications in-app and by email
-    description: "Notification model, notification centre, queued mail with retries (INT-001) for invitations and announcements; other DEC-001 kinds are added by later phases' listeners"
+    description: "Notification model, notification centre and header bell, announcement_published (in-app + queued email with INT-001 retries) and the notification email on/off setting per DEC-002; other DEC-001 kinds are added by later phases' listeners. Invitation emails, their failure state and resend belong to Identity (P2-T9)"
     depends_on: [P2-T1, P2-T5]
     use_cases: [UC-007]
-    touches: {writes: [CMP-Notifications], reads: [CMP-Identity, CMP-Courses], migrations: true}
+    touches: {writes: [CMP-Notifications], reads: [CMP-Identity, CMP-Courses, CMP-Tenancy], migrations: true}
   - id: P2-T7
     title: Audit entries for registration, users and settings
     description: "Listeners writing audit entries for organisation registration (OrganizationRegistered: action organization.registered, actor_type user with actor_id = new admin, subject organization, changes {subdomain}; one entry), role changes, user deactivation and organisation settings changes (OrganizationSettingsChanged: action organization.settings_changed, actor_type user with actor_id = actorId, subject organization, changes as dispatched; one entry per save), course space archiving (CourseSpaceArchived: action course_space.archived, actor_type user with actor_id = actorId, subject course_space, changes {removed_enrolments}; one entry); foreign key audit_entries.organization_id -> organizations.id (on delete restrict)"
@@ -56,3 +57,14 @@ tasks:
     depends_on: [P2-T4]
     use_cases: [UC-021]
     touches: {writes: [CMP-Courses]}
+  - id: P2-T9
+    title: Invitation delivery failure and resend
+    description: "Per DATA-015 and INT-001: email_failed_at on invitations set after the last retry, 'Email not delivered' badge and Resend on the Users page, ResendInvitation action (org admins of the organisation, pending or expired invitations)"
+    depends_on: [P2-T1]
+    use_cases: [UC-032]
+    acceptance_criteria:
+      - "Given an invitation whose email fails on every retry, After the last retry, Then email_failed_at is set and the Users page shows 'Email not delivered' with Resend"
+      - "Given that invitation, When an org admin of the organisation resends it, Then the old link no longer works, the new one does, expires_at is 7 days from now, email_failed_at is empty and one email is queued"
+      - "Given an expired invitation, When it is resent, Then it is pending again; an accepted or revoked invitation cannot be resent"
+      - "Given an org admin of 'beta' or a teacher of 'acme', When they resend an invitation of 'acme', Then it is refused"
+    touches: {writes: [CMP-Identity], migrations: true}

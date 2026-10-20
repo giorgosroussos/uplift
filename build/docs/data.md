@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v2.0.0 · source 6e9830763376_
+_Generated document · design v2.1.0 · source dcadfdfa5719_
 
 
 ## Entity–relationship diagram
@@ -35,6 +35,9 @@ erDiagram
     timestamp email_verified_at
     boolean is_active
     enum locale
+    text two_factor_secret
+    text two_factor_recovery_codes
+    timestamp two_factor_confirmed_at
   }
   Invitation {
     uuid organization_id FK
@@ -44,6 +47,7 @@ erDiagram
     uuid invited_by FK
     timestamp expires_at
     enum status
+    timestamp email_failed_at
   }
   CourseSpace {
     uuid organization_id FK
@@ -300,6 +304,11 @@ erDiagram
     json data
     timestamp read_at
   }
+  NotificationPreference {
+    uuid organization_id FK
+    uuid user_id FK
+    boolean email_enabled
+  }
   Organization ||--o{ User : "has"
   Organization ||--o{ CourseSpace : "has"
   User ||--o{ Enrolment : "enrolled via"
@@ -380,6 +389,9 @@ Owned by CMP-Identity · retention: While the account exists; erasure and anonym
 | email_verified_at | timestamp | timestamptz |  |
 | is_active | boolean | boolean | required |
 | locale | enum | string |  |
+| two_factor_secret | text | text | sensitive |
+| two_factor_recovery_codes | text | text | sensitive |
+| two_factor_confirmed_at | timestamp | timestamptz |  |
 
 Relations: one-to-many → ENT-Enrolment (on delete cascade); one-to-many → ENT-XpEvent (on delete cascade)
 
@@ -396,8 +408,9 @@ Owned by CMP-Identity · retention: Deleted 30 days after it stops being pending
 | invited_by | uuid | uuid | → ENT-User, required |
 | expires_at | timestamp | timestamptz | required |
 | status | enum | string | required |
+| email_failed_at | timestamp | timestamptz |  |
 
-States: initial `pending`; allowed transitions: `pending -> accepted`, `pending -> revoked`, `pending -> expired`
+States: initial `pending`; allowed transitions: `pending -> accepted`, `pending -> revoked`, `pending -> expired`, `expired -> pending`
 
 ```mermaid
 stateDiagram-v2
@@ -405,6 +418,7 @@ stateDiagram-v2
   pending --> accepted
   pending --> revoked
   pending --> expired
+  expired --> pending
 ```
 
 #### ENT-CourseSpace — A course space owned by exactly one teacher (SCOPE-007)
@@ -931,6 +945,16 @@ Owned by CMP-Notifications · retention: Deleted 180 days after creation · audi
 | data | json | jsonb | required |
 | read_at | timestamp | timestamptz |  |
 
+#### ENT-NotificationPreference — A user's choice to receive DEC-001 notification emails (one per user)
+
+Owned by CMP-Notifications · retention: While the account exists · audit: no
+
+| attribute | type | storage | notes |
+|---|---|---|---|
+| organization_id | uuid | uuid | → ENT-Organization, required |
+| user_id | uuid | uuid | → ENT-User, required, unique |
+| email_enabled | boolean | boolean | required |
+
 ## Decisions
 
 | id | title | status | decision |
@@ -948,3 +972,5 @@ Owned by CMP-Notifications · retention: Deleted 180 days after creation · audi
 | DATA-011 | Organisation settings format, effect and change event | decided (inferred) | The subdomain is not editable by the organisation. accent_color is #RRGGBB or empty (theme default); the logo may be removed (the app logo is shown instead) and is served through a tenant route from a private Storage disk. Settings are shared with every page as the Inertia prop organization; the accent colour is the app's primary colour, the logo appears in the app shell and the login page header, and default_locale is the locale for guests and for users without their own. Using the student/teacher terms in screens is up to later tasks. After each change Tenancy dispatches OrganizationSettingsChanged, which P2-T7 audits |
 | DATA-012 | Archived course spaces are hidden from students and emptied | decided | Archiving a course space deletes all its enrolments, after a confirmation in the UI, and hides it from students: it is absent from their lists and the catalogue and opening it returns 404. Only the owning teacher (and org admins, OWN-004) see an archived space. Restoring it gives an active space with no students; they enrol again. Courses dispatches CourseSpaceArchived, which is audited |
 | DATA-013 | Announcements | decided (inferred) | Announcements are stored in an announcements table in Courses (composite FK to course_spaces, cascade; author_id restrict; soft delete per DATA-007). Posting publishes at once (no drafts or scheduling). The owning teacher posts, edits (title, body) and soft-deletes, also in an archived space; an edit keeps published_at and notifies nobody. The owning teacher and enrolled students read them; org admins, other teachers and non-enrolled students do not. Posting in an active space dispatches AnnouncementPublished for P2-T6; posting in an archived space dispatches nothing |
+| DATA-014 | Profile fields, avatars and nicknames | decided (inferred) | A user edits their name, nickname, avatar and locale (el, en, or empty = organisation default). Email, role, date_of_birth and is_minor are not editable by the user. The avatar is chosen from 12 SVG avatars bundled with the app (keys avatar-01 to avatar-12); there are no uploads, and without a choice the UI shows the user's initials. Nicknames are 3-30 characters (letters of any script, digits, '_', '-', '.'), trimmed, unique within the organisation ignoring case. Password change requires the current password, applies SEC-010 and ends the user's other sessions. There is no self-service account deletion (UC-039) |
+| DATA-015 | Invitation delivery failure and resend | decided (inferred) | When the invitation email fails after its last retry (INT-001), Identity sets email_failed_at on the invitation and the Users page shows 'Email not delivered' with a Resend button. Any org admin of the organisation may resend a pending or expired invitation: a new token is issued (the old link stops working), expires_at restarts at 7 days, the invitation becomes pending, email_failed_at is cleared and the email is queued again |

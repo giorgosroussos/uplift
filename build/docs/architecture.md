@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Architecture and stack
 
-_Generated document · design v2.0.0 · source 6e9830763376_
+_Generated document · design v2.1.0 · source dcadfdfa5719_
 
 
 **Style:** modular-monolith · **database:** postgresql
@@ -131,7 +131,7 @@ flowchart TB
 | CMP-Live | Live quiz sessions: state machine, server-side timers, broadcasting over Reverb, scoring, reconnection | ENT-LiveSession, ENT-LiveParticipant, ENT-LiveAnswer | UC-024, UC-025 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment |
 | CMP-Gamification | XP ledger, levels, badges, per-course-space leaderboards; reacts to domain events | ENT-XpEvent, ENT-Badge, ENT-UserBadge | UC-018, UC-037 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Live |
 | CMP-Analytics | Read-only dashboards and analytics, CSV export |  | UC-010, UC-020, UC-029, UC-031, UC-034 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Live, CMP-Gamification |
-| CMP-Notifications | In-app and email notifications from domain events (DEC-001), deadline reminders | ENT-Notification | UC-007, UC-038 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment |
+| CMP-Notifications | In-app and email notifications from domain events (DEC-001), deadline reminders | ENT-Notification, ENT-NotificationPreference | UC-007, UC-038 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment |
 | CMP-Audit | Append-only audit log written from domain events | ENT-AuditEntry |  | CMP-Tenancy, CMP-Identity, CMP-Platform, CMP-Courses, CMP-Activities, CMP-Assessment |
 
 ## Approved dependencies
