@@ -62,3 +62,28 @@ it('lets a student find a course space in the catalogue and enrol with the key',
 
     expect(Enrolment::query()->where('student_id', $this->student->id)->count())->toBe(1);
 });
+
+it('asks the teacher to confirm archiving, stating that all students are unenrolled', function () {
+    $space = CourseSpace::factory()->for($this->teacher, 'teacher')->create(['title' => 'Algorithms']);
+    Enrolment::factory()->for($space, 'courseSpace')->for($this->student, 'student')->create();
+    $this->actingAs($this->teacher);
+
+    $page = visit("/courses/{$space->id}")
+        ->click('@course-status-toggle')
+        ->assertVisible('@archive-dialog')
+        ->assertSee('All students are unenrolled (1 enrolled now)')
+        ->click('Cancel')
+        ->assertMissing('@archive-dialog');
+
+    expect($space->refresh()->isActive())->toBeTrue()
+        ->and($space->enrolments()->count())->toBe(1);
+
+    $page->click('@course-status-toggle')
+        ->click('@archive-confirm')
+        ->assertSee('Course space archived.')
+        ->assertVisible('@archived-notice')
+        ->assertNoJavaScriptErrors();
+
+    expect($space->refresh()->isArchived())->toBeTrue()
+        ->and($space->enrolments()->count())->toBe(0);
+});

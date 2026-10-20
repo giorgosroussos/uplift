@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import CourseAnnouncements from '@/components/courses/CourseAnnouncements.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { archive, edit, enrol, index, restore } from '@/routes/courses';
@@ -66,13 +74,26 @@ function removeStudent(enrolmentId: string): void {
     );
 }
 
+// DATA-012: archiving unenrols every student, so the teacher confirms it.
+const confirmingArchive = ref(false);
+
 function changeStatus(): void {
-    router.visit(
-        props.space.status === 'active'
-            ? archive(props.space.id)
-            : restore(props.space.id),
-        { preserveScroll: true },
-    );
+    if (props.space.status === 'active') {
+        confirmingArchive.value = true;
+
+        return;
+    }
+
+    router.visit(restore(props.space.id), { preserveScroll: true });
+}
+
+function confirmArchive(): void {
+    router.visit(archive(props.space.id), {
+        preserveScroll: true,
+        onFinish: () => {
+            confirmingArchive.value = false;
+        },
+    });
 }
 
 function formatDate(value: string): string {
@@ -152,7 +173,7 @@ function formatDate(value: string): string {
         </p>
 
         <p
-            v-if="space.status === 'archived' && enrolled"
+            v-if="space.status === 'archived'"
             role="status"
             class="text-sm text-muted-foreground"
             data-test="archived-notice"
@@ -322,5 +343,34 @@ function formatDate(value: string): string {
                 </Button>
             </form>
         </section>
+
+        <Dialog v-model:open="confirmingArchive">
+            <DialogContent data-test="archive-dialog">
+                <DialogTitle>
+                    {{ $t('courses.show.confirm_archive_title') }}
+                </DialogTitle>
+                <DialogDescription>
+                    {{
+                        $t('courses.show.confirm_archive_text', {
+                            count: String(students.length),
+                        })
+                    }}
+                </DialogDescription>
+                <DialogFooter class="gap-2">
+                    <DialogClose as-child>
+                        <Button variant="secondary">
+                            {{ $t('courses.show.cancel') }}
+                        </Button>
+                    </DialogClose>
+                    <Button
+                        variant="destructive"
+                        data-test="archive-confirm"
+                        @click="confirmArchive"
+                    >
+                        {{ $t('courses.show.confirm_archive') }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

@@ -5,6 +5,7 @@ namespace App\Modules\Courses\Policies;
 use App\Modules\Courses\Models\CourseSpace;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Identity\Models\User;
+use Illuminate\Auth\Access\Response;
 
 /**
  * OWN-004 and SCOPE-007: only the owning teacher edits a course space and its
@@ -13,13 +14,30 @@ use App\Modules\Identity\Models\User;
  * students of another teacher's space, OWN-003); a student sees active spaces
  * of the catalogue and the spaces they are enrolled in.
  *
+ * DATA-012: an archived space, its activities and its announcements do not
+ * exist for students: every ability on it is denied as 404 Not Found. Only
+ * the owning teacher and org admins see it.
+ *
  * Abilities other modules use through the Gate:
  * - manageActivities: create and edit activities of the space (owner only);
- * - participate: submit to the space's activities (enrolled, space active);
- * - viewResults: see one's own results (enrolled, also once archived).
+ * - participate: submit to the space's activities (enrolled, space active).
  */
 class CourseSpacePolicy
 {
+    /**
+     * Runs before every ability that is given a course space.
+     */
+    public function before(User $actor, string $ability, mixed ...$arguments): ?Response
+    {
+        $space = $arguments[0] ?? null;
+
+        if ($space instanceof CourseSpace && $space->isArchived() && $actor->hasRole(Role::Student)) {
+            return Response::denyAsNotFound();
+        }
+
+        return null;
+    }
+
     public function viewAny(User $actor): bool
     {
         return $actor->canAct();
@@ -42,7 +60,7 @@ class CourseSpacePolicy
         return match ($actor->role) {
             Role::OrgAdmin => true,
             Role::Teacher => $space->isOwnedBy($actor),
-            Role::Student => $space->isActive() || $space->hasEnrolled($actor),
+            Role::Student => $space->isActive(),
         };
     }
 
@@ -87,8 +105,7 @@ class CourseSpacePolicy
      */
     public function viewAnnouncements(User $actor, CourseSpace $space): bool
     {
-        return $this->owns($actor, $space)
-            || ($space->isActive() && $this->viewResults($actor, $space));
+        return $this->owns($actor, $space) || $this->participate($actor, $space);
     }
 
     /**
@@ -107,13 +124,6 @@ class CourseSpacePolicy
         return $this->sameOrganization($actor, $space)
             && $actor->hasRole(Role::Student)
             && $space->isActive()
-            && $space->hasEnrolled($actor);
-    }
-
-    public function viewResults(User $actor, CourseSpace $space): bool
-    {
-        return $this->sameOrganization($actor, $space)
-            && $actor->hasRole(Role::Student)
             && $space->hasEnrolled($actor);
     }
 

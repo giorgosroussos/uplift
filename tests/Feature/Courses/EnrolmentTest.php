@@ -90,7 +90,8 @@ it('keeps exactly one enrolment when an enrolled student enrols again', function
 it('refuses enrolment in an archived space', function () {
     $space = CourseSpace::factory()->for($this->teacher, 'teacher')->archived()->create();
 
-    $this->actingAs($this->student)->post(courseEnrolUrl($space))->assertForbidden();
+    // DATA-012: an archived space does not exist for students.
+    $this->actingAs($this->student)->post(courseEnrolUrl($space))->assertNotFound();
 
     expect(courseEnrolmentsOf($this->student))->toBe(0);
 });
