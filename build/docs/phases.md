@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v1.3.0 · source 4b4668e8fa72_
+_Generated document · design v1.4.0 · source cc1c2e1e847f_
 
 
 ## Phase map
@@ -158,7 +158,7 @@ Depends on: PHASE-1 · use cases: UC-005, UC-032, UC-006, UC-033, UC-021, UC-011
 |---|---|---|---|---|
 | P2-T1 | Invitations and user management | — | CMP-Identity | yes |
 | P2-T2 | Profile, nickname, language and optional MFA for org admins | P2-T1 | CMP-Identity |  |
-| P2-T3 | Organisation settings | — | CMP-Tenancy | yes |
+| P2-T3 | Organisation settings | P2-T1 | CMP-Tenancy, CMP-Identity | yes |
 | P2-T4 | Course spaces and enrolment | — | CMP-Courses | yes |
 | P2-T5 | Announcements | P2-T4 | CMP-Courses |  |
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications | yes |
@@ -170,20 +170,26 @@ Task waves:
 flowchart LR
   subgraph W1["Wave 1"]
     P2_T1["P2-T1"]
-    P2_T3["P2-T3"]
     P2_T4["P2-T4"]
   end
   subgraph W2["Wave 2"]
     P2_T2["P2-T2"]
     P2_T5["P2-T5"]
-    P2_T7["P2-T7"]
   end
   W1 --> W2
   subgraph W3["Wave 3"]
+    P2_T3["P2-T3"]
     P2_T6["P2-T6"]
   end
   W2 --> W3
+  subgraph W4["Wave 4"]
+    P2_T7["P2-T7"]
+  end
+  W3 --> W4
 ```
+
+Serialised:
+- P2-T3 serialised after P2-T2 (writes CMP-Identity)
 
 Out of scope:
 - Activities of any type (PHASE-3, PHASE-4)

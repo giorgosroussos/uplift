@@ -412,7 +412,29 @@ use_cases:
       - "Given an organisation with exactly 1 active org admin, When that admin deactivates or demotes themselves, Then it is rejected"
       - "Given a deactivated user with an open session, When they make their next request, Then they are logged out"
       - "Given an admin of 'acme', When they request the user list, Then no user of another organisation appears"
-  - {id: UC-033, title: Configure organisation, actors: [ACT-OrgAdmin], goal: "Set logo, accent colour, terminology, leaderboard on/off and subdomain", priority: should, source: inferred, confirmed: true}
+  - id: UC-033
+    title: Configure organisation
+    actors: [ACT-OrgAdmin]
+    goal: "Set logo, accent colour, terminology, grading scale, leaderboard on/off and default language"
+    priority: should
+    source: inferred
+    confirmed: true
+    main_flow:
+      - "Org admin opens the organisation settings"
+      - "Uploads or removes the logo, sets or clears the accent colour, edits the student and teacher terms in Greek and English, and chooses grading scale, leaderboard on/off and default language"
+      - "Saves; the settings apply at once to every page of the organisation (DATA-011)"
+    exceptions:
+      - "Accent colour not #RRGGBB, or logo not an allowed file (SEC-010): nothing is saved and the field shows the reason"
+      - "The subdomain is shown but cannot be changed"
+    acceptance_criteria:
+      - "Given an org admin of 'acme', When they set accent colour #1A2B3C and leaderboard off, Then acme's settings are saved and the shared prop organization shows them"
+      - "Given a teacher or student of 'acme', When they try to view or update acme's settings, Then the request is refused with 403"
+      - "Given an org admin of 'beta', When they try to update acme's settings, Then the request is refused and acme is unchanged"
+      - "Given an org admin, When they submit accent colour 'blue' or '#12345', Then nothing is saved; an empty accent colour is accepted"
+      - "Given acme has a logo, When the org admin removes it, Then the login page and app shell show the app logo"
+      - "Given acme's default language is el, When a guest or a user without a locale opens acme's login page, Then it is shown in Greek"
+      - "Given an org admin changes accent colour and leaderboard, When the save commits, Then one OrganizationSettingsChanged is dispatched with both fields as {from, to}"
+      - "Given an org admin submits a different subdomain, When saved, Then the subdomain is unchanged"
   - {id: UC-034, title: Organisation analytics, actors: [ACT-OrgAdmin], goal: "See aggregate figures for the organisation", priority: could, source: inferred, confirmed: true}
   # Super-admin
   - {id: UC-035, title: Platform dashboard, actors: [ACT-SuperAdmin], goal: "See all organisations and key platform metrics", priority: could, source: inferred, confirmed: true}
