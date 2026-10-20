@@ -1,0 +1,9 @@
+id: P1-T4
+status: ready_to_merge
+commit: d71e9a2
+handoff: |
+  app/Modules/Identity: Actions/RegisterOrganization (DATA-010 INITIAL_SETTINGS, default_locale = App::getLocale(), admin ROLE-OrgAdmin, queued verification mail, then Events/OrganizationRegistered(organizationId, adminUserId) after commit).
+  Apex-only routes (Http/Middleware/RequireApexDomain): GET/POST /register (RegistrationController, Http/Requests/RegisterOrganizationRequest, Rules/AvailableSubdomain), GET /register/subdomain (SubdomainCheckController: 200 or 422 RFC 9457 via Http/Responses/ProblemDetails).
+  Rate limits: Support/RegistrationRateLimiter + Http/Middleware/ThrottleRegistrations (3 successful/hour/IP, 429), limiter 'subdomain-check' 60/min/IP in IdentityServiceProvider; reasons in Support/SubdomainAvailability, messages lang/{en,el}/registration.php.
+  Success redirects (Inertia::location) to <sub>/login?verification=sent; LoginPage prop verificationSent; pages/auth/Register.vue (live check), Welcome links to sign-up.
+  No audit listener yet (Audit module owns it). Tests: tests/Feature/Identity/{OrganizationRegistration,SubdomainCheck}Test.php, tests/Browser/RegistrationTest.php.
