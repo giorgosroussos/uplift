@@ -39,7 +39,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                // Only what the UI shows: never date of birth or minor flag.
+                'user' => $request->user()?->only(['id', 'role', 'name', 'nickname', 'email', 'avatar', 'email_verified_at']),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

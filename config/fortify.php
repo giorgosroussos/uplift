@@ -101,7 +101,9 @@ return [
     |
     */
 
-    'middleware' => ['web'],
+    // Login, password reset and email verification exist only on an
+    // organisation's subdomain.
+    'middleware' => ['web', 'tenant'],
 
     /*
     |--------------------------------------------------------------------------
@@ -114,8 +116,11 @@ return [
     |
     */
 
+    // No route limiter for login: Fortify's own login limiter counts failed
+    // attempts per email (Identity's TenantLoginRateLimiter, SEC-010) and
+    // rejects further attempts before the password is checked.
     'limiters' => [
-        'login' => 'login',
+        'login' => null,
     ],
 
     /*

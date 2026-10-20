@@ -1,19 +1,22 @@
 <?php
 
-namespace App\Actions\Fortify;
+namespace App\Modules\Identity\Actions;
 
-use App\Concerns\PasswordValidationRules;
-use App\Models\User;
+use App\Modules\Identity\Concerns\PasswordValidationRules;
+use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
 
+/**
+ * Sets a new password from a valid reset link. Other sessions of the user end
+ * on their next request (AuthenticateSession compares the password hash) and
+ * Fortify cycles the remember token (SEC-010).
+ */
 class ResetUserPassword implements ResetsUserPasswords
 {
     use PasswordValidationRules;
 
     /**
-     * Validate and reset the user's forgotten password.
-     *
      * @param  array<string, string>  $input
      */
     public function reset(User $user, array $input): void
