@@ -1,9 +1,8 @@
 id: P2-T5
-status: ready_to_merge
+status: blocked
 commit: 3ce7714
 handoff: |
-  app/Modules/Courses: Models/Announcement (tenant-scoped, soft-deleted, published_at set on post) + migration 2026_10_20_410000 (composite FK to course_spaces, cascade); factory ->for($space,'courseSpace').
-  Abilities: CourseSpacePolicy manageAnnouncements (owner) / viewAnnouncements (owner or enrolled student, also archived); Policies/AnnouncementPolicy view/update/delete. Org admins and non-enrolled students see none.
-  Actions Post/Update/Delete/ListAnnouncements; Events/AnnouncementPublished(organizationId, courseSpaceId, announcementId, authorId) dispatched after commit on post only (for P2-T6).
-  Routes POST/PUT/DELETE /courses/{id}/announcements[/{announcement}]; read via ShowCourseSpace props announcements + can.manageAnnouncements; UI components/courses/CourseAnnouncements.vue; strings courses.announcements.*.
-  Tests: tests/Feature/Courses/AnnouncementTest.php, tests/Browser/AnnouncementTest.php.
+  Blocked on progress/requests/CR-P2-T5-1.yaml (announcements table despite migrations: no; edit/delete; readers incl. org admin; archived spaces; drafts/scheduling).
+  Proposed implementation is on this branch (3ce7714): Courses Models/Announcement + migration 2026_10_20_410000, AnnouncementPolicy, CourseSpacePolicy manage/viewAnnouncements,
+  Actions Post/Update/Delete/ListAnnouncements, Events/AnnouncementPublished, AnnouncementController + routes, components/courses/CourseAnnouncements.vue,
+  tests/Feature/Courses/AnnouncementTest.php, tests/Browser/AnnouncementTest.php (all checks pass). Reuse it and adjust it to the CR outcome.
