@@ -1,0 +1,9 @@
+id: P2-T5
+status: ready_to_merge
+commit: 3ce7714
+handoff: |
+  app/Modules/Courses: Models/Announcement (tenant-scoped, soft-deleted, published_at set on post) + migration 2026_10_20_410000 (composite FK to course_spaces, cascade); factory ->for($space,'courseSpace').
+  Abilities: CourseSpacePolicy manageAnnouncements (owner) / viewAnnouncements (owner or enrolled student, also archived); Policies/AnnouncementPolicy view/update/delete. Org admins and non-enrolled students see none.
+  Actions Post/Update/Delete/ListAnnouncements; Events/AnnouncementPublished(organizationId, courseSpaceId, announcementId, authorId) dispatched after commit on post only (for P2-T6).
+  Routes POST/PUT/DELETE /courses/{id}/announcements[/{announcement}]; read via ShowCourseSpace props announcements + can.manageAnnouncements; UI components/courses/CourseAnnouncements.vue; strings courses.announcements.*.
+  Tests: tests/Feature/Courses/AnnouncementTest.php, tests/Browser/AnnouncementTest.php.
