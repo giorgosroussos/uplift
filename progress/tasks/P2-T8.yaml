@@ -1,0 +1,9 @@
+id: P2-T8
+status: ready_to_merge
+commit: d30ceacef97472e1d82c278dc80abe971a58e0a0
+handoff: |
+  Courses Actions/ChangeCourseSpaceStatus::handle(actor, space, to): archiving locks the row, deletes all enrolments in the same transaction and dispatches Events/CourseSpaceArchived(organizationId, courseSpaceId, actorId, removedEnrolments) (ShouldDispatchAfterCommit, for P2-T7); restore gives an empty active space.
+  CourseSpacePolicy::before denies every ability on an archived space to students as 404 (so later modules' Gate::authorize on manageActivities/participate 404 too); viewResults ability removed; AnnouncementPolicy forwards the space's Response.
+  EnrolStudent share-locks the space and returns null when it is no longer active (callers raise the archived validation error); ListCourseSpaces hides archived spaces from students.
+  pages/Courses/Show.vue asks to confirm archiving in a Dialog (courses.show.confirm_archive*, lang/{en,el}); archived notice now shown to teacher/admin.
+  Tests: tests/Feature/Courses/ArchivedCourseSpaceTest.php, updated CourseOwnership/Enrolment tests, tests/Browser/CourseSpaceTest.php (confirm dialog).

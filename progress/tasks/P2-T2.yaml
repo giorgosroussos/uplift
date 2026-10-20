@@ -1,0 +1,9 @@
+id: P2-T2
+status: ready_to_merge
+commit: b233853
+handoff: |
+  app/Modules/Identity: users migration 2026_10_22 (two_factor_* columns, unique (organization_id, lower(nickname)), avatar check); User uses Fortify TwoFactorAuthenticatable, publicProfile() = {id, nickname, avatar} for leaderboards/broadcasts (SEC-008/SEC-010).
+  Actions UpdateProfile, UpdatePassword (AuthenticateSession ends other sessions), ConfirmTwoFactorCode; Rules/Nickname; Support/Avatars (avatar-01..12 = public/avatars/*.svg, resources/js/lib/avatars.ts); ChangeUserRole clears MFA when leaving org_admin.
+  Routes (tenant+auth+verified): GET/PATCH settings/profile, GET/PUT settings/password, GET settings/two-factor (can:manageTwoFactor + password.confirm); Fortify 2FA routes (confirm+confirmPassword) gated to org admins by Http/Middleware/RestrictTwoFactorManagement (config/fortify.php), challenge limiter 'two-factor' 5/min per session.
+  UI: pages/Identity/Settings/{Profile,Password,TwoFactor}.vue in layouts/settings/SettingsLayout.vue (P2-T6 can add a notifications section there), pages/auth/TwoFactorChallenge.vue, Settings link in UserMenuContent; strings lang/{en,el}/profile.php.
+  Tests: tests/Feature/Identity/{Profile,TwoFactor}Test.php, tests/Browser/ProfileTest.php; OWN-002, ENT-Invitation, INT-002 ACs stay covered by P2-T1/P1 tests (UserManagementTest, InvitationModelTest, LoginTest, InvitationTest).

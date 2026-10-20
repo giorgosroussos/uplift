@@ -199,30 +199,27 @@ describe('OWN-003: enrolments', function () {
 });
 
 describe('UC-021: archived course space', function () {
-    it('lets enrolled students view it and their results but not submit to its activities', function () {
+    it('is hidden from students, even one whose enrolment was kept, and refuses their activities (DATA-012)', function () {
         expect(Gate::forUser($this->student)->allows('participate', $this->space))->toBeTrue();
 
+        // Archived without the action, so the enrolment row is still there.
         $this->space->transitionTo(CourseSpaceStatus::Archived);
 
         $gate = Gate::forUser($this->student);
-        expect($gate->allows('view', $this->space))->toBeTrue()
-            ->and($gate->allows('viewResults', $this->space))->toBeTrue()
+        expect($gate->allows('view', $this->space))->toBeFalse()
             ->and($gate->allows('participate', $this->space))->toBeFalse()
             ->and($gate->allows('enrol', $this->space))->toBeFalse();
 
-        $this->actingAs($this->student)->get(courseSpaceUrl($this->space))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('space.status', 'archived')
-                ->where('enrolled', true));
+        $this->actingAs($this->student)->get(courseSpaceUrl($this->space))->assertNotFound();
+        $this->actingAs($this->student)->get($this->tenantUrl($this->acme, 'courses'))
+            ->assertInertia(fn (Assert $page) => $page->has('spaces', 0));
     });
 
     it('is hidden from students who are not enrolled', function () {
         $this->space->transitionTo(CourseSpaceStatus::Archived);
 
-        $this->actingAs($this->otherStudent)->get(courseSpaceUrl($this->space))->assertForbidden();
-        expect(Gate::forUser($this->otherStudent)->allows('viewResults', $this->space))->toBeFalse()
-            ->and(Gate::forUser($this->otherStudent)->allows('participate', $this->space))->toBeFalse();
+        $this->actingAs($this->otherStudent)->get(courseSpaceUrl($this->space))->assertNotFound();
+        expect(Gate::forUser($this->otherStudent)->allows('participate', $this->space))->toBeFalse();
     });
 
     it('lets only enrolled students submit to an active space', function () {

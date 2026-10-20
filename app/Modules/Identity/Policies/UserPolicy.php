@@ -32,6 +32,14 @@ class UserPolicy
             && $actor->organization_id === $user->organization_id;
     }
 
+    /**
+     * Enable, confirm or disable one's own MFA (SEC-012): org admins only.
+     */
+    public function manageTwoFactor(User $actor): bool
+    {
+        return $actor->canAct() && $actor->hasRole(Role::OrgAdmin);
+    }
+
     public function view(User $actor, User $user): bool
     {
         return $this->grants($actor, $user);

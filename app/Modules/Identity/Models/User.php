@@ -22,13 +22,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 
 /**
  * ENT-User: a person in exactly one organisation with exactly one role
  * (SEC-004). Tenant-owned: queries only see users of the current tenant.
  *
- * Personal data (name, nickname, email, date_of_birth, is_minor) and the
- * password hash never go to logs or error messages.
+ * Personal data (name, nickname, email, date_of_birth, is_minor), the
+ * password hash and the two-factor secret and recovery codes never go to logs
+ * or error messages. The two-factor secret and recovery codes are stored
+ * encrypted by Fortify (SEC-012).
  *
  * @property string $id
  * @property string $organization_id
@@ -44,6 +47,9 @@ use Illuminate\Support\Facades\Config;
  * @property bool $is_active
  * @property Locale|null $locale
  * @property string|null $remember_token
+ * @property string|null $two_factor_secret
+ * @property string|null $two_factor_recovery_codes
+ * @property Carbon|null $two_factor_confirmed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Organization $organization
@@ -58,6 +64,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
 
     use HasUuids;
     use Notifiable;
+    use TwoFactorAuthenticatable;
 
     /**
      * @var list<string>
@@ -80,6 +87,8 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -126,6 +135,21 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function canAct(): bool
     {
         return $this->is_active && $this->organization->isActive();
+    }
+
+    /**
+     * What leaderboards and live broadcasts may show of a user (SEC-008,
+     * SEC-010): the nickname and the preset avatar key, nothing else.
+     *
+     * @return array{id: string, nickname: string, avatar: string|null}
+     */
+    public function publicProfile(): array
+    {
+        return [
+            'id' => (string) $this->getKey(),
+            'nickname' => $this->nickname,
+            'avatar' => $this->avatar,
+        ];
     }
 
     public function preferredLocale(): string
@@ -186,6 +210,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'is_minor' => 'boolean',
             'is_active' => 'boolean',
             'email_verified_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

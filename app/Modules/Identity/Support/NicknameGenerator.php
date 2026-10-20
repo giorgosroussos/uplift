@@ -32,7 +32,7 @@ class NicknameGenerator
         return User::query()
             ->withoutGlobalScope(OrganizationScope::class)
             ->where('organization_id', $organizationId)
-            ->where('nickname', $nickname)
+            ->whereRaw('lower(nickname) = lower(?)', [$nickname])
             ->exists();
     }
 }

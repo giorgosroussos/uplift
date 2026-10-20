@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { BellRing, LogOut } from '@lucide/vue';
+import { BellRing, LogOut, Settings } from '@lucide/vue';
 import {
     DropdownMenuItem,
     DropdownMenuLabel,
@@ -9,6 +9,7 @@ import {
 import UserInfo from '@/components/UserInfo.vue';
 import { logout } from '@/routes';
 import { edit as notificationSettings } from '@/routes/notifications/settings';
+import { edit as profileSettings } from '@/routes/settings/profile';
 import type { User } from '@/types';
 
 type Props = {
@@ -37,6 +38,11 @@ defineProps<Props>();
         >
             <BellRing class="mr-2 h-4 w-4" />
             {{ $t('notifications.settings.nav') }}
+            :href="profileSettings()"
+            data-test="settings-link"
+        >
+            <Settings class="mr-2 h-4 w-4" />
+            {{ $t('profile.nav') }}
         </Link>
     </DropdownMenuItem>
     <DropdownMenuSeparator />

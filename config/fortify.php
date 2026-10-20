@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Identity\Http\Middleware\RestrictTwoFactorManagement;
 use Laravel\Fortify\Features;
 
 return [
@@ -101,9 +102,9 @@ return [
     |
     */
 
-    // Login, password reset and email verification exist only on an
-    // organisation's subdomain.
-    'middleware' => ['web', 'tenant'],
+    // Login, password reset, email verification and MFA exist only on an
+    // organisation's subdomain; MFA is managed only by org admins (SEC-012).
+    'middleware' => ['web', 'tenant', RestrictTwoFactorManagement::class],
 
     /*
     |--------------------------------------------------------------------------
@@ -119,8 +120,11 @@ return [
     // No route limiter for login: Fortify's own login limiter counts failed
     // attempts per email (Identity's TenantLoginRateLimiter, SEC-010) and
     // rejects further attempts before the password is checked.
+    // The two-factor challenge: 5 attempts per minute per login session
+    // (SEC-012), defined in IdentityServiceProvider.
     'limiters' => [
         'login' => null,
+        'two-factor' => 'two-factor',
     ],
 
     /*
@@ -150,6 +154,11 @@ return [
     'features' => [
         Features::resetPasswords(),
         Features::emailVerification(),
+        // Optional TOTP MFA for org admins (SEC-011, SEC-012).
+        Features::twoFactorAuthentication([
+            'confirm' => true,
+            'confirmPassword' => true,
+        ]),
     ],
 
 ];

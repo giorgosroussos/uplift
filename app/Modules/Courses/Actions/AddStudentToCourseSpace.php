@@ -41,6 +41,8 @@ class AddStudentToCourseSpace
             ]);
         }
 
-        return $this->enrol->handle($space, $student);
+        return $this->enrol->handle($space, $student) ?? throw ValidationException::withMessages([
+            'student_id' => __('courses.errors.archived'),
+        ]);
     }
 }

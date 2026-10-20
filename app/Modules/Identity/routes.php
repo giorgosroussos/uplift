@@ -3,11 +3,15 @@
 use App\Modules\Identity\Http\Controllers\AcceptInvitationController;
 use App\Modules\Identity\Http\Controllers\DashboardController;
 use App\Modules\Identity\Http\Controllers\InvitationController;
+use App\Modules\Identity\Http\Controllers\PasswordController;
+use App\Modules\Identity\Http\Controllers\ProfileController;
 use App\Modules\Identity\Http\Controllers\RegistrationController;
 use App\Modules\Identity\Http\Controllers\SubdomainCheckController;
+use App\Modules\Identity\Http\Controllers\TwoFactorController;
 use App\Modules\Identity\Http\Controllers\UserController;
 use App\Modules\Identity\Http\Middleware\RequireApexDomain;
 use App\Modules\Identity\Http\Middleware\ThrottleRegistrations;
+use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,6 +30,18 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
 
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::post('invitations/{invitation}/revoke', [InvitationController::class, 'revoke'])->whereUuid('invitation')->name('invitations.revoke');
+
+    // The user's own settings (UC-006): no user id, only ever one's own record.
+    Route::redirect('settings', 'settings/profile')->name('settings');
+    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('settings.profile.edit');
+    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
+    Route::get('settings/password', [PasswordController::class, 'edit'])->name('settings.password.edit');
+    Route::put('settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
+
+    // MFA of org admins (SEC-012): authorised before the password is asked.
+    Route::get('settings/two-factor', [TwoFactorController::class, 'show'])
+        ->middleware(['can:manageTwoFactor,'.User::class, 'password.confirm'])
+        ->name('settings.two-factor.show');
 });
 
 // Accepting an invitation (UC-005), from the link in the invitation email.
