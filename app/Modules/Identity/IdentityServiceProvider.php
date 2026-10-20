@@ -10,7 +10,9 @@ use App\Modules\Identity\Http\Middleware\EnsureAccountIsActive;
 use App\Modules\Identity\Http\Responses\PasswordResetFailedResponse;
 use App\Modules\Identity\Http\Responses\PasswordResetLinkRequestedResponse;
 use App\Modules\Identity\Http\Responses\ProblemDetails;
+use App\Modules\Identity\Models\Invitation;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Policies\InvitationPolicy;
 use App\Modules\Identity\Policies\UserPolicy;
 use App\Modules\Identity\Support\NoIdentityProviders;
 use App\Modules\Identity\Support\OfflineUncompromisedVerifier;
@@ -18,6 +20,7 @@ use App\Modules\Identity\Support\TenantLoginRateLimiter;
 use App\Modules\Identity\Support\TenantPasswordBrokerManager;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Foundation\Http\Kernel;
@@ -65,6 +68,12 @@ class IdentityServiceProvider extends ModuleServiceProvider
         parent::boot();
 
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Invitation::class, InvitationPolicy::class);
+
+        // Retention of ENT-Invitation: deleted 30 days after it stops being pending.
+        $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
+            $schedule->command('model:prune', ['--model' => [Invitation::class]])->daily();
+        });
 
         // SEC-010: at least 8 characters, not known to be compromised.
         Password::defaults(fn (): Password => Password::min(8)->uncompromised());

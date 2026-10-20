@@ -25,4 +25,12 @@ return [
         'outro' => 'If you did not create an account, no further action is required.',
     ],
 
+    'invitation' => [
+        'subject' => 'Invitation to :organization',
+        'intro' => 'You have been invited to join :organization as :role.',
+        'action' => 'Accept invitation',
+        'expires' => 'This link is valid for :count days and can be used once.',
+        'outro' => 'If you did not expect this invitation, no further action is required.',
+    ],
+
 ];

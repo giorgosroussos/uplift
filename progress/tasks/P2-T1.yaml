@@ -1,0 +1,9 @@
+id: P2-T1
+status: ready_to_merge
+commit: aab6d57
+handoff: |
+  app/Modules/Identity: Models/Invitation (tenant-scoped, Enums/InvitationStatus state model via transitionTo, token_hash encrypted, MassPrunable 30 days, model:prune scheduled daily), invitations migration, InvitationFactory (::$lastToken, sentDaysAgo, inStatus, role).
+  Actions InviteUser (SEC-004 platform-wide email check via Support/PlatformEmails + EmailLock, 7-day link, queued Notifications/InvitationNotification with INT-001 retries), OpenInvitation/AcceptInvitation (verified user, logged in), RevokeInvitation, ListUsers, ChangeUserRole, DeactivateUser, ReactivateUser (Support/OrgAdminGuard keeps one active org admin).
+  Routes: tenant+auth GET /users, PATCH users/{user}/role, POST users/{user}/{deactivate,reactivate}, POST invitations, POST invitations/{invitation}/revoke; tenant+guest GET/POST invitation/{invitation}/{token}. Policies: UserPolicy viewAny/manage, InvitationPolicy (OWN-002).
+  Events (ids only, after commit): InvitationCreated, InvitationAccepted, InvitationRevoked, UserRoleChanged(from/to), UserDeactivated, UserReactivated — for P2-T7 audit and P2-T6; the invitation email is already sent by Identity (like reset/verify mails), P2-T6 must not send it again.
+  UI: pages/Identity/Users.vue (sidebar item for org admins), pages/auth/{AcceptInvitation,InvitationUnavailable}.vue; strings in lang/{en,el}/{users,invitations}.php + notifications.invitation. Tests: tests/Feature/Identity/{Invitation,InvitationModel,UserManagement}Test.php, tests/Browser/InvitationTest.php.
