@@ -1,0 +1,5 @@
+id: P2-T3
+status: blocked
+commit: null
+handoff: |
+  Blocked on progress/requests/CR-P2-T3-1.yaml: org-admin authorisation needs the role from CMP-Identity, which CMP-Tenancy may not depend on and P2-T3 may not write; subdomain scope, where settings apply and the audit event are also unspecified.
