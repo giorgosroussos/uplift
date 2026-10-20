@@ -12,10 +12,13 @@ use Illuminate\Support\Facades\Gate;
  * What one user may see of a course space: the enrolment key and the
  * enrolled students only for the owning teacher (OWN-003, OWN-004), the
  * number of enrolled students for an org admin, the own enrolment for a
- * student.
+ * student. Announcements only for the owning teacher and enrolled students
+ * (UC-008).
  */
 class ShowCourseSpace
 {
+    public function __construct(private readonly ListAnnouncements $announcements) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -38,8 +41,10 @@ class ShowCourseSpace
                 'update' => $gate->allows('update', $space),
                 'enrol' => $gate->allows('enrol', $space),
                 'manageEnrolments' => $canManage,
+                'manageAnnouncements' => $gate->allows('manageAnnouncements', $space),
             ],
             'enrolled' => $user->hasRole(Role::Student) && $space->hasEnrolled($user),
+            'announcements' => $this->announcements->handle($user, $space),
             'enrolmentsCount' => $user->hasRole(Role::Student) ? null : $space->enrolments()->count(),
             'students' => [],
             'availableStudents' => [],

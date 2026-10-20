@@ -85,12 +85,29 @@ return [
         'no_available_students' => 'Όλοι οι φοιτητές του οργανισμού είναι ήδη εγγεγραμμένοι.',
     ],
 
+    'announcements' => [
+        'heading' => 'Ανακοινώσεις',
+        'empty' => 'Δεν υπάρχουν ανακοινώσεις ακόμη.',
+        'new' => 'Νέα ανακοίνωση',
+        'title' => 'Τίτλος',
+        'body' => 'Κείμενο',
+        'post' => 'Δημοσίευση',
+        'published_by' => 'Από :author, :date',
+        'edit' => 'Επεξεργασία',
+        'save' => 'Αποθήκευση',
+        'cancel' => 'Ακύρωση',
+        'delete' => 'Διαγραφή',
+        'confirm_delete' => 'Να διαγραφεί αυτή η ανακοίνωση;',
+    ],
+
     'attributes' => [
         'title' => 'τίτλος',
         'description' => 'περιγραφή',
         'enrolment_policy' => 'εγγραφή',
         'enrolment_key' => 'κωδικός εγγραφής',
         'student' => 'φοιτητής',
+        'announcement_title' => 'τίτλος',
+        'announcement_body' => 'κείμενο',
     ],
 
     'errors' => [
@@ -108,6 +125,9 @@ return [
         'enrolled' => 'Η εγγραφή σας ολοκληρώθηκε.',
         'student_added' => 'Ο φοιτητής προστέθηκε.',
         'student_removed' => 'Ο φοιτητής αφαιρέθηκε.',
+        'announcement_posted' => 'Η ανακοίνωση δημοσιεύτηκε.',
+        'announcement_updated' => 'Η ανακοίνωση αποθηκεύτηκε.',
+        'announcement_deleted' => 'Η ανακοίνωση διαγράφηκε.',
     ],
 
 ];
