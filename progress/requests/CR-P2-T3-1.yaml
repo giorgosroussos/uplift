@@ -1,0 +1,69 @@
+id: CR-P2-T3-1
+raised_by: implementation-agent
+task: P2-T3
+status: accepted
+problem: >
+  UC-033 may only be performed by ROLE-OrgAdmin of the same organisation, but
+  the role lives on ENT-User (CMP-Identity: Models/User, Enums/Role) while
+  P2-T3 writes only CMP-Tenancy, reads no component, and CMP-Tenancy
+  "MUST only depend on: no other component" (deptrac ruleset Tenancy: []).
+  Tenancy can therefore neither check "is this user an org admin of this
+  organisation" nor make Identity's User implement a Tenancy contract without
+  editing CMP-Identity, which this task may not write (and P2-T1/P2-T2 are
+  editing Identity in parallel). Any authorisation built only inside
+  Tenancy either denies every real user (feature unusable) or checks the role
+  by a magic string (a hidden dependency on Identity that deptrac cannot see).
+  Secondary gaps in the same task:
+  (a) UC-033's goal includes changing the subdomain, but the P2-T3
+  description (logo, accent colour, terminology, grading scale, leaderboard,
+  default language) does not. Is the subdomain editable here? If so: the
+  availability rules live in Identity (Support/SubdomainAvailability), session
+  cookies are host-only (SEC-010) so the admin is logged out by the change,
+  and old links (reset/verification mails) break. What happens?
+  (b) Where must the settings take effect in this task: logo on the login
+  page (UC-002 step 1, an Identity page) and app shell, accent colour as the
+  theme primary colour, terminology replacing "student"/"teacher" in UI
+  strings, default_locale for guests and for users without a locale? Or does
+  P2-T3 only store them and expose them (shared Inertia props) for others?
+  (c) Format of accent_color (proposed #RRGGBB hex) and whether it may be
+  cleared; whether the logo may be removed.
+  (d) The audit entry for settings changes (SEC-010) is written by P2-T7
+  (CMP-Audit), which needs a domain event from Tenancy; its name and payload
+  are not specified.
+affects:
+  - model/architecture.yaml (CMP-Tenancy may_depend_on, or a Tenancy contract implemented by Identity)
+  - phases/PHASE-2.yaml (P2-T3 touches and description; P2-T7 event)
+  - model/use-cases.yaml (UC-033 steps and acceptance criteria)
+  - P2-T3
+  - P2-T7
+proposal: >
+  Authorisation: CMP-Tenancy defines a contract
+  App\Modules\Tenancy\Contracts\OrganizationMember
+  (organizationId(): string, administersOrganization(): bool) and an
+  OrganizationPolicy (update: user implements the contract, belongs to the
+  organisation and administers it). Identity's User implements the contract
+  (two small methods, role === org_admin). Either P2-T3 gets
+  touches.writes CMP-Identity limited to Models/User.php, or the
+  implementation is added to P2-T1/P2-T2 and P2-T3 depends on it.
+  (a) Subdomain is NOT editable in P2-T3 (left to platform admins, UC-036);
+  drop "and subdomain" from UC-033 or move it to a later task.
+  (b) P2-T3 stores the settings, serves the logo through a tenant route
+  (file on a private Storage disk), shares {name, logo_url, accent_color,
+  student_term, teacher_term (in the current locale), leaderboard_enabled,
+  grading_scale} as an Inertia shared prop "organization", applies the
+  accent colour as the app's primary colour and shows the logo in the app
+  shell and on the login page header; default_locale is the locale for
+  guests and users without their own locale.
+  (c) accent_color is #RRGGBB or empty (theme default); the logo can be
+  removed (falls back to the app logo).
+  (d) Tenancy dispatches Events/OrganizationSettingsChanged(organizationId,
+  actorId, changes: {field: {from, to}}, never file contents) after commit;
+  P2-T7 listens to it (action organization.settings_changed).
+resolution: >
+  Accepted as proposed in design v1.4.0, with the contract implemented in
+  P2-T3 itself. ARCH-008: Tenancy defines Contracts/OrganizationMember and
+  OrganizationPolicy; Identity's User implements it; P2-T3 now writes
+  CMP-Identity (User.php only) and depends on P2-T1. (a) Subdomain not
+  editable; removed from UC-033. (b), (c), (d) as proposed, recorded in
+  DATA-011; P2-T7 audits OrganizationSettingsChanged as
+  organization.settings_changed. UC-033 has a main flow and acceptance criteria.

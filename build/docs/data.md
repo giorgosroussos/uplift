@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v1.3.0 · source 4b4668e8fa72_
+_Generated document · design v1.4.0 · source cc1c2e1e847f_
 
 
 ## Entity–relationship diagram
@@ -945,3 +945,4 @@ Owned by CMP-Notifications · retention: Deleted 180 days after creation · audi
 | DATA-008 | Question bank | decided | Each teacher has a personal question bank; adding a bank question to a quiz copies it, so later bank edits never change existing quizzes |
 | DATA-009 | Live answer storage | decided (default) | LiveAnswer.response is JSONB: a snapshot used only for the answer distribution and XP (exception to DATA-001); self-paced answers stay structured |
 | DATA-010 | Initial settings of a registered organisation | decided (inferred) | Sign-up asks for none of the organisation settings. A new organisation gets student terms Μαθητής / Student, teacher terms Καθηγητής / Teacher, grading scale 0-10, leaderboard enabled, and as default locale the UI locale the visitor used for sign-up; all are changeable later (UC-033) |
+| DATA-011 | Organisation settings format, effect and change event | decided (inferred) | The subdomain is not editable by the organisation. accent_color is #RRGGBB or empty (theme default); the logo may be removed (the app logo is shown instead) and is served through a tenant route from a private Storage disk. Settings are shared with every page as the Inertia prop organization; the accent colour is the app's primary colour, the logo appears in the app shell and the login page header, and default_locale is the locale for guests and for users without their own. Using the student/teacher terms in screens is up to later tasks. After each change Tenancy dispatches OrganizationSettingsChanged, which P2-T7 audits |

@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v1.3.0 · source 4b4668e8fa72_
+_Generated document · design v1.4.0 · source cc1c2e1e847f_
 
 
 ## Actors
@@ -556,7 +556,26 @@ Acceptance criteria:
 
 #### UC-033 — Configure organisation (should)
 
-Actors: ACT-OrgAdmin · Goal: Set logo, accent colour, terminology, leaderboard on/off and subdomain
+Actors: ACT-OrgAdmin · Goal: Set logo, accent colour, terminology, grading scale, leaderboard on/off and default language
+
+Main flow:
+1. Org admin opens the organisation settings
+2. Uploads or removes the logo, sets or clears the accent colour, edits the student and teacher terms in Greek and English, and chooses grading scale, leaderboard on/off and default language
+3. Saves; the settings apply at once to every page of the organisation (DATA-011)
+
+Exceptions:
+- Accent colour not #RRGGBB, or logo not an allowed file (SEC-010): nothing is saved and the field shows the reason
+- The subdomain is shown but cannot be changed
+
+Acceptance criteria:
+- Given an org admin of 'acme', When they set accent colour #1A2B3C and leaderboard off, Then acme's settings are saved and the shared prop organization shows them
+- Given a teacher or student of 'acme', When they try to view or update acme's settings, Then the request is refused with 403
+- Given an org admin of 'beta', When they try to update acme's settings, Then the request is refused and acme is unchanged
+- Given an org admin, When they submit accent colour 'blue' or '#12345', Then nothing is saved; an empty accent colour is accepted
+- Given acme has a logo, When the org admin removes it, Then the login page and app shell show the app logo
+- Given acme's default language is el, When a guest or a user without a locale opens acme's login page, Then it is shown in Greek
+- Given an org admin changes accent colour and leaderboard, When the save commits, Then one OrganizationSettingsChanged is dispatched with both fields as {from, to}
+- Given an org admin submits a different subdomain, When saved, Then the subdomain is unchanged
 
 #### UC-034 — Organisation analytics (could)
 

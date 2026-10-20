@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v1.3.0 · source 4b4668e8fa72_
+_Generated document · design v1.4.0 · source cc1c2e1e847f_
 
 
 ## Scope
@@ -342,6 +342,22 @@ _since v0.1.0_
 
 _affects UC-001, UC-033 · since v1.3.0_
 
+### DATA-011 — Organisation settings format, effect and change event · decided · source: inferred
+
+**Decision:** The subdomain is not editable by the organisation. accent_color is #RRGGBB or empty (theme default); the logo may be removed (the app logo is shown instead) and is served through a tenant route from a private Storage disk. Settings are shared with every page as the Inertia prop organization; the accent colour is the app's primary colour, the logo appears in the app shell and the login page header, and default_locale is the locale for guests and for users without their own. Using the student/teacher terms in screens is up to later tasks. After each change Tenancy dispatches OrganizationSettingsChanged, which P2-T7 audits
+
+**Why:** Closes the gaps of UC-033 found in CR-P2-T3-1; a fixed subdomain avoids host-only session loss and broken links in sent mails
+
+**Constraints for implementation:**
+- `MUST NOT let an organisation change its subdomain`
+- `MUST accept accent_color only as #RRGGBB or empty`
+- `MUST share {name, logo_url, accent_color, student_term, teacher_term (in the current locale), leaderboard_enabled, grading_scale} as the Inertia shared prop organization`
+- `MUST serve the organisation logo through a tenant route from a private Storage disk`
+- `MUST use the organisation's default_locale for guests and for users without a locale`
+- `MUST dispatch App\Modules\Tenancy\Events\OrganizationSettingsChanged(organizationId, actorId, changes {field: {from, to}}) after commit; MUST NOT put file contents in changes`
+
+_affects UC-033, P2-T3, P2-T7 · since v1.4.0_
+
 ## Security
 
 ### SEC-001 — Authentication · superseded
@@ -581,6 +597,23 @@ _affects CMP-Live, CMP-Notifications, INT-001 · since v0.1.0_
 - `MUST list every dev-only package added in phase 1 in the P1-T1 handoff`
 
 _affects P1-T1 · since v1.1.0_
+
+### ARCH-008 — Organisation authorisation through a Tenancy contract · decided · source: inferred
+
+**Decision:** CMP-Tenancy defines App\Modules\Tenancy\Contracts\OrganizationMember (organizationId(): string, administersOrganization(): bool) and authorises organisation actions in its own OrganizationPolicy against that contract only; Identity's User implements it (administersOrganization() is role === org_admin)
+
+**Why:** Tenancy may depend on no other component, yet UC-033 needs the user's role, which lives in Identity; the contract keeps the dependency direction Identity -> Tenancy (CR-P2-T3-1)
+
+**Rejected:**
+- Comparing the role as a string inside Tenancy: hidden dependency on Identity that deptrac cannot see
+- Implementing the contract in P2-T2: lengthens the chain P2-T1 -> P2-T2 -> P2-T3
+- Settings controller and policy in Identity: moves organisation settings out of their module
+
+**Constraints for implementation:**
+- `MUST authorise organisation settings in Tenancy's OrganizationPolicy through the OrganizationMember contract; MUST NOT reference Identity classes or role strings from Tenancy`
+- `MUST allow updating an organisation's settings only to a user who implements OrganizationMember, belongs to that organisation and administers it`
+
+_affects UC-033, P2-T3 · since v1.4.0_
 
 ## Operations
 

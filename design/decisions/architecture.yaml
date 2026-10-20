@@ -82,3 +82,17 @@ decisions:
       - "MUST list every dev-only package added in phase 1 in the P1-T1 handoff"
     affects: [P1-T1]
     since: 1.1.0
+  - id: ARCH-008
+    area: architecture
+    title: Organisation authorisation through a Tenancy contract
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "CMP-Tenancy defines App\\Modules\\Tenancy\\Contracts\\OrganizationMember (organizationId(): string, administersOrganization(): bool) and authorises organisation actions in its own OrganizationPolicy against that contract only; Identity's User implements it (administersOrganization() is role === org_admin)"
+    rationale: "Tenancy may depend on no other component, yet UC-033 needs the user's role, which lives in Identity; the contract keeps the dependency direction Identity -> Tenancy (CR-P2-T3-1)"
+    alternatives_rejected: ["Comparing the role as a string inside Tenancy: hidden dependency on Identity that deptrac cannot see", "Implementing the contract in P2-T2: lengthens the chain P2-T1 -> P2-T2 -> P2-T3", "Settings controller and policy in Identity: moves organisation settings out of their module"]
+    constraints:
+      - "MUST authorise organisation settings in Tenancy's OrganizationPolicy through the OrganizationMember contract; MUST NOT reference Identity classes or role strings from Tenancy"
+      - "MUST allow updating an organisation's settings only to a user who implements OrganizationMember, belongs to that organisation and administers it"
+    affects: [UC-033, P2-T3]
+    since: 1.4.0

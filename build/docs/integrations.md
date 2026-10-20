@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Integrations
 
-_Generated document · design v1.3.0 · source 4b4668e8fa72_
+_Generated document · design v1.4.0 · source cc1c2e1e847f_
 
 
 #### Laravel Mail / Notification mail channel (INT-001: CMP-Notifications ↔ EXT-002)

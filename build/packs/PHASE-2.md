@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-2 — Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications
 
-_design v1.3.0 · 4b4668e8fa72_
+_design v1.4.0 · cc1c2e1e847f_
 
 Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit
 
@@ -11,13 +11,13 @@ Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP
 |---|---|---|---|
 | P2-T1 | Invitations and user management | — | CMP-Identity |
 | P2-T2 | Profile, nickname, language and optional MFA for org admins | P2-T1 | CMP-Identity |
-| P2-T3 | Organisation settings | — | CMP-Tenancy |
+| P2-T3 | Organisation settings | P2-T1 | CMP-Tenancy, CMP-Identity |
 | P2-T4 | Course spaces and enrolment | — | CMP-Courses |
 | P2-T5 | Announcements | P2-T4 | CMP-Courses |
 | P2-T6 | Notifications in-app and by email | P2-T1, P2-T5 | CMP-Notifications |
 | P2-T7 | Audit entries for registration, users and settings | P2-T1, P2-T3 | CMP-Audit |
 
-Execution waves: [P2-T1, P2-T3, P2-T4] → [P2-T2, P2-T5, P2-T7] → [P2-T6]
+Execution waves: [P2-T1, P2-T4] → [P2-T2, P2-T5] → [P2-T3, P2-T6] → [P2-T7]
 
 ## Out of scope (do not build)
 
@@ -60,7 +60,16 @@ Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: Edit personal details, p
 
 #### UC-033 — Configure organisation (should)
 
-Actors: ACT-OrgAdmin · Goal: Set logo, accent colour, terminology, leaderboard on/off and subdomain
+Actors: ACT-OrgAdmin · Goal: Set logo, accent colour, terminology, grading scale, leaderboard on/off and default language
+
+Main flow:
+1. Org admin opens the organisation settings
+2. Uploads or removes the logo, sets or clears the accent colour, edits the student and teacher terms in Greek and English, and chooses grading scale, leaderboard on/off and default language
+3. Saves; the settings apply at once to every page of the organisation (DATA-011)
+
+Exceptions:
+- Accent colour not #RRGGBB, or logo not an allowed file (SEC-010): nothing is saved and the field shows the reason
+- The subdomain is shown but cannot be changed
 
 #### UC-021 — Manage course space (must)
 
@@ -269,11 +278,19 @@ Failure policy: timeout 10s, retries 0 (interactive login), idempotency key —;
 - MUST require TOTP MFA for ROLE-PlatformAdmin  (SEC-011)
 - MUST offer optional TOTP MFA to ROLE-OrgAdmin  (SEC-011)
 - MUST allow only the owning teacher to edit a course space and its activities  (SCOPE-007)
+- MUST NOT let an organisation change its subdomain  (DATA-011)
+- MUST accept accent_color only as #RRGGBB or empty  (DATA-011)
+- MUST share {name, logo_url, accent_color, student_term, teacher_term (in the current locale), leaderboard_enabled, grading_scale} as the Inertia shared prop organization  (DATA-011)
+- MUST serve the organisation logo through a tenant route from a private Storage disk  (DATA-011)
+- MUST use the organisation's default_locale for guests and for users without a locale  (DATA-011)
+- MUST dispatch App\Modules\Tenancy\Events\OrganizationSettingsChanged(organizationId, actorId, changes {field: {from, to}}) after commit; MUST NOT put file contents in changes  (DATA-011)
 - MUST NOT send email for notification kinds other than those listed in DEC-001  (DEC-001)
 - MUST submit live answers through HTTP endpoints, never websocket client events (whisper)  (ARCH-006)
 - MUST derive client countdowns from server-sent ends_at and server_now  (ARCH-006)
 - MUST fall back to HTTP polling every 2 seconds when the websocket connection is lost  (ARCH-006)
 - MUST log external calls with ids only, never emails or names  (ARCH-006)
+- MUST authorise organisation settings in Tenancy's OrganizationPolicy through the OrganizationMember contract; MUST NOT reference Identity classes or role strings from Tenancy  (ARCH-008)
+- MUST allow updating an organisation's settings only to a user who implements OrganizationMember, belongs to that organisation and administers it  (ARCH-008)
 - MUST NOT write ENT-User fields name, nickname, email, password, date_of_birth, is_minor to logs or error messages
 - MUST encrypt ENT-User fields password at rest
 - MUST reject ENT-Invitation state transitions that are not listed in its state model
@@ -328,6 +345,14 @@ Standing constraints from deferred decisions (apply now):
 - [UC-032] Given an organisation with exactly 1 active org admin, When that admin deactivates or demotes themselves, Then it is rejected
 - [UC-032] Given a deactivated user with an open session, When they make their next request, Then they are logged out
 - [UC-032] Given an admin of 'acme', When they request the user list, Then no user of another organisation appears
+- [UC-033] Given an org admin of 'acme', When they set accent colour #1A2B3C and leaderboard off, Then acme's settings are saved and the shared prop organization shows them
+- [UC-033] Given a teacher or student of 'acme', When they try to view or update acme's settings, Then the request is refused with 403
+- [UC-033] Given an org admin of 'beta', When they try to update acme's settings, Then the request is refused and acme is unchanged
+- [UC-033] Given an org admin, When they submit accent colour 'blue' or '#12345', Then nothing is saved; an empty accent colour is accepted
+- [UC-033] Given acme has a logo, When the org admin removes it, Then the login page and app shell show the app logo
+- [UC-033] Given acme's default language is el, When a guest or a user without a locale opens acme's login page, Then it is shown in Greek
+- [UC-033] Given an org admin changes accent colour and leaderboard, When the save commits, Then one OrganizationSettingsChanged is dispatched with both fields as {from, to}
+- [UC-033] Given an org admin submits a different subdomain, When saved, Then the subdomain is unchanged
 - [UC-021] Given a teacher, When they create a course space, Then they are its owner and it is visible only within their organisation
 - [UC-021] Given an archived course space, Then students can view their results but cannot submit to its activities
 - [UC-021] Given a space owned by teacher A, When teacher B tries to edit it or its activities, Then it is refused

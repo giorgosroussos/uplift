@@ -1,5 +1,9 @@
 # Design changelog
 
+## v1.4.0 — 2026-10-20
+
+- Organisation settings: Tenancy authorisation contract, fixed subdomain, settings effect and change event (CR-P2-T3-1)
+
 ## v1.3.0 — 2026-10-20
 
 - Initial organisation settings on registration, post-registration landing, registration rate-limit counting (CR-P1-T4-1)

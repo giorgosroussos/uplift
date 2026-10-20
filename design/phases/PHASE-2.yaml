@@ -4,7 +4,7 @@ depends_on: [PHASE-1]
 use_cases: [UC-005, UC-032, UC-006, UC-033, UC-021, UC-011, UC-008, UC-007]
 entities: [ENT-User, ENT-Invitation, ENT-Organization, ENT-CourseSpace, ENT-Enrolment, ENT-Announcement, ENT-Notification]
 components: [CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit]
-decisions: [SEC-004, SEC-007, SEC-008, SEC-010, SEC-011, SCOPE-006, SCOPE-007, DATA-002, DEC-001, ARCH-006]
+decisions: [SEC-004, SEC-007, SEC-008, SEC-010, SEC-011, SCOPE-006, SCOPE-007, DATA-002, DATA-011, DEC-001, ARCH-006, ARCH-008]
 environment: development
 out_of_scope:
   - "Activities of any type (PHASE-3, PHASE-4)"
@@ -25,9 +25,10 @@ tasks:
     touches: {writes: [CMP-Identity]}
   - id: P2-T3
     title: Organisation settings
-    description: "Logo upload, accent colour, terminology in Greek and English, grading scale, leaderboard on/off, default language"
+    description: "Logo upload, accent colour, terminology in Greek and English, grading scale, leaderboard on/off, default language (subdomain not editable); OrganizationMember contract and OrganizationPolicy in Tenancy (ARCH-008), implemented by Identity's User (the only Identity file this task changes); shared prop organization, accent as primary colour, logo in app shell and login header, default_locale fallback; dispatches OrganizationSettingsChanged (DATA-011)"
+    depends_on: [P2-T1]
     use_cases: [UC-033]
-    touches: {writes: [CMP-Tenancy], migrations: true}
+    touches: {writes: [CMP-Tenancy, CMP-Identity], migrations: true}
   - id: P2-T4
     title: Course spaces and enrolment
     use_cases: [UC-021, UC-011]
@@ -45,6 +46,6 @@ tasks:
     touches: {writes: [CMP-Notifications], reads: [CMP-Identity, CMP-Courses], migrations: true}
   - id: P2-T7
     title: Audit entries for registration, users and settings
-    description: "Listeners writing audit entries for organisation registration (OrganizationRegistered: action organization.registered, actor_type user with actor_id = new admin, subject organization, changes {subdomain}; one entry), role changes, user deactivation and organisation settings changes; foreign key audit_entries.organization_id -> organizations.id (on delete restrict)"
+    description: "Listeners writing audit entries for organisation registration (OrganizationRegistered: action organization.registered, actor_type user with actor_id = new admin, subject organization, changes {subdomain}; one entry), role changes, user deactivation and organisation settings changes (OrganizationSettingsChanged: action organization.settings_changed, actor_type user with actor_id = actorId, subject organization, changes as dispatched; one entry per save); foreign key audit_entries.organization_id -> organizations.id (on delete restrict)"
     depends_on: [P2-T1, P2-T3]
     touches: {writes: [CMP-Audit], reads: [CMP-Identity, CMP-Tenancy], migrations: true}

@@ -103,3 +103,20 @@ decisions:
       - "MUST set a registered organisation's default_locale to the UI locale (el or en) of the sign-up request"
     affects: [UC-001, UC-033]
     since: 1.3.0
+  - id: DATA-011
+    area: data
+    title: Organisation settings format, effect and change event
+    status: decided
+    source: inferred
+    confirmed: true
+    decision: "The subdomain is not editable by the organisation. accent_color is #RRGGBB or empty (theme default); the logo may be removed (the app logo is shown instead) and is served through a tenant route from a private Storage disk. Settings are shared with every page as the Inertia prop organization; the accent colour is the app's primary colour, the logo appears in the app shell and the login page header, and default_locale is the locale for guests and for users without their own. Using the student/teacher terms in screens is up to later tasks. After each change Tenancy dispatches OrganizationSettingsChanged, which P2-T7 audits"
+    rationale: "Closes the gaps of UC-033 found in CR-P2-T3-1; a fixed subdomain avoids host-only session loss and broken links in sent mails"
+    constraints:
+      - "MUST NOT let an organisation change its subdomain"
+      - "MUST accept accent_color only as #RRGGBB or empty"
+      - "MUST share {name, logo_url, accent_color, student_term, teacher_term (in the current locale), leaderboard_enabled, grading_scale} as the Inertia shared prop organization"
+      - "MUST serve the organisation logo through a tenant route from a private Storage disk"
+      - "MUST use the organisation's default_locale for guests and for users without a locale"
+      - "MUST dispatch App\\Modules\\Tenancy\\Events\\OrganizationSettingsChanged(organizationId, actorId, changes {field: {from, to}}) after commit; MUST NOT put file contents in changes"
+    affects: [UC-033, P2-T3, P2-T7]
+    since: 1.4.0

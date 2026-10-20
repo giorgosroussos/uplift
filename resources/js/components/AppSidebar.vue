@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { BookOpen, LayoutGrid, Search } from '@lucide/vue';
+import { LayoutGrid, Users } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -19,6 +20,10 @@ import { catalogue, index as courses } from '@/routes/courses';
 import type { Auth, NavItem } from '@/types';
 
 const page = usePage<{ auth: Auth }>();
+import { index as usersIndex } from '@/routes/users';
+import type { NavItem } from '@/types';
+
+const page = usePage();
 
 const mainNavItems = computed<NavItem[]>(() => [
     {
@@ -39,6 +44,9 @@ const mainNavItems = computed<NavItem[]>(() => [
                   icon: Search,
               },
           ]
+    // User management (UC-032), for org admins only.
+    ...(page.props.auth.user?.role === 'org_admin'
+        ? [{ title: 'users.nav', href: usersIndex(), icon: Users }]
         : []),
 ]);
 </script>
