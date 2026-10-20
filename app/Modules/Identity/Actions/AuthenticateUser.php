@@ -3,8 +3,9 @@
 namespace App\Modules\Identity\Actions;
 
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Support\EqualWork;
 use App\Modules\Tenancy\Support\TenantContext;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Support\Str;
 
 /**
@@ -13,10 +14,17 @@ use Illuminate\Support\Str;
  * Only users of the current organisation are looked up, so a user of another
  * organisation fails exactly like a wrong password. Deactivated users and
  * users of a suspended organisation are refused.
+ *
+ * Fortify's custom-callback login skips the guard's Timebox, so equal work is
+ * enforced here: unknown emails and users without a password are checked
+ * against a dummy hash of the same cost.
  */
 class AuthenticateUser
 {
-    public function __construct(private readonly TenantContext $tenant) {}
+    public function __construct(
+        private readonly TenantContext $tenant,
+        private readonly Hasher $hasher,
+    ) {}
 
     public function handle(string $email, #[\SensitiveParameter] string $password): ?User
     {
@@ -26,11 +34,13 @@ class AuthenticateUser
 
         $user = User::query()->where('email', Str::lower(trim($email)))->first();
 
-        if ($user === null || $user->password === null || ! Hash::check($password, $user->password)) {
-            return null;
-        }
+        // Every path pays exactly one password check, so the response time
+        // does not tell whether the email has an account here.
+        $valid = $user?->password !== null
+            ? $this->hasher->check($password, $user->password)
+            : EqualWork::check($this->hasher, $password);
 
-        if (! $user->canAct()) {
+        if (! $valid || $user === null || ! $user->canAct()) {
             return null;
         }
 
