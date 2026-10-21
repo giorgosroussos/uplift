@@ -1,5 +1,6 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
+import type { SharedNotifications } from '@/types/notifications';
 import type { Organization } from '@/types/organization';
 
 // Extend ImportMeta interface for Vite...
@@ -22,6 +23,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             sidebarOpen: boolean;
             organization: Organization | null;
+            notifications: SharedNotifications | null;
             [key: string]: unknown;
         };
     }
