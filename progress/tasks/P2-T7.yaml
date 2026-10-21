@@ -1,0 +1,8 @@
+id: P2-T7
+status: ready_to_merge
+commit: f201b77
+handoff: |
+  app/Modules/Audit/Listeners: AuditOrganizationRegistered (organization.registered, changes {subdomain}), AuditUserRoleChanged (user.role_changed, subject user, changes {role: {from, to}}), AuditUserDeactivated (user.deactivated, subject user, no changes),
+  AuditOrganizationSettingsChanged (organization.settings_changed, changes as dispatched), AuditCourseSpaceArchived (course_space.archived, changes {removed_enrolments}); all actor_type user, registered in AuditServiceProvider::$listen, one entry per event.
+  Migration Audit/Database/Migrations/2026_10_23_700000: FK audit_entries.organization_id -> organizations.id on delete restrict (still nullable for platform entries).
+  Tests: tests/Feature/Audit/AuditEntriesTest.php (HTTP flows, negative cases, FK); AuditLogTest now uses real organisations.
