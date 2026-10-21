@@ -3,8 +3,10 @@
 namespace App\Modules\Audit;
 
 use App\Modules\Audit\Listeners\AuditCourseSpaceArchived;
+use App\Modules\Audit\Listeners\AuditOrganizationReactivated;
 use App\Modules\Audit\Listeners\AuditOrganizationRegistered;
 use App\Modules\Audit\Listeners\AuditOrganizationSettingsChanged;
+use App\Modules\Audit\Listeners\AuditOrganizationSuspended;
 use App\Modules\Audit\Listeners\AuditUserDeactivated;
 use App\Modules\Audit\Listeners\AuditUserReactivated;
 use App\Modules\Audit\Listeners\AuditUserRoleChanged;
@@ -14,6 +16,8 @@ use App\Modules\Identity\Events\OrganizationRegistered;
 use App\Modules\Identity\Events\UserDeactivated;
 use App\Modules\Identity\Events\UserReactivated;
 use App\Modules\Identity\Events\UserRoleChanged;
+use App\Modules\Platform\Events\OrganizationReactivated;
+use App\Modules\Platform\Events\OrganizationSuspended;
 use App\Modules\Tenancy\Events\OrganizationSettingsChanged;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
@@ -32,6 +36,8 @@ class AuditServiceProvider extends ModuleServiceProvider
         UserReactivated::class => [AuditUserReactivated::class],
         OrganizationSettingsChanged::class => [AuditOrganizationSettingsChanged::class],
         CourseSpaceArchived::class => [AuditCourseSpaceArchived::class],
+        OrganizationSuspended::class => [AuditOrganizationSuspended::class],
+        OrganizationReactivated::class => [AuditOrganizationReactivated::class],
     ];
 
     public function boot(): void
