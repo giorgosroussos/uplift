@@ -46,6 +46,7 @@ return [
         'publish' => 'Publish',
         'close' => 'Close activity',
         'submissions' => 'Submissions',
+        'open_quiz' => 'Open quiz',
         'draft_notice' => 'This activity is a draft: students do not see it until you publish it.',
         'closed_notice' => 'This activity is closed.',
     ],
