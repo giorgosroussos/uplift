@@ -1,5 +1,5 @@
 id: P2-T7
-status: ready_to_merge
+status: blocked
 commit: f201b77
 handoff: |
   app/Modules/Audit/Listeners: AuditOrganizationRegistered (organization.registered, changes {subdomain}), AuditUserRoleChanged (user.role_changed, subject user, changes {role: {from, to}}), AuditUserDeactivated (user.deactivated, subject user, no changes),
