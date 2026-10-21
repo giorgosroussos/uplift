@@ -4,6 +4,7 @@ namespace App\Modules\Assessment\Models;
 
 use App\Modules\Assessment\Database\Factories\QuizAttemptFactory;
 use App\Modules\Assessment\Enums\AttemptStatus;
+use App\Modules\Assessment\Enums\GradingStatus;
 use App\Modules\Assessment\Exceptions\InvalidStateTransition;
 use App\Modules\Identity\Models\User;
 use App\Modules\Tenancy\Concerns\BelongsToOrganization;
@@ -123,6 +124,26 @@ class QuizAttempt extends Model
         return $this->status === AttemptStatus::InProgress
             && $this->ends_at !== null
             && ! ($now ?? CarbonImmutable::now())->lessThan($this->ends_at);
+    }
+
+    /**
+     * The attempt's ordinal among its student's attempts of the quiz (1 = first).
+     */
+    public function number(): int
+    {
+        return self::query()
+            ->where('quiz_id', $this->quiz_id)
+            ->where('student_id', $this->student_id)
+            ->where('started_at', '<=', $this->started_at)
+            ->count();
+    }
+
+    /**
+     * Whether any answer of the attempt still waits for grading (SCOPE-024).
+     */
+    public function hasPendingAnswers(): bool
+    {
+        return $this->answers()->where('grading_status', GradingStatus::Pending->value)->exists();
     }
 
     public function isOf(User $student): bool

@@ -523,7 +523,7 @@ describe('submission, grading status and result visibility', function () {
 
         // The score is shown as provisional until the free-text answer is graded.
         test()->actingAs(test()->student)->get(tqUrl("quiz-attempts/{$textAttempt->id}"))
-            ->assertInertia(fn (Assert $page) => $page->where('score', ['earned' => '1.00', 'max' => '2.00', 'provisional' => true]));
+            ->assertInertia(fn (Assert $page) => $page->where('score.earned', '1.00')->where('score.max', '2.00')->where('score.provisional', true));
     });
 
     it('UC-012: Given default result visibility, When a student submits, Then they see their score immediately', function () {
@@ -538,7 +538,7 @@ describe('submission, grading status and result visibility', function () {
         test()->actingAs(test()->student)->get(tqUrl("quiz-attempts/{$attempt->id}"))
             ->assertInertia(fn (Assert $page) => $page
                 ->where('attempt.status', 'graded')
-                ->where('score', ['earned' => '1.00', 'max' => '2.00', 'provisional' => false]));
+                ->where('score.earned', '1.00')->where('score.max', '2.00')->where('score.provisional', false));
         test()->actingAs(test()->student)->get(tqUrl("quizzes/{$quiz->activity_id}"))
             ->assertInertia(fn (Assert $page) => $page->where('attempts.0.score.earned', '1.00'));
     });

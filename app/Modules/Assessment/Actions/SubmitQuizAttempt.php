@@ -4,6 +4,7 @@ namespace App\Modules\Assessment\Actions;
 
 use App\Modules\Assessment\Enums\AttemptStatus;
 use App\Modules\Assessment\Enums\GradingStatus;
+use App\Modules\Assessment\Events\GradeFinalised;
 use App\Modules\Assessment\Models\QuizAttempt;
 use App\Modules\Assessment\Support\AnswerScorer;
 use App\Modules\Assessment\Support\Points;
@@ -18,7 +19,8 @@ use Illuminate\Support\Facades\DB;
  * are scored at once and become auto_graded; free-text answers stay
  * pending. earned_points is the sum of the stored points, never below 0.
  * Without pending answers the attempt is graded (final score); otherwise
- * it stays submitted (provisional score).
+ * it stays submitted (provisional score). A final score dispatches
+ * GradeFinalised after commit.
  *
  * Submitting an attempt that is no longer in progress changes nothing.
  */
@@ -68,6 +70,7 @@ class SubmitQuizAttempt
 
             if (! $pending) {
                 $locked->transitionTo(AttemptStatus::Graded);
+                GradeFinalised::dispatch($locked->organization_id, $locked->id);
             }
 
             return $locked;

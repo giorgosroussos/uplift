@@ -55,6 +55,36 @@ class QuizAttemptPolicy
     }
 
     /**
+     * UC-017: My results, the own results only: students.
+     */
+    public function viewAnyResults(User $actor): bool
+    {
+        return $actor->canAct() && $actor->hasRole(Role::Student);
+    }
+
+    /**
+     * UC-017: the result of an attempt: only the student whose attempt it
+     * is (the teacher sees it on the grading page).
+     */
+    public function viewResult(User $actor, QuizAttempt $attempt): bool
+    {
+        return $this->sameOrganization($actor, $attempt)
+            && $actor->hasRole(Role::Student)
+            && $attempt->isOf($actor);
+    }
+
+    /**
+     * UC-026: open the attempt to grade its answers: only the teacher
+     * owning the quiz's course space.
+     */
+    public function grade(User $actor, QuizAttempt $attempt): bool
+    {
+        return $this->sameOrganization($actor, $attempt)
+            && $actor->hasRole(Role::Teacher)
+            && $this->managesQuizOf($actor, $attempt);
+    }
+
+    /**
      * Whether the teacher owns the course space of the attempt's quiz.
      */
     public static function managesQuizOf(User $actor, QuizAttempt $attempt): bool
