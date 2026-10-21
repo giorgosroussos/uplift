@@ -1,0 +1,9 @@
+id: P3-T3
+status: ready_to_merge
+commit: dbc761e
+handoff: |
+  app/Modules/Assessment: Support/QuizType (ActivityType, registered in AssessmentServiceProvider; steps pages/Assessment/Quiz/{Settings,Questions}.vue), Actions/{SaveQuizSettings,SaveQuizQuestions,ShowQuizQuestions,ListCopyableBankQuestions}, Support/{QuestionRules (DATA-016, shared with QuestionRequest),GradingFingerprint}.
+  Tables quizzes (PK activity_id, time_limit seconds, percentages 0-100), quiz_questions (ordered; question = in_bank false copy), quiz_attempts, answers, answer_selections, answer_matches; models + factories (Quiz ->live ->withQuestions, QuizAttempt ->submitted ->graded, Answer ->graded).
+  Content step: client-generated UUIDs for questions/options/pairs (resources/js/lib/quizForm.ts), ids of rows outside the quiz refused (OWN-016); bank copy via GET question-bank/copyable (JSON, RFC 9457). Any attempt locks grading (hasSubmissions); submissions() returns [] until P3-T5.
+  Enums AttemptStatus/GradingStatus enforce the design state models (Answer created only as pending; auto_graded unreachable per the model - P3-T4 may need a CR). Policies QuizAttemptPolicy (view/update), AnswerPolicy (view/update/grade) = OWN-006/007; group attempts deferred to PHASE-4 (group_id without FK).
+  Tests: tests/Feature/Assessment/{QuizWizardTest,QuizAttemptOwnershipTest}.php, tests/Browser/QuizWizardTest.php, resources/js/lib/quizForm.test.ts.
