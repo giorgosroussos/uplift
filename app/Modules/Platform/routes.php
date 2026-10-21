@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Platform\Http\Controllers\OrganizationController;
 use App\Modules\Platform\Http\Controllers\PlatformDashboardController;
 use App\Modules\Platform\Http\Controllers\PlatformLoginController;
 use App\Modules\Platform\Http\Controllers\RecoveryCodesController;
@@ -39,6 +40,15 @@ Route::middleware(RequireApexHost::class)->prefix('admin')->name('platform.')->g
 
     Route::middleware(AuthenticatePlatformAdmin::class)->group(function () {
         Route::get('/', PlatformDashboardController::class)->name('dashboard');
+
+        Route::get('organizations', [OrganizationController::class, 'index'])->name('organizations.index');
+        Route::post('organizations/{organization}/suspend', [OrganizationController::class, 'suspend'])
+            ->whereUuid('organization')
+            ->name('organizations.suspend');
+        Route::post('organizations/{organization}/reactivate', [OrganizationController::class, 'reactivate'])
+            ->whereUuid('organization')
+            ->name('organizations.reactivate');
+
         Route::get('recovery-codes', RecoveryCodesController::class)->name('recovery-codes');
         Route::post('logout', [PlatformLoginController::class, 'destroy'])->name('logout');
     });

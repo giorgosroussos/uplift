@@ -2,7 +2,8 @@
 
 /*
 | Platform administration on the apex domain (SEC-006): login of platform
-| admins with required TOTP MFA (SEC-011). UI strings and server-side
+| admins with required TOTP MFA (SEC-011), the platform dashboard (UC-035)
+| and organisation management (UC-036). UI strings and server-side
 | messages. Every key here must also exist in lang/el/platform.php.
 */
 
@@ -49,11 +50,70 @@ return [
         'continue' => 'Continue',
     ],
 
+    'nav' => [
+        'dashboard' => 'Dashboard',
+        'organizations' => 'Organisations',
+    ],
+
     'dashboard' => [
         'title' => 'Platform administration',
-        'description' => 'You are logged in as a platform admin.',
+        'description' => 'Key figures across all organisations.',
         'signed_in_as' => 'Signed in as :name',
         'log_out' => 'Log out',
+        'organizations' => 'Organisations',
+        'users' => 'Users',
+        'total' => 'Total',
+        'active' => 'Active',
+        'suspended' => 'Suspended',
+        'active_users' => 'Active users',
+        'recent' => 'Newest organisations',
+        'recent_empty' => 'There are no organisations yet.',
+        'manage' => 'Manage organisations',
+    ],
+
+    'roles' => [
+        'student' => 'Students',
+        'teacher' => 'Teachers',
+        'org_admin' => 'Organisation admins',
+    ],
+
+    'statuses' => [
+        'active' => 'Active',
+        'suspended' => 'Suspended',
+    ],
+
+    'organizations' => [
+        'title' => 'Organisations',
+        'description' => 'All organisations of the platform: see their status, suspend or reactivate them.',
+        'search' => 'Search by name or subdomain',
+        'all_statuses' => 'All statuses',
+        'filter' => 'Filter',
+        'empty' => 'No organisations match.',
+        'name' => 'Name',
+        'subdomain' => 'Subdomain',
+        'status' => 'Status',
+        'users' => 'Users',
+        'created' => 'Created',
+        'suspend' => 'Suspend',
+        'reactivate' => 'Reactivate',
+        'confirm_suspend_title' => 'Suspend :name?',
+        'confirm_suspend_body' => 'Its users will not be able to log in until the organisation is reactivated.',
+        'confirm_reactivate_title' => 'Reactivate :name?',
+        'confirm_reactivate_body' => 'Its users will be able to log in again.',
+        'cancel' => 'Cancel',
+        'page' => 'Page :current of :last',
+        'previous' => 'Previous',
+        'next' => 'Next',
+        'flash' => [
+            'suspended' => 'The organisation was suspended.',
+            'reactivated' => 'The organisation was reactivated.',
+        ],
+        'errors' => [
+            'not_allowed' => [
+                'active' => 'The organisation is already active.',
+                'suspended' => 'The organisation is already suspended.',
+            ],
+        ],
     ],
 
     'two_factor' => [
