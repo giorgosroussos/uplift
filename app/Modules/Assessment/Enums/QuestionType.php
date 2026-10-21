@@ -46,4 +46,13 @@ enum QuestionType: string
     {
         return $this === self::SingleChoice || $this === self::TrueFalse;
     }
+
+    /**
+     * SCOPE-023: choice, true/false and matching answers are graded
+     * automatically on submission; free-text answers wait for the teacher.
+     */
+    public function isAutoGraded(): bool
+    {
+        return $this !== self::FreeText;
+    }
 }
