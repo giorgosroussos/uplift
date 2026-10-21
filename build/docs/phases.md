@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v2.3.0 · source 0e600f65152f_
+_Generated document · design v2.4.0 · source 7e7cef70312d_
 
 
 ## Phase map

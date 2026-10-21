@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v2.3.0 · source 0e600f65152f_
+_Generated document · design v2.4.0 · source 7e7cef70312d_
 
 
 ## Scope
@@ -225,6 +225,22 @@ _affects UC-024, UC-025, UC-022, ENT-LiveSession, ENT-LiveAnswer, ENT-Quiz · su
 - `MUST NOT apply negative marking in live quizzes`
 
 _affects UC-024, UC-025, ENT-LiveSession · since v0.1.0_
+
+### SCOPE-023 — Self-paced quiz settings, grading lock and answer grading states · decided
+
+> Engineer: “1 Α, 2 Α, 3 Α, 4 Β, 5 Γ (αν το quiz δεν έχει deadline ας εμφανίζουμε τα αποτελέσματα αμέσως μετά την υποβολή των απαντήσεων από τους μαθητές)”
+
+**Decision:** Time limit optional, 1-1440 minutes, stored in seconds; max_attempts 1-100. A new quiz defaults to 1 attempt, score visible immediately, answers visible after the deadline, no time limit, no negative marking and no pass mark. Settings that change grading lock from the first attempt, including one in progress. An answer starts pending; on submission choice, true/false and matching answers become auto_graded and free-text answers stay pending until the teacher grades them; the teacher may also regrade an auto_graded answer. after_deadline visibility on a quiz without a deadline means visible immediately after the student submits
+
+**Why:** Refines SCOPE-008 with the gaps found in CR-P3-T3-1
+
+**Constraints for implementation:**
+- `MUST accept a time limit only of 1-1440 minutes or none, and max_attempts only of 1-100`
+- `MUST refuse changes to questions, options, pairs, points, correct answers or negative marking of a quiz once any attempt of it exists, including an in-progress one`
+- `MUST create answers as pending and move them on submission to auto_graded (choice, true/false, matching) or leave them pending (free text)`
+- `MUST treat after_deadline score and answer visibility on a quiz without a deadline as visible immediately after submission`
+
+_affects UC-012, UC-022, UC-026, ENT-Quiz, ENT-Answer, P3-T3, P3-T4, P3-T5 · since v2.4.0_
 
 ## External
 

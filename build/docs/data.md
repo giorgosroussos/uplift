@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v2.3.0 · source 0e600f65152f_
+_Generated document · design v2.4.0 · source 7e7cef70312d_
 
 
 ## Entity–relationship diagram
@@ -789,12 +789,14 @@ Owned by CMP-Assessment · retention: As ENT-QuizAttempt · audit: yes
 
 Relations: one-to-many → ENT-AnswerSelection (on delete cascade); one-to-many → ENT-AnswerMatch (on delete cascade)
 
-States: initial `pending`; allowed transitions: `pending -> graded`
+States: initial `pending`; allowed transitions: `pending -> auto_graded`, `pending -> graded`, `auto_graded -> graded`
 
 ```mermaid
 stateDiagram-v2
   [*] --> pending
+  pending --> auto_graded
   pending --> graded
+  auto_graded --> graded
 ```
 
 #### ENT-AnswerSelection — A choice option selected in an answer

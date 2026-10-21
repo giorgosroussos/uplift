@@ -1,5 +1,9 @@
 # Design changelog
 
+## v2.4.0 — 2026-10-21
+
+- Quiz setting ranges and defaults, grading lock from the first attempt, answer grading states with regrade (P3-T3) (CR-P3-T3-1)
+
 ## v2.3.0 — 2026-10-21
 
 - Question bank validation, ownership and criteria specified (P3-T2) (CR-P3-T2-1)

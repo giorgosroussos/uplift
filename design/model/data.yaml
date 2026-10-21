@@ -422,7 +422,7 @@ entities:
     relations:
       - {to: ENT-AnswerSelection, type: one-to-many, on_delete: cascade, label: selects}
       - {to: ENT-AnswerMatch, type: one-to-many, on_delete: cascade, label: matches}
-    states: {initial: pending, transitions: ["pending -> graded"]}
+    states: {initial: pending, transitions: ["pending -> auto_graded", "pending -> graded", "auto_graded -> graded"]}
     retention: "As ENT-QuizAttempt"
     audit: true
     used_by: [UC-012, UC-026]

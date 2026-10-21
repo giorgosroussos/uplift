@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-3 — Activities framework and self-paced quizzes end to end: wizard, question bank, taking, grading, results
 
-_design v2.3.0 · 0e600f65152f_
+_design v2.4.0 · 7e7cef70312d_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Activities, CMP-Assessment, CMP-Notifications
 
@@ -40,7 +40,7 @@ Main flow:
 
 Exceptions:
 - Invalid step: cannot publish until every required field is valid
-- Published activity with submissions: settings that change grading cannot be edited
+- Quiz with any attempt, including one in progress: settings that change grading (questions, options, pairs, points, correct answers, negative marking) cannot be edited (SCOPE-023)
 
 #### UC-023 — Manage question bank (should)
 
@@ -236,7 +236,7 @@ Owned by CMP-Assessment · retention: As ENT-QuizAttempt · audit: yes
 
 Relations: one-to-many → ENT-AnswerSelection (on delete cascade); one-to-many → ENT-AnswerMatch (on delete cascade)
 
-States: initial `pending`; allowed transitions: `pending -> graded`
+States: initial `pending`; allowed transitions: `pending -> auto_graded`, `pending -> graded`, `auto_graded -> graded`
 
 #### ENT-AnswerSelection — A choice option selected in an answer
 
@@ -298,6 +298,10 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST store true_false option texts as 'true' and 'false' and display them only through translation keys  (DATA-016)
 - MUST refuse points outside (0, 100] or with more than 2 decimal places  (DATA-016)
 - MUST NOT change or delete quiz copies when a bank question is edited or deleted  (DATA-016)
+- MUST accept a time limit only of 1-1440 minutes or none, and max_attempts only of 1-100  (SCOPE-023)
+- MUST refuse changes to questions, options, pairs, points, correct answers or negative marking of a quiz once any attempt of it exists, including an in-progress one  (SCOPE-023)
+- MUST create answers as pending and move them on submission to auto_graded (choice, true/false, matching) or leave them pending (free text)  (SCOPE-023)
+- MUST treat after_deadline score and answer visibility on a quiz without a deadline as visible immediately after submission  (SCOPE-023)
 - MUST NOT allow self-paced attempts on a live quiz  (SCOPE-016)
 - MUST NOT allow live sessions on a self-paced quiz  (SCOPE-016)
 - MUST reject ENT-Activity state transitions that are not listed in its state model
@@ -345,6 +349,9 @@ Standing constraints from deferred decisions (apply now):
 - [UC-022] Given a draft activity, Then no student can see it
 - [UC-022] Given a teacher who leaves the wizard at step 3, When they return, Then the steps they completed are restored
 - [UC-022] Given a published quiz with 1 submission, When the teacher changes a question's correct answer, Then it is refused
+- [UC-022] Given a published quiz with 1 in-progress attempt and no submission, When the teacher removes a question or option, Then it is refused
+- [UC-022] Given a new quiz in the wizard, Then it has 1 attempt, score visible immediately, answers visible after the deadline, no time limit, no negative marking and no pass mark
+- [UC-022] Given a time limit of 0 or 1441 minutes or max_attempts of 0 or 101, When saved, Then it is refused
 - [UC-023] Given a single-choice question with 2 correct options, When saved, Then it is refused
 - [UC-023] Given a multiple-choice question with no correct option, When saved, Then it is refused
 - [UC-023] Given a choice question with 1 or 11 options, When saved, Then it is refused

@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v2.3.0 · source 0e600f65152f_
+_Generated document · design v2.4.0 · source 7e7cef70312d_
 
 
 ## Actors
@@ -454,7 +454,7 @@ Main flow:
 
 Exceptions:
 - Invalid step: cannot publish until every required field is valid
-- Published activity with submissions: settings that change grading cannot be edited
+- Quiz with any attempt, including one in progress: settings that change grading (questions, options, pairs, points, correct answers, negative marking) cannot be edited (SCOPE-023)
 
 Acceptance criteria:
 - Given a quiz with no questions, When the teacher publishes it, Then publishing is refused
@@ -462,6 +462,9 @@ Acceptance criteria:
 - Given a draft activity, Then no student can see it
 - Given a teacher who leaves the wizard at step 3, When they return, Then the steps they completed are restored
 - Given a published quiz with 1 submission, When the teacher changes a question's correct answer, Then it is refused
+- Given a published quiz with 1 in-progress attempt and no submission, When the teacher removes a question or option, Then it is refused
+- Given a new quiz in the wizard, Then it has 1 attempt, score visible immediately, answers visible after the deadline, no time limit, no negative marking and no pass mark
+- Given a time limit of 0 or 1441 minutes or max_attempts of 0 or 101, When saved, Then it is refused
 
 #### UC-023 — Manage question bank (should)
 

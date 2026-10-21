@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Scope
 
-_Generated document · design v2.3.0 · source 0e600f65152f_
+_Generated document · design v2.4.0 · source 7e7cef70312d_
 
 
 **Category:** sensitive-data
@@ -71,3 +71,4 @@ Interactive educational processes (quizzes, polls, topic assignment, slot bookin
 | SCOPE-020 | UI languages | decided | The UI is available in Greek and English; all UI strings live in translation files from the first phase. User-created content (questions, announcements) is not translated |
 | SCOPE-021 | Live quiz model | decided | A live quiz is taken by all enrolled students at the same time: it starts manually from a lobby or automatically at a scheduled time (teacher's choice); one common end time = start + duration; late joiners get only the remaining time; students navigate freely, change answers until they submit or time ends, and may submit early. During the quiz the teacher sees live progress; students see correctness only at the end; at the end a final ranking with podium is shown. There is no per-question pacing by the teacher, no live leaderboard during the quiz and no projector mode |
 | SCOPE-022 | Live quiz finish, lobby and scoring details | decided | A live session finishes early when every joined student has submitted; a lobby closed without starting does not count as a run and the quiz can be started later; multiple-choice and matching questions in live quizzes get proportional partial credit (SCOPE-009), no negative marking |
+| SCOPE-023 | Self-paced quiz settings, grading lock and answer grading states | decided | Time limit optional, 1-1440 minutes, stored in seconds; max_attempts 1-100. A new quiz defaults to 1 attempt, score visible immediately, answers visible after the deadline, no time limit, no negative marking and no pass mark. Settings that change grading lock from the first attempt, including one in progress. An answer starts pending; on submission choice, true/false and matching answers become auto_graded and free-text answers stay pending until the teacher grades them; the teacher may also regrade an auto_graded answer. after_deadline visibility on a quiz without a deadline means visible immediately after the student submits |
