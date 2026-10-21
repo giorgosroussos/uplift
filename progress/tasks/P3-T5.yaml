@@ -1,0 +1,9 @@
+id: P3-T5
+status: ready_to_merge
+commit: 1882d21
+handoff: |
+  Assessment Actions/{GradeAnswer (0..question points, feedback, recalculates earned_points, submitted->graded when no pending), ShowAttemptForGrading, ListMyResults, ShowResult, ListQuizSubmissions (QuizType::submissions: needs_grading | graded, url to grading page)}.
+  Events/GradeFinalised(organizationId, attemptId), after commit, whenever an attempt becomes graded (at submission without pending answers, or by the teacher's last grading) - for P3-T7.
+  Support/Grade (0-10, 0-100 half-up 1 decimal, points + pass mark, integer arithmetic), AttemptScore now adds `grade`; Support/AttemptReview; QuizAttemptPolicy::{viewAnyResults, viewResult, grade}.
+  Routes results, results/{attempt}, grading/attempts/{attempt}, PUT grading/answers/{answer}; pages Assessment/Results/{Index,Show}, Assessment/Grading/Attempt; components assessment/{ReviewQuestionCard,GradeAnswerForm}; lib/grade.ts; types/results.ts; sidebar "My results"; lang assessment.{grade,results,review,grading}.
+  Tests: tests/Feature/Assessment/GradingTest.php, tests/Unit/Assessment/GradeTest.php, tests/Browser/GradingTest.php, resources/js/lib/grade.test.ts.
