@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Building2, LayoutGrid, Search, Users } from '@lucide/vue';
+import {
+    BookOpen,
+    Building2,
+    LayoutGrid,
+    Library,
+    Search,
+    Users,
+} from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -15,6 +22,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as questionBank } from '@/routes/assessment/questions';
 import { catalogue, index as courses } from '@/routes/courses';
 import { edit as organizationSettings } from '@/routes/organization/settings';
 import { index as usersIndex } from '@/routes/users';
@@ -39,6 +47,16 @@ const mainNavItems = computed<NavItem[]>(() => [
                   title: 'courses.nav.catalogue',
                   href: catalogue(),
                   icon: Search,
+              },
+          ]
+        : []),
+    // Personal question bank (UC-023, OWN-016), for teachers only.
+    ...(page.props.auth.user?.role === 'teacher'
+        ? [
+              {
+                  title: 'assessment.nav.question_bank',
+                  href: questionBank(),
+                  icon: Library,
               },
           ]
         : []),
