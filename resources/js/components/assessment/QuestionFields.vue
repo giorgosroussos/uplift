@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { InertiaForm } from '@inertiajs/vue3';
 import { GripVertical, Plus, X } from '@lucide/vue';
 import { computed, watch } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
@@ -22,13 +21,23 @@ import { MAX_ITEMS, MIN_ITEMS, QUESTION_TYPES } from '@/types/assessment';
  * UC-023: the question builder, shared by the create and edit pages: type,
  * prompt, points, and the options or matching pairs ordered by drag and
  * drop (DATA-016). True/false options keep their stored texts 'true' and
- * 'false' and are shown through translation keys.
+ * 'false' and are shown through translation keys. Also used for each
+ * question of a quiz in the wizard (UC-022), where `idPrefix` keeps the
+ * fields of several questions apart.
  */
-const form = defineModel<InertiaForm<QuestionForm>>('form', {
+const form = defineModel<QuestionForm>('form', {
     required: true,
 });
 
-const errors = computed(() => form.value.errors as Record<string, string>);
+const props = withDefaults(
+    defineProps<{
+        errors: Partial<Record<string, string>>;
+        idPrefix?: string;
+    }>(),
+    { idPrefix: '' },
+);
+
+const errors = computed(() => props.errors);
 const isTrueFalse = computed(() => form.value.type === 'true_false');
 
 const textareaClass =
@@ -97,36 +106,40 @@ function optionsHint(): string {
                 <input
                     v-model="form.type"
                     type="radio"
-                    name="type"
+                    :name="`${idPrefix}type`"
                     :value="type"
                     :data-test="`question-type-${type}`"
                 />
                 {{ $t(`assessment.types.${type}`) }}
             </label>
         </div>
-        <InputError :message="form.errors.type" />
+        <InputError :message="errors.type" />
     </fieldset>
 
     <div class="grid gap-2">
-        <Label for="prompt">{{ $t('assessment.form.prompt') }}</Label>
+        <Label :for="`${idPrefix}prompt`">{{
+            $t('assessment.form.prompt')
+        }}</Label>
         <textarea
-            id="prompt"
+            :id="`${idPrefix}prompt`"
             v-model="form.prompt"
-            name="prompt"
+            :name="`${idPrefix}prompt`"
             rows="3"
             required
             :class="textareaClass"
             data-test="question-prompt"
         />
-        <InputError :message="form.errors.prompt" />
+        <InputError :message="errors.prompt" />
     </div>
 
     <div class="grid max-w-48 gap-2">
-        <Label for="points">{{ $t('assessment.form.points') }}</Label>
+        <Label :for="`${idPrefix}points`">{{
+            $t('assessment.form.points')
+        }}</Label>
         <Input
-            id="points"
+            :id="`${idPrefix}points`"
             v-model="form.points"
-            name="points"
+            :name="`${idPrefix}points`"
             type="number"
             min="0.01"
             max="100"
@@ -138,7 +151,7 @@ function optionsHint(): string {
             {{ $t('assessment.form.points_hint') }}
         </p>
     </div>
-    <InputError :message="form.errors.points" />
+    <InputError :message="errors.points" />
 
     <section v-if="hasOptions(form.type)" class="grid gap-3">
         <div>
@@ -185,7 +198,7 @@ function optionsHint(): string {
                                     ? 'radio'
                                     : 'checkbox'
                             "
-                            name="correct"
+                            :name="`${idPrefix}correct`"
                             :checked="option.is_correct"
                             :data-test="`option-correct-${index}`"
                             @change="
@@ -253,7 +266,7 @@ function optionsHint(): string {
                 {{ $t('assessment.form.add_option') }}
             </Button>
         </div>
-        <InputError :message="form.errors.options" />
+        <InputError :message="errors.options" />
     </section>
 
     <section v-else-if="hasPairs(form.type)" class="grid gap-3">
@@ -353,7 +366,7 @@ function optionsHint(): string {
                 {{ $t('assessment.form.add_pair') }}
             </Button>
         </div>
-        <InputError :message="form.errors.pairs" />
+        <InputError :message="errors.pairs" />
     </section>
 
     <p v-else class="text-sm text-muted-foreground">
