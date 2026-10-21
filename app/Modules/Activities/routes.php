@@ -1,0 +1,28 @@
+<?php
+
+use App\Modules\Activities\Enums\WizardStep;
+use App\Modules\Activities\Http\Controllers\ActivityController;
+use App\Modules\Activities\Http\Controllers\SubmissionController;
+use App\Modules\Activities\Http\Controllers\WizardStepController;
+use Illuminate\Support\Facades\Route;
+
+/*
+| Activities routes (web middleware group), on organisation subdomains only.
+| {activity} binds only activities of the current tenant. activities.store
+| and activities.wizard.update are the JSON autosave endpoints and answer
+| errors as RFC 9457 problem details.
+*/
+
+Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
+    Route::get('activities', [ActivityController::class, 'index'])->name('activities.index');
+    Route::get('activities/create', [ActivityController::class, 'create'])->name('activities.create');
+    Route::post('activities', [ActivityController::class, 'store'])->name('activities.store');
+    Route::get('activities/{activity}', [ActivityController::class, 'show'])->name('activities.show');
+    Route::get('activities/{activity}/edit', [ActivityController::class, 'edit'])->name('activities.edit');
+    Route::put('activities/{activity}/wizard/{step}', WizardStepController::class)
+        ->whereIn('step', WizardStep::savedValues())
+        ->name('activities.wizard.update');
+    Route::post('activities/{activity}/publish', [ActivityController::class, 'publish'])->name('activities.publish');
+    Route::post('activities/{activity}/close', [ActivityController::class, 'close'])->name('activities.close');
+    Route::get('activities/{activity}/submissions', SubmissionController::class)->name('activities.submissions');
+});
