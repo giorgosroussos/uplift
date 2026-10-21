@@ -3,20 +3,22 @@
 namespace App\Modules\Platform\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Platform\Actions\GetPlatformMetrics;
 use App\Modules\Platform\Support\PlatformSession;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Landing page of a logged-in platform admin. The dashboard content and
- * organisation management (UC-035, UC-036) come with P8-T2.
+ * UC-035: the platform dashboard of a logged-in platform admin, with the key
+ * platform metrics across all organisations.
  */
 class PlatformDashboardController extends Controller
 {
-    public function __invoke(): Response
+    public function __invoke(GetPlatformMetrics $metrics): Response
     {
         return Inertia::render('Platform/Dashboard', [
             'admin' => ['name' => PlatformSession::admin()?->name],
+            'metrics' => $metrics->handle(),
         ]);
     }
 }

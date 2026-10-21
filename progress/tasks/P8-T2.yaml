@@ -1,0 +1,9 @@
+id: P8-T2
+status: ready_to_merge
+commit: 27b4147
+handoff: |
+  app/Modules/Platform: GET /admin (platform.dashboard, Actions/GetPlatformMetrics: orgs by status, users total/active/by role, 5 newest orgs) and GET /admin/organizations (platform.organizations.index, Actions/ListOrganizations: search name/subdomain, status filter, users_count, 25/page); cross-tenant reads drop OrganizationScope, counts only.
+  POST /admin/organizations/{organization}/suspend|reactivate -> Actions/SuspendOrganization, ReactivateOrganization via Support/OrganizationStatusChange (row lock, state model; disallowed transition = ValidationException on `organization`, status unchanged, no event).
+  Events for P8-T3 audit (dispatched after commit, ids only): Events/OrganizationSuspended, Events/OrganizationReactivated (organizationId, platformAdminId).
+  UI: resources/js/layouts/PlatformLayout.vue (nav, logout, Toaster), pages/Platform/{Dashboard,Organizations}.vue; strings lang/{en,el}/platform.php (nav, dashboard, roles, statuses, organizations.*).
+  Tests: tests/Feature/Platform/{ManageOrganizations,PlatformDashboard}Test.php, tests/Browser/ManageOrganizationsTest.php.
