@@ -1,0 +1,9 @@
+id: P3-T4
+status: ready_to_merge
+commit: 0db950d
+handoff: |
+  Activities: Events/ActivityClosed(organizationId, activityId) dispatched after commit by CloseActivity; ShowActivity can.participate + "Open quiz" link in Activities/Show.vue.
+  Assessment Actions/{StartQuizAttempt, SaveAnswer (JSON autosave, 409 problem urn:uplift:problem:attempt-closed), SubmitQuizAttempt (submitIfDue), SubmitDueAttempts, ShowQuizForStudent, ShowAttempt}; Support/{AnswerScorer, Points (exact hundredths), AttemptScore, MatchingItems (opaque per-attempt right ids)}.
+  Auto-submit: Listeners/SubmitAttemptsOfClosedQuiz on ActivityClosed; Console/SubmitDueAttemptsCommand `assessment:submit-due-attempts` scheduled every minute; QuizAttemptPolicy::take; routes quizzes/{activity}, quiz-attempts/{attempt}[/answers/{quizQuestion}|/submit].
+  UI: pages/Assessment/Attempts/{Quiz,Take}.vue, components/assessment/AttemptQuestionCard.vue, lib/quizAttempt.ts, types/attempts.ts, lang assessment.attempt.*.
+  Tests: tests/Feature/Assessment/TakeQuizTest.php, tests/Feature/Activities/CloseActivityTest.php, tests/Unit/Assessment/AnswerScorerTest.php, tests/Browser/TakeQuizTest.php, resources/js/lib/quizAttempt.test.ts.

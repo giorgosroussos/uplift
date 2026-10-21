@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { close, edit, index, publish, submissions } from '@/routes/activities';
+import { show as showQuiz } from '@/routes/assessment/quizzes';
 import type { ActivityDetails } from '@/types/activities';
 
 defineOptions({
@@ -19,6 +20,7 @@ const props = defineProps<{
         publish: boolean;
         close: boolean;
         viewSubmissions: boolean;
+        participate: boolean;
     };
 }>();
 
@@ -67,6 +69,17 @@ function closeActivity(): void {
                 <Button v-if="can.update" variant="outline" as-child>
                     <Link :href="edit(activity.id)" data-test="activity-edit">
                         {{ $t('activities.show.edit') }}
+                    </Link>
+                </Button>
+                <Button
+                    v-if="can.participate && activity.type === 'quiz'"
+                    as-child
+                >
+                    <Link
+                        :href="showQuiz(activity.id)"
+                        data-test="activity-open-quiz"
+                    >
+                        {{ $t('activities.show.open_quiz') }}
                     </Link>
                 </Button>
                 <Button v-if="can.viewSubmissions" variant="outline" as-child>

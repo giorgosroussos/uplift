@@ -30,6 +30,21 @@ class QuizAttemptPolicy
     }
 
     /**
+     * UC-012: open a quiz to take it, see one's own attempts and start new
+     * ones: an enrolled student of the activity's active course space
+     * (participate). Whether an attempt may start now is up to
+     * StartQuizAttempt.
+     */
+    public function take(User $actor, Activity $activity): bool
+    {
+        return $actor->canAct()
+            && $actor->hasRole(Role::Student)
+            && $actor->organization_id === $activity->organization_id
+            && ! $activity->isDraft()
+            && Gate::forUser($actor)->allows('participate', $activity->courseSpace);
+    }
+
+    /**
      * Answering and submitting: only the student's own attempt.
      */
     public function update(User $actor, QuizAttempt $attempt): bool

@@ -75,6 +75,11 @@ class Quiz extends Model
         return self::query()->find($activity->id);
     }
 
+    public function isSelfPaced(): bool
+    {
+        return $this->mode === QuizMode::SelfPaced;
+    }
+
     /**
      * Whether the student who made the attempt may see its score now.
      */

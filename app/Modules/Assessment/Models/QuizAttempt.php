@@ -114,6 +114,17 @@ class QuizAttempt extends Model
         $this->save();
     }
 
+    /**
+     * In progress but past ends_at (server time, DATA-004): it must be
+     * submitted before anything else happens to it (SCOPE-024).
+     */
+    public function isDue(?CarbonImmutable $now = null): bool
+    {
+        return $this->status === AttemptStatus::InProgress
+            && $this->ends_at !== null
+            && ! ($now ?? CarbonImmutable::now())->lessThan($this->ends_at);
+    }
+
     public function isOf(User $student): bool
     {
         return $this->student_id !== null && $this->student_id === $student->getKey();

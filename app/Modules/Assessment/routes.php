@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Assessment\Http\Controllers\QuestionBankController;
+use App\Modules\Assessment\Http\Controllers\QuizAttemptController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,4 +20,12 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
     Route::get('question-bank/{question}/edit', [QuestionBankController::class, 'edit'])->name('assessment.questions.edit');
     Route::put('question-bank/{question}', [QuestionBankController::class, 'update'])->name('assessment.questions.update');
     Route::delete('question-bank/{question}', [QuestionBankController::class, 'destroy'])->name('assessment.questions.destroy');
+
+    // UC-012: taking a self-paced quiz; {activity} is the quiz's activity.
+    Route::get('quizzes/{activity}', [QuizAttemptController::class, 'quiz'])->name('assessment.quizzes.show');
+    Route::post('quizzes/{activity}/attempts', [QuizAttemptController::class, 'start'])->name('assessment.attempts.store');
+    Route::get('quiz-attempts/{attempt}', [QuizAttemptController::class, 'show'])->name('assessment.attempts.show');
+    // JSON autosave of one answer (RFC 9457 errors).
+    Route::put('quiz-attempts/{attempt}/answers/{quizQuestion}', [QuizAttemptController::class, 'answer'])->name('assessment.attempts.answers.update');
+    Route::post('quiz-attempts/{attempt}/submit', [QuizAttemptController::class, 'submit'])->name('assessment.attempts.submit');
 });

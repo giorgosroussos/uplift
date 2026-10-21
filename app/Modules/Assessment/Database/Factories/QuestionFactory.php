@@ -100,6 +100,20 @@ class QuestionFactory extends Factory
     }
 
     /**
+     * A matching question with the given pairs, in order.
+     *
+     * @param  list<array{0: string, 1: string}>  $pairs  left, right
+     */
+    public function withPairs(array $pairs): static
+    {
+        return $this->matching()->afterCreating(function (Question $question) use ($pairs): void {
+            // Replaces the default pairs added by configure().
+            $question->pairs()->delete();
+            $this->addPairs($question, $pairs);
+        });
+    }
+
+    /**
      * A copy placed in a quiz, not part of any bank (DATA-008).
      */
     public function quizCopy(): static

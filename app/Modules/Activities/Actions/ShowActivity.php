@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Gate;
 
 /**
  * What a user sees of an activity they may view: its basics and status,
- * and for the owning teacher the links to edit, close and review
- * submissions.
+ * for the owning teacher the links to edit, close and review submissions,
+ * and for an enrolled student whether they take part.
  */
 class ShowActivity
 {
@@ -37,6 +37,8 @@ class ShowActivity
                 'publish' => $gate->allows('publish', $activity),
                 'close' => $gate->allows('close', $activity),
                 'viewSubmissions' => $gate->allows('viewSubmissions', $activity),
+                // An enrolled student of an active space takes part (e.g. opens the quiz).
+                'participate' => ! $activity->isDraft() && $gate->allows('participate', $activity->courseSpace),
             ],
         ];
     }
