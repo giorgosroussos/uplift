@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Building2, LayoutGrid, Search, Users } from '@lucide/vue';
+import {
+    BookOpen,
+    Building2,
+    ClipboardList,
+    LayoutGrid,
+    Search,
+    Users,
+} from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -15,6 +22,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as activities } from '@/routes/activities';
 import { catalogue, index as courses } from '@/routes/courses';
 import { edit as organizationSettings } from '@/routes/organization/settings';
 import { index as usersIndex } from '@/routes/users';
@@ -33,6 +41,10 @@ const mainNavItems = computed<NavItem[]>(() => [
         href: courses(),
         icon: BookOpen,
     },
+    // Activities of the own course spaces (UC-022), for teachers and students.
+    ...(page.props.auth.user?.role !== 'org_admin'
+        ? [{ title: 'activities.nav', href: activities(), icon: ClipboardList }]
+        : []),
     ...(page.props.auth.user?.role === 'student'
         ? [
               {
