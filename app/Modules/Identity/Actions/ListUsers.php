@@ -12,7 +12,8 @@ use Illuminate\Support\Collection;
 
 /**
  * UC-032 step 1: the user list of the current organisation (search, filter
- * by role and status, paginated) and its pending invitations. Tenant-scoped:
+ * by role and status, paginated) and its pending and expired invitations,
+ * which can be resent (DATA-015). Tenant-scoped:
  * users and invitations of other organisations never appear.
  */
 final class ListUsers
@@ -21,7 +22,7 @@ final class ListUsers
 
     /**
      * @param  array{search?: string|null, role?: string|null, status?: string|null}  $filters  validated filters
-     * @return array{users: LengthAwarePaginator<int, array{id: string, name: string, nickname: string, email: string, role: string, is_active: bool}>, invitations: Collection<int, array{id: string, email: string, role: value-of<Role>, expires_at: string, expired: bool}>}
+     * @return array{users: LengthAwarePaginator<int, array{id: string, name: string, nickname: string, email: string, role: string, is_active: bool}>, invitations: Collection<int, array{id: string, email: string, role: value-of<Role>, expires_at: string, expired: bool, email_failed: bool, revocable: bool}>}
      */
     public function handle(array $filters): array
     {
@@ -54,7 +55,7 @@ final class ListUsers
             ]);
 
         $invitations = Invitation::query()
-            ->where('status', InvitationStatus::Pending->value)
+            ->whereIn('status', [InvitationStatus::Pending->value, InvitationStatus::Expired->value])
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (Invitation $invitation): array => [
@@ -62,7 +63,9 @@ final class ListUsers
                 'email' => $invitation->email,
                 'role' => $invitation->role->value,
                 'expires_at' => $invitation->expires_at->toIso8601String(),
-                'expired' => $invitation->hasExpired(),
+                'expired' => $invitation->status === InvitationStatus::Expired || $invitation->hasExpired(),
+                'email_failed' => $invitation->emailFailed(),
+                'revocable' => $invitation->isPending(),
             ]);
 
         return ['users' => $users, 'invitations' => $invitations];

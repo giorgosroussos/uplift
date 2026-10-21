@@ -9,6 +9,7 @@ use App\Modules\Identity\Exceptions\InvalidInvitationTransition;
 use App\Modules\Tenancy\Concerns\BelongsToOrganization;
 use App\Modules\Tenancy\Models\Organization;
 use App\Modules\Tenancy\Support\OrganizationScope;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -35,8 +36,9 @@ use Illuminate\Support\Str;
  * @property Role $role
  * @property string $token_hash
  * @property string $invited_by
- * @property Carbon $expires_at
+ * @property CarbonInterface $expires_at
  * @property InvitationStatus $status
+ * @property CarbonInterface|null $email_failed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Organization $organization
@@ -168,6 +170,42 @@ class Invitation extends Model
     }
 
     /**
+     * The invitation email failed after its last retry (DATA-015).
+     */
+    public function markEmailFailed(): void
+    {
+        $this->email_failed_at = now();
+        $this->save();
+    }
+
+    /**
+     * Resend (DATA-015): a pending or expired invitation becomes pending with
+     * a new token (the old link stops working), a fresh validity of 7 days
+     * and no recorded delivery failure. Returns the new token.
+     *
+     * @throws InvalidInvitationTransition when it is accepted or revoked
+     */
+    public function reissue(): string
+    {
+        if ($this->status !== InvitationStatus::Pending && ! $this->status->canTransitionTo(InvitationStatus::Pending)) {
+            throw InvalidInvitationTransition::between($this->status, InvitationStatus::Pending);
+        }
+
+        $token = $this->issueToken();
+        $this->status = InvitationStatus::Pending;
+        $this->expires_at = now()->addDays(self::VALID_DAYS);
+        $this->email_failed_at = null;
+        $this->save();
+
+        return $token;
+    }
+
+    public function emailFailed(): bool
+    {
+        return $this->email_failed_at !== null;
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function inviter(): BelongsTo
@@ -228,6 +266,7 @@ class Invitation extends Model
             'status' => InvitationStatus::class,
             'token_hash' => 'encrypted',
             'expires_at' => 'datetime',
+            'email_failed_at' => 'datetime',
         ];
     }
 }

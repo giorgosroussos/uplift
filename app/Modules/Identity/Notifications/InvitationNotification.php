@@ -2,16 +2,21 @@
 
 namespace App\Modules\Identity\Notifications;
 
+use App\Modules\Identity\Models\Invitation;
+use App\Modules\Tenancy\Support\OrganizationScope;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Invitation email with the single-use activation link (UC-032, FLOW-003),
  * sent from a queued job on the queued mail channel with the retry policy
  * of INT-001: timeout 10s, 5 retries with backoff 1m, 5m, 15m, 1h, 6h.
+ * After the last retry the invitation records email_failed_at (DATA-015).
  */
 class InvitationNotification extends Notification implements ShouldQueue
 {
@@ -30,7 +35,32 @@ class InvitationNotification extends Notification implements ShouldQueue
         public readonly string $organizationName,
         public readonly string $role,
         public readonly int $validDays,
+        #[\SensitiveParameter] public readonly string $token,
     ) {}
+
+    /**
+     * Called once the last retry failed (DATA-015): marks the invitation as
+     * not delivered, unless it was resent in the meantime (its token then no
+     * longer matches the one of this email). Logs ids only.
+     */
+    public function failed(?Throwable $exception = null): void
+    {
+        /** @var Invitation|null $invitation */
+        $invitation = Invitation::query()
+            ->withoutGlobalScope(OrganizationScope::class)
+            ->find($this->invitationId);
+
+        if ($invitation === null || ! $invitation->matchesToken($this->token)) {
+            return;
+        }
+
+        $invitation->markEmailFailed();
+
+        Log::warning('Invitation email not delivered after the last retry.', [
+            'invitation_id' => $this->invitationId,
+            'organization_id' => $invitation->organization_id,
+        ]);
+    }
 
     /**
      * @return list<int>

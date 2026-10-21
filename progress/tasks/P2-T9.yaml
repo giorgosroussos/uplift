@@ -1,0 +1,9 @@
+id: P2-T9
+status: ready_to_merge
+commit: 9946aa8
+handoff: |
+  app/Modules/Identity: invitations.email_failed_at (migration 2026_10_22_900000); InvitationStatus allows expired -> pending; Invitation::markEmailFailed/reissue/emailFailed.
+  Notifications/InvitationNotification::failed (after last INT-001 retry) sets email_failed_at unless the token changed since; logs ids only. Support/InvitationMail queues the email (used by InviteUser and ResendInvitation).
+  Actions/ResendInvitation (pending or expired only; new token, 7 days, clears email_failed_at, one email); route POST invitations/{invitation}/resend, InvitationPolicy::resend (org admins of the organisation).
+  Users.vue lists pending and expired invitations with 'Email not delivered' badge and Resend; strings users.invitations.{resend,email_failed}, users.errors.not_resendable, users.flash.resent.
+  Tests: tests/Feature/Identity/InvitationResendTest.php, tests/Browser/InvitationTest.php (resend flow), InvitationModelTest updated for the new transition.
