@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v2.4.0 · source 7e7cef70312d_
+_Generated document · design v2.5.0 · source a4fd23ca974f_
 
 
 ## Actors
@@ -307,6 +307,8 @@ Main flow:
 
 Exceptions:
 - No attempts left: a new attempt is refused
+- An attempt already in progress: starting another is refused; the student continues the open one
+- Teacher closes the activity: every in-progress attempt is submitted with the answers saved so far
 - Time runs out: the answers given so far are submitted
 - Connection lost: saved answers are kept; the timer keeps running on the server
 - Quiz with free-text questions: the score is shown as provisional until graded
@@ -317,6 +319,14 @@ Acceptance criteria:
 - Given negative marking enabled with -0.25 per wrong answer on a 1-point question, When the answer is wrong, Then that question scores -0.25; given negative marking disabled, Then it scores 0
 - Given default result visibility, When a student submits, Then they see their score immediately
 - Given the timer is enforced on the server, When an answer arrives after the limit, Then it is not counted
+- Given a 1-point multiple-choice question with 2 correct options of 4, When the student selects both correct and 1 wrong, Then it scores 0.50; When they select all 4, Then it scores 0
+- Given a 1-point matching question with 3 pairs and 2 matched correctly, Then it scores 0.67
+- Given negative marking of 25%, When a multiple-choice answer earns partial credit, Then no deduction applies; When a question is left unanswered, Then it scores 0
+- Given negative marking and every answer wrong, When submitted, Then earned_points is 0
+- Given a 30-minute limit and a deadline 10 minutes after the start, Then the attempt ends at the deadline
+- Given a quiz with no time limit and no deadline and an attempt in progress, When the teacher closes the activity, Then the attempt is submitted
+- Given a quiz without free-text questions, When submitted, Then the attempt is graded; given one with a free-text question, Then it stays submitted until that answer is graded
+- Given a quiz allowing 2 attempts with 1 submitted and 1 in progress, When the student starts another, Then it is refused
 
 > Engineer: “το α είναι όσες ορίσει ο καθηγητής, το β ναι υποβάλλεται αυτόματα ότι έχει απαντήθει, το γ θα πρέπει να υπάρχει και αρνητική βαθμολόγηση (επιλογή του καθηγητή), το δ όπως ορίσει ο καθηγητής με default να βλέπει την βαθμολογία του ο φοιτητής αμέσως μετα την υποβολή”
 

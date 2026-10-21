@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v2.4.0 · source 7e7cef70312d_
+_Generated document · design v2.5.0 · source a4fd23ca974f_
 
 
 ## Phase map
@@ -214,7 +214,7 @@ Depends on: PHASE-2 · use cases: UC-022, UC-023, UC-012, UC-026, UC-017, UC-028
 | P3-T1 | Activity base, ActivityType contract and wizard shell | — | CMP-Activities | yes |
 | P3-T2 | Personal question bank | — | CMP-Assessment | yes |
 | P3-T3 | Quiz activity type | P3-T1, P3-T2 | CMP-Assessment | yes |
-| P3-T4 | Take a self-paced quiz | P3-T3 | CMP-Assessment | yes |
+| P3-T4 | Take a self-paced quiz | P3-T3 | CMP-Assessment, CMP-Activities | yes |
 | P3-T5 | Grading, results and quiz submissions | P3-T4 | CMP-Assessment |  |
 | P3-T6 | CSV question import | P3-T2 | CMP-Assessment |  |
 | P3-T7 | Notifications for new activities and grades | P3-T1, P3-T5 | CMP-Notifications |  |

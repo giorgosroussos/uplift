@@ -1,5 +1,9 @@
 # Design changelog
 
+## v2.5.0 — 2026-10-21
+
+- Self-paced quiz scoring, negative marking, attempt end and lifecycle specified (P3-T4) (CR-P3-T4-1)
+
 ## v2.4.0 — 2026-10-21
 
 - Quiz setting ranges and defaults, grading lock from the first attempt, answer grading states with regrade (P3-T3) (CR-P3-T3-1)

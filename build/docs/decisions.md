@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v2.4.0 · source 7e7cef70312d_
+_Generated document · design v2.5.0 · source a4fd23ca974f_
 
 
 ## Scope
@@ -241,6 +241,26 @@ _affects UC-024, UC-025, ENT-LiveSession · since v0.1.0_
 - `MUST treat after_deadline score and answer visibility on a quiz without a deadline as visible immediately after submission`
 
 _affects UC-012, UC-022, UC-026, ENT-Quiz, ENT-Answer, P3-T3, P3-T4, P3-T5 · since v2.4.0_
+
+### SCOPE-024 — Self-paced quiz scoring and attempt lifecycle · decided
+
+> Engineer: “1Α 2ΑΑΑ 3Α 4ΑΑ 5Α 6ΑB”
+
+**Decision:** Multiple choice earns points x max(0, correct selected - wrong selected) / number of correct options; matching earns points x correct matches / number of pairs; single choice and true/false earn all or nothing. With negative marking, only an answered auto-graded question that earns 0 loses fraction x points; partly correct answers keep their credit, unanswered and free-text questions are never penalised, and an attempt total never goes below 0. Each answer's points are rounded half-up to 2 decimals when stored; earned_points is their sum and max_points the sum of question points. An attempt ends at the earlier of started_at + time_limit and the deadline; without either it stays open until the student submits or the teacher closes the activity; at its end it is auto-submitted with the answers saved so far. On submission an attempt without pending answers becomes graded (final); otherwise it stays submitted (provisional) until every free-text answer is graded; a teacher regrade of an answer recalculates the total. An in-progress attempt counts toward max_attempts, and starting a new attempt while one is in progress is refused
+
+**Why:** Refines SCOPE-008 and SCOPE-009 with the gaps found in CR-P3-T4-1
+
+**Constraints for implementation:**
+- `MUST score multiple choice as points x max(0, correct selected - wrong selected) / correct options, matching as points x correct matches / pairs, single choice and true/false as all or nothing`
+- `MUST apply negative marking only to answered auto-graded questions that earn 0, never to unanswered or free-text questions`
+- `MUST NOT let an attempt's earned_points go below 0`
+- `MUST round each answer's points_awarded half-up to 2 decimals when stored and compute earned_points as their sum`
+- `MUST set ends_at to the earlier of started_at + time_limit and the activity's deadline, or null when neither exists`
+- `MUST auto-submit an in-progress attempt at ends_at and when its activity is closed, with the answers saved so far`
+- `MUST move a submitted attempt to graded once it has no pending answers`
+- `MUST count in-progress attempts toward max_attempts and refuse a new attempt while one is in progress`
+
+_affects UC-012, UC-026, ENT-QuizAttempt, ENT-Answer, P3-T4, P3-T5 · since v2.5.0_
 
 ## External
 

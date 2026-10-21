@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-3 — Activities framework and self-paced quizzes end to end: wizard, question bank, taking, grading, results
 
-_design v2.4.0 · 7e7cef70312d_
+_design v2.5.0 · a4fd23ca974f_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Activities, CMP-Assessment, CMP-Notifications
 
@@ -12,7 +12,7 @@ Depends on: PHASE-2 · environment: development · components: CMP-Activities, C
 | P3-T1 | Activity base, ActivityType contract and wizard shell | — | CMP-Activities |
 | P3-T2 | Personal question bank | — | CMP-Assessment |
 | P3-T3 | Quiz activity type | P3-T1, P3-T2 | CMP-Assessment |
-| P3-T4 | Take a self-paced quiz | P3-T3 | CMP-Assessment |
+| P3-T4 | Take a self-paced quiz | P3-T3 | CMP-Assessment, CMP-Activities |
 | P3-T5 | Grading, results and quiz submissions | P3-T4 | CMP-Assessment |
 | P3-T6 | CSV question import | P3-T2 | CMP-Assessment |
 | P3-T7 | Notifications for new activities and grades | P3-T1, P3-T5 | CMP-Notifications |
@@ -69,6 +69,8 @@ Main flow:
 
 Exceptions:
 - No attempts left: a new attempt is refused
+- An attempt already in progress: starting another is refused; the student continues the open one
+- Teacher closes the activity: every in-progress attempt is submitted with the answers saved so far
 - Time runs out: the answers given so far are submitted
 - Connection lost: saved answers are kept; the timer keeps running on the server
 - Quiz with free-text questions: the score is shown as provisional until graded
@@ -304,6 +306,14 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST treat after_deadline score and answer visibility on a quiz without a deadline as visible immediately after submission  (SCOPE-023)
 - MUST NOT allow self-paced attempts on a live quiz  (SCOPE-016)
 - MUST NOT allow live sessions on a self-paced quiz  (SCOPE-016)
+- MUST score multiple choice as points x max(0, correct selected - wrong selected) / correct options, matching as points x correct matches / pairs, single choice and true/false as all or nothing  (SCOPE-024)
+- MUST apply negative marking only to answered auto-graded questions that earn 0, never to unanswered or free-text questions  (SCOPE-024)
+- MUST NOT let an attempt's earned_points go below 0  (SCOPE-024)
+- MUST round each answer's points_awarded half-up to 2 decimals when stored and compute earned_points as their sum  (SCOPE-024)
+- MUST set ends_at to the earlier of started_at + time_limit and the activity's deadline, or null when neither exists  (SCOPE-024)
+- MUST auto-submit an in-progress attempt at ends_at and when its activity is closed, with the answers saved so far  (SCOPE-024)
+- MUST move a submitted attempt to graded once it has no pending answers  (SCOPE-024)
+- MUST count in-progress attempts toward max_attempts and refuse a new attempt while one is in progress  (SCOPE-024)
 - MUST reject ENT-Activity state transitions that are not listed in its state model
 - MUST reject ENT-QuizAttempt state transitions that are not listed in its state model
 - MUST NOT write ENT-QuizAttempt fields earned_points to logs or error messages
@@ -367,6 +377,14 @@ Standing constraints from deferred decisions (apply now):
 - [UC-012] Given negative marking enabled with -0.25 per wrong answer on a 1-point question, When the answer is wrong, Then that question scores -0.25; given negative marking disabled, Then it scores 0
 - [UC-012] Given default result visibility, When a student submits, Then they see their score immediately
 - [UC-012] Given the timer is enforced on the server, When an answer arrives after the limit, Then it is not counted
+- [UC-012] Given a 1-point multiple-choice question with 2 correct options of 4, When the student selects both correct and 1 wrong, Then it scores 0.50; When they select all 4, Then it scores 0
+- [UC-012] Given a 1-point matching question with 3 pairs and 2 matched correctly, Then it scores 0.67
+- [UC-012] Given negative marking of 25%, When a multiple-choice answer earns partial credit, Then no deduction applies; When a question is left unanswered, Then it scores 0
+- [UC-012] Given negative marking and every answer wrong, When submitted, Then earned_points is 0
+- [UC-012] Given a 30-minute limit and a deadline 10 minutes after the start, Then the attempt ends at the deadline
+- [UC-012] Given a quiz with no time limit and no deadline and an attempt in progress, When the teacher closes the activity, Then the attempt is submitted
+- [UC-012] Given a quiz without free-text questions, When submitted, Then the attempt is graded; given one with a free-text question, Then it stays submitted until that answer is graded
+- [UC-012] Given a quiz allowing 2 attempts with 1 submitted and 1 in progress, When the student starts another, Then it is refused
 - [UC-026] Given a 5-point free-text question, When the teacher enters 6, Then it is rejected
 - [UC-026] Given an attempt with 2 free-text answers and 1 graded, Then the attempt remains provisional; When the 2nd is graded, Then it becomes final
 - [UC-026] Given a teacher, When they grade an answer of another teacher's activity, Then it is refused
