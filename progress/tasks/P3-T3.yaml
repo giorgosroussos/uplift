@@ -1,5 +1,5 @@
 id: P3-T3
-status: ready_to_merge
+status: blocked
 commit: dbc761e
 handoff: |
   app/Modules/Assessment: Support/QuizType (ActivityType, registered in AssessmentServiceProvider; steps pages/Assessment/Quiz/{Settings,Questions}.vue), Actions/{SaveQuizSettings,SaveQuizQuestions,ShowQuizQuestions,ListCopyableBankQuestions}, Support/{QuestionRules (DATA-016, shared with QuestionRequest),GradingFingerprint}.

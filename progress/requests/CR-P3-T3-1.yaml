@@ -1,0 +1,56 @@
+id: CR-P3-T3-1
+raised_by: implementation-agent
+task: P3-T3
+status: open
+problem: >
+  The quiz type (UC-022, ENT-Quiz, ENT-Answer) leaves four points open that
+  affect behaviour and data. The P3-T3 implementation (branch P3-T3) made a
+  choice for each one; the choices are listed as the proposal and the code is
+  kept so it can be reused after the decision.
+  (1) Quiz setting ranges: SCOPE-008 says only "attempts set by the teacher",
+  and ENT-Quiz (data.yaml) gives no range for time_limit or max_attempts.
+  The implementation accepts a time limit of 1-1440 minutes (optional) and
+  1-100 attempts (SaveQuizSettings::MAX_TIME_LIMIT_MINUTES / MAX_ATTEMPTS).
+  (2) Defaults of a new quiz in the wizard: SCOPE-008 sets only the score
+  visibility default (immediate). The implementation also defaults
+  max_attempts to 1, answers_visibility to after_deadline, no time limit,
+  no negative marking and no pass mark (resources/js/lib/quizForm.ts
+  defaultSettings).
+  (3) What counts as a "submission" for the grading lock: UC-022 refuses
+  grading changes on a "published activity with submissions", and
+  ENT-QuizAttempt has a separate `submitted` state. The implementation locks
+  grading as soon as any attempt exists, including in_progress attempts
+  (QuizType::hasSubmissions), because those attempts' answers refer to the
+  quiz questions, options and pairs (answers.quiz_question_id and the
+  selection/match FKs are on delete restrict). If only submitted or graded
+  attempts locked grading, removing a question or option during an
+  in-progress attempt would either fail on the foreign keys or need cascade
+  deletion of students' answers, and the in-progress attempt would be graded
+  against a changed key.
+  (4) ENT-Answer state model vs grading_status values: ENT-Answer.grading_status
+  allows [auto_graded, pending, graded], but its state model is initial
+  `pending` with the only transition `pending -> graded`. Under the model,
+  `auto_graded` can never be reached, so P3-T4 cannot store auto-graded
+  answers. The implementation enforces the model as written
+  (Enums/GradingStatus, Models/Answer: created only as pending,
+  auto_graded unreachable).
+affects:
+  - SCOPE-008 (quiz settings: attempts, time limit, defaults)
+  - ENT-Quiz (attribute ranges for time_limit and max_attempts)
+  - UC-022 (exception "published activity with submissions": definition of submission)
+  - ENT-Answer state model (states/transitions incl. auto_graded)
+  - P3-T4 (auto-grading), P3-T5 (manual grading of free-text answers)
+proposal: >
+  (1) Accept the ranges as implemented: time limit optional, 1-1440 minutes,
+  stored in seconds; max_attempts 1-100.
+  (2) Accept the defaults as implemented: max_attempts 1, score visibility
+  immediate (SCOPE-008), answers visibility after_deadline, no time limit,
+  negative marking off, no pass mark. The teacher can change all of them.
+  (3) Define "submission" for the grading lock as any attempt of the quiz,
+  including one in progress, as implemented.
+  (4) Change the ENT-Answer state model to: initial `pending` or
+  `auto_graded` (set when the attempt is submitted: auto_graded for choice,
+  true/false and matching answers, pending for free-text answers);
+  transition `pending -> graded`; `auto_graded` final. The implementation
+  then lets Answer be created as pending or auto_graded (a one-line change in
+  GradingStatus/Answer plus its test).
