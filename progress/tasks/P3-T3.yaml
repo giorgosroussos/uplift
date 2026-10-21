@@ -1,0 +1,9 @@
+id: P3-T3
+status: ready_to_merge
+commit: ab60da4
+handoff: |
+  app/Modules/Assessment: Models/{Quiz (isScoreVisible/areAnswersVisible, SCOPE-023 no-deadline rule), QuizQuestion, QuizAttempt, Answer (applySubmission: auto_graded or pending), AnswerSelection, AnswerMatch}, Enums/{QuizMode, ResultVisibility, AttemptStatus, GradingStatus, LiveStartMode}, factories, 4 migrations.
+  Support/QuizType registered via ActivityTypes (settings + content steps, publishErrors, hasSubmissions = any attempt -> grading lock via Support/GradingFingerprint); Actions/{SaveQuizSettings (1-1440 min, 1-100 attempts), SaveQuizQuestions, ShowQuizQuestions, ListCopyableBankQuestions}; Support/QuestionRules = DATA-016 rules shared with QuestionRequest.
+  Policies/{QuizAttemptPolicy OWN-006, AnswerPolicy OWN-007}; GradingStatus: pending -> auto_graded|graded, auto_graded -> graded.
+  UI: pages/Assessment/Quiz/{Settings,Questions}.vue, lib/quizForm.ts (defaults), types/quiz.ts, lang/{en,el}/assessment.php.
+  Tests: tests/Feature/Assessment/{QuizWizardTest,QuizAttemptOwnershipTest,QuizResultRulesTest}.php, tests/Browser/QuizWizardTest.php, resources/js/lib/quizForm.test.ts.
