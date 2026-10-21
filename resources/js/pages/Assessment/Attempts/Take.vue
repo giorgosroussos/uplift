@@ -18,6 +18,7 @@ import { index } from '@/routes/activities';
 import { submit as submitRoute } from '@/routes/assessment/attempts';
 import { update as updateAnswer } from '@/routes/assessment/attempts/answers';
 import { show as showQuiz } from '@/routes/assessment/quizzes';
+import { show as showResult } from '@/routes/assessment/results';
 import type {
     AttemptAnswer,
     AttemptDetails,
@@ -255,6 +256,14 @@ onBeforeUnmount(() => {
                 @click="confirming = true"
             >
                 {{ $t('assessment.attempt.take.submit') }}
+            </Button>
+            <Button v-if="!inProgress" as-child>
+                <Link
+                    :href="showResult(attempt.id)"
+                    data-test="attempt-result-open"
+                >
+                    {{ $t('assessment.results.index.open') }}
+                </Link>
             </Button>
             <Button variant="outline" as-child>
                 <Link

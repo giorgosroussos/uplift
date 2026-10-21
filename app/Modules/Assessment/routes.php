@@ -1,13 +1,16 @@
 <?php
 
+use App\Modules\Assessment\Http\Controllers\GradingController;
 use App\Modules\Assessment\Http\Controllers\QuestionBankController;
 use App\Modules\Assessment\Http\Controllers\QuizAttemptController;
+use App\Modules\Assessment\Http\Controllers\ResultController;
 use Illuminate\Support\Facades\Route;
 
 /*
 | Assessment routes (web middleware group), on organisation subdomains only.
-| {question} binds only questions of the current tenant; QuestionPolicy
-| applies OWN-016.
+| {question}, {attempt} and {answer} bind only records of the current
+| tenant; QuestionPolicy applies OWN-016, QuizAttemptPolicy OWN-006 and
+| AnswerPolicy OWN-007.
 */
 
 Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
@@ -28,4 +31,12 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
     // JSON autosave of one answer (RFC 9457 errors).
     Route::put('quiz-attempts/{attempt}/answers/{quizQuestion}', [QuizAttemptController::class, 'answer'])->name('assessment.attempts.answers.update');
     Route::post('quiz-attempts/{attempt}/submit', [QuizAttemptController::class, 'submit'])->name('assessment.attempts.submit');
+
+    // UC-017: a student's own results.
+    Route::get('results', [ResultController::class, 'index'])->name('assessment.results.index');
+    Route::get('results/{attempt}', [ResultController::class, 'show'])->name('assessment.results.show');
+
+    // UC-026: the owning teacher grades a submitted attempt's answers.
+    Route::get('grading/attempts/{attempt}', [GradingController::class, 'show'])->name('assessment.grading.show');
+    Route::put('grading/answers/{answer}', [GradingController::class, 'update'])->name('assessment.grading.update');
 });

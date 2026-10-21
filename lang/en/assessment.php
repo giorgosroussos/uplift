@@ -9,6 +9,7 @@
 return [
 
     'nav' => [
+        'results' => 'My results',
         'question_bank' => 'Question bank',
     ],
 
@@ -223,6 +224,82 @@ return [
         ],
         'flash' => [
             'submitted' => 'Your attempt was submitted.',
+        ],
+    ],
+
+    // UC-017, UC-026: grades on the organisation's grading scale (DATA-005).
+    'grade' => [
+        'scale_0_10' => ':value / 10',
+        'scale_0_100' => ':value / 100',
+        'points_pass_mark' => ':earned / :max points',
+        'percentage' => ':percentage%',
+        'passed' => 'Passed',
+        'failed' => 'Not passed',
+        'provisional' => 'Provisional',
+        'final' => 'Final',
+        'hidden' => 'Not visible yet',
+    ],
+
+    // UC-017: a student's own results.
+    'results' => [
+        'index' => [
+            'title' => 'My results',
+            'empty' => 'You have no results yet. They appear here once you submit a quiz.',
+            'attempt' => 'Attempt :number',
+            'submitted_at' => 'Submitted',
+            'grade' => 'Grade',
+            'status' => 'Status',
+            'has_feedback' => 'Teacher feedback',
+            'open' => 'View result',
+        ],
+        'show' => [
+            'title' => 'Result',
+            'back' => 'Back to my results',
+            'provisional_notice' => 'This result is provisional until your teacher grades the free-text answers.',
+            'score_hidden' => 'Your teacher has not made the score visible yet.',
+            'answers_hidden' => 'The correct answers are not visible yet.',
+        ],
+    ],
+
+    // UC-017, UC-026: a submitted question with its answer.
+    'review' => [
+        'question_number' => 'Question :number',
+        'your_answer' => 'Answer',
+        'no_answer' => 'Not answered',
+        'selected' => 'Selected',
+        'correct' => 'Correct',
+        'correct_answer' => 'Correct answer: :answer',
+        'matched_to' => ':left: :right',
+        'points_awarded' => ':awarded / :points points',
+        'feedback' => 'Teacher feedback',
+        'grading_statuses' => [
+            'pending' => 'Awaiting grading',
+            'auto_graded' => 'Graded automatically',
+            'graded' => 'Graded by the teacher',
+        ],
+    ],
+
+    // UC-026: the owning teacher grades an attempt's answers.
+    'grading' => [
+        'title' => 'Grade attempt',
+        'student' => 'Student',
+        'back' => 'Back to submissions',
+        'points' => 'Points',
+        'points_hint' => 'From 0 to :max, with up to 2 decimal places.',
+        'feedback' => 'Feedback (optional)',
+        'save' => 'Save grade',
+        'in_progress_notice' => 'This attempt is still in progress. You can grade it once it is submitted.',
+        'provisional_notice' => 'The score is provisional until every free-text answer is graded.',
+        'final_notice' => 'All answers are graded; the score is final.',
+        'errors' => [
+            'points_format' => 'Enter the points as a number with up to 2 decimal places.',
+            'points_max' => 'The points must be from 0 to :max.',
+            'not_submitted' => 'The attempt has not been submitted yet.',
+            'feedback_invalid' => 'The feedback must be text.',
+            'feedback_length' => 'The feedback may have at most :max characters.',
+        ],
+        'flash' => [
+            'graded' => 'The grade was saved.',
         ],
     ],
 

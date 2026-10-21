@@ -6,11 +6,29 @@ import type { QuestionType } from '@/types/assessment';
 
 export type AttemptStatus = 'in_progress' | 'submitted' | 'graded';
 
+export type GradingScale = 'scale_0_10' | 'scale_0_100' | 'points_pass_mark';
+
+/**
+ * A score on the organisation's grading scale, converted and rounded on
+ * the server (DATA-003, DATA-005). `value` is the 0-10 or 0-100 grade, or
+ * the earned points on the points scale; `passed` is null without a pass
+ * mark.
+ */
+export type Grade = {
+    scale: GradingScale;
+    value: string | null;
+    percentage: string | null;
+    earned: string;
+    max: string;
+    passed: boolean | null;
+};
+
 /** Earned and maximum points as exact decimal strings. */
 export type AttemptScore = {
     earned: string;
     max: string;
     provisional: boolean;
+    grade: Grade;
 };
 
 export type StudentQuiz = {

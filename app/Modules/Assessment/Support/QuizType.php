@@ -7,6 +7,7 @@ use App\Modules\Activities\Enums\ActivityKind;
 use App\Modules\Activities\Enums\SubmissionStatus;
 use App\Modules\Activities\Enums\WizardStep;
 use App\Modules\Activities\Models\Activity;
+use App\Modules\Assessment\Actions\ListQuizSubmissions;
 use App\Modules\Assessment\Actions\SaveQuizQuestions;
 use App\Modules\Assessment\Actions\SaveQuizSettings;
 use App\Modules\Assessment\Actions\ShowQuizQuestions;
@@ -28,6 +29,7 @@ final class QuizType implements ActivityType
         private readonly SaveQuizSettings $settings,
         private readonly SaveQuizQuestions $questions,
         private readonly ShowQuizQuestions $show,
+        private readonly ListQuizSubmissions $submissions,
     ) {}
 
     public function kind(): ActivityKind
@@ -122,11 +124,11 @@ final class QuizType implements ActivityType
     }
 
     /**
-     * Quiz submissions in the overview come with grading (P3-T5).
+     * UC-028: the submitted attempts, needing grading or graded.
      */
     public function submissions(Activity $activity, ?SubmissionStatus $status): array
     {
-        return [];
+        return $this->submissions->handle($activity, $status);
     }
 
     /**
