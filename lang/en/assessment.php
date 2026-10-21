@@ -106,4 +106,58 @@ return [
         'right_text' => 'right item',
     ],
 
+    // UC-022: the quiz steps of the activity wizard.
+    'quiz' => [
+        'modes' => [
+            'self_paced' => 'Self-paced',
+            'live' => 'Live',
+        ],
+        'visibility' => [
+            'immediate' => 'Right after submitting',
+            'after_deadline' => 'After the deadline',
+            'hidden' => 'Never',
+        ],
+        'settings' => [
+            'mode' => 'Mode',
+            'time_limit' => 'Time limit (minutes)',
+            'time_limit_hint' => 'Leave empty for no time limit.',
+            'max_attempts' => 'Attempts per student',
+            'negative_marking' => 'Negative marking for wrong answers',
+            'negative_mark_fraction' => 'Deduction (% of the question\'s points)',
+            'negative_mark_hint' => 'More than 0 and at most 100.',
+            'pass_mark' => 'Pass mark (%)',
+            'pass_mark_hint' => 'Optional; from 0 to 100.',
+            'score_visibility' => 'Students see their score',
+            'answers_visibility' => 'Students see the correct answers',
+        ],
+        'questions' => [
+            'hint' => 'Write new questions or copy them from your question bank, and drag them to change their order.',
+            'empty' => 'This quiz has no questions yet.',
+            'untitled' => 'New question',
+            'points' => ':points points',
+            'expand' => 'Edit question',
+            'collapse' => 'Close question',
+            'remove' => 'Remove question',
+            'has_errors' => 'This question has errors.',
+            'add' => 'New question',
+            'from_bank' => 'Add from question bank',
+        ],
+        'bank' => [
+            'title' => 'Your question bank',
+            'hint' => 'A copy is added to the quiz; later changes to the bank question do not affect it.',
+            'failed' => 'Your question bank could not be loaded.',
+            'empty' => 'Your question bank is empty.',
+            'added' => 'Added',
+            'copy' => 'Add',
+        ],
+        'errors' => [
+            'settings_first' => 'Save the quiz settings first.',
+            'settings_missing' => 'The quiz settings are missing.',
+            'no_questions' => 'A quiz needs at least one question.',
+            'live_free_text' => 'A live quiz cannot have free-text questions.',
+            'duplicate_question' => 'This question appears twice.',
+            'foreign_id' => 'This item does not belong to this quiz.',
+        ],
+    ],
+
 ];

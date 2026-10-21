@@ -5,11 +5,13 @@ namespace App\Modules\Assessment\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Assessment\Actions\DeleteBankQuestion;
 use App\Modules\Assessment\Actions\ListBankQuestions;
+use App\Modules\Assessment\Actions\ListCopyableBankQuestions;
 use App\Modules\Assessment\Actions\SaveBankQuestion;
 use App\Modules\Assessment\Actions\ShowBankQuestion;
 use App\Modules\Assessment\Http\Requests\QuestionRequest;
 use App\Modules\Assessment\Models\Question;
 use App\Modules\Identity\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -29,6 +31,17 @@ class QuestionBankController extends Controller
         return Inertia::render('Assessment/QuestionBank/Index', [
             'questions' => $list->handle($this->user($request)),
         ]);
+    }
+
+    /**
+     * UC-022: the teacher's bank with every question's options and pairs,
+     * as JSON for copying questions into a quiz in the wizard (DATA-008).
+     */
+    public function copyable(Request $request, ListCopyableBankQuestions $list): JsonResponse
+    {
+        Gate::authorize('viewAny', Question::class);
+
+        return new JsonResponse(['questions' => $list->handle($this->user($request))]);
     }
 
     public function create(): Response

@@ -32,7 +32,7 @@ function submit(): void {
         </h1>
 
         <form class="flex flex-col gap-6" @submit.prevent="submit">
-            <QuestionFields v-model:form="form" />
+            <QuestionFields v-model:form="form" :errors="form.errors" />
 
             <div class="flex items-center gap-4">
                 <Button
