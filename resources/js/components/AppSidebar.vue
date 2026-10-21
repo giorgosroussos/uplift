@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     BookOpen,
     Building2,
+    Library,
     ClipboardList,
     LayoutGrid,
     Search,
@@ -22,6 +23,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as questionBank } from '@/routes/assessment/questions';
 import { index as activities } from '@/routes/activities';
 import { catalogue, index as courses } from '@/routes/courses';
 import { edit as organizationSettings } from '@/routes/organization/settings';
@@ -51,6 +53,16 @@ const mainNavItems = computed<NavItem[]>(() => [
                   title: 'courses.nav.catalogue',
                   href: catalogue(),
                   icon: Search,
+              },
+          ]
+        : []),
+    // Personal question bank (UC-023, OWN-016), for teachers only.
+    ...(page.props.auth.user?.role === 'teacher'
+        ? [
+              {
+                  title: 'assessment.nav.question_bank',
+                  href: questionBank(),
+                  icon: Library,
               },
           ]
         : []),
