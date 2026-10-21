@@ -1,0 +1,7 @@
+id: P3-T2
+status: blocked
+commit: null
+handoff: |
+  Blocked on progress/requests/CR-P3-T2-1.yaml: the brief's acceptance criteria (OWN-006, OWN-007,
+  QuizAttempt/Answer state models) belong to P3-T4/P3-T5; UC-023 has no criteria or validation rules.
+  Nothing built yet.
