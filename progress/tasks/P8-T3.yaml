@@ -1,0 +1,7 @@
+id: P8-T3
+status: ready_to_merge
+commit: a793976
+handoff: |
+  app/Modules/Audit/Listeners/AuditOrganizationSuspended + AuditOrganizationReactivated, registered in AuditServiceProvider::$listen on Platform Events/OrganizationSuspended|OrganizationReactivated.
+  Entries: action organization.suspended|organization.reactivated, actor_type platform_admin, actor_id = platform admin id, subject organization/<id>, organization_id = that organisation, changes {status: {from, to}}.
+  Tests: tests/Feature/Audit/PlatformAdminAuditTest.php (entries written; none on rejected transition, guest, org admin, admin without MFA; no personal data).
