@@ -1,0 +1,39 @@
+id: CR-P2-T7-1
+raised_by: implementation-agent
+task: P2-T7
+status: accepted
+problem: >
+  The P2-T7 description (design/phases/PHASE-2.yaml:51) gives action, actor,
+  subject and changes for OrganizationRegistered, OrganizationSettingsChanged
+  and CourseSpaceArchived, but for "role changes, user deactivation" it gives
+  none of these. ENT-AuditEntry (design/model/data.yaml) and the events
+  catalogue add nothing, and Identity's UserRoleChanged(organizationId, userId,
+  actorId, fromRole, toRole) and UserDeactivated(organizationId, userId,
+  actorId) appear only in the P2-T1 handoff. Action names are the key the
+  platform-admin audit viewer (P8) will filter on, so they should be in the
+  design, not chosen by the implementation.
+  It is also not stated whether the other Identity events, UserReactivated,
+  InvitationCreated, InvitationAccepted and InvitationRevoked, are audited.
+  SEC-010 lists only "role changes" and "user deactivation".
+affects:
+  - design/phases/PHASE-2.yaml (P2-T7 description)
+  - design/model/data.yaml (ENT-AuditEntry, list of audited actions, if kept there)
+  - P8 audit viewer (action names used for filtering)
+  - app/Modules/Audit/Listeners/AuditUserRoleChanged.php, AuditUserDeactivated.php
+proposal: >
+  Adopt what is implemented on branch P2-T7:
+  (1) UserRoleChanged -> action user.role_changed, actor_type user with
+  actor_id = actorId, subject user (subject_id = userId), changes
+  {role: {from: fromRole, to: toRole}}; one entry.
+  (2) UserDeactivated -> action user.deactivated, actor_type user with
+  actor_id = actorId, subject user (subject_id = userId), changes null; one entry.
+  (3) UserReactivated, InvitationCreated, InvitationAccepted and
+  InvitationRevoked are not audited, because SEC-010 does not list them.
+  The tests assert that reactivation writes no entry.
+  Alternative to (3): also audit user.reactivated with the same shape as (2).
+resolution: >
+  Accepted in design v2.2.0 with the alternative to (3). (1) and (2) as
+  proposed. UserReactivated is also audited: action user.reactivated, same
+  shape as user.deactivated, one entry. InvitationCreated, InvitationAccepted
+  and InvitationRevoked are not audited. SEC-010 now lists user reactivation;
+  the P2-T7 description names all three actions. Engineer: "3 user.reactivated".

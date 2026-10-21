@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v2.1.0 · source dcadfdfa5719_
+_Generated document · design v2.2.0 · source 4556fdd66232_
 
 
 ## Scope
@@ -569,7 +569,7 @@ _affects UC-013, ENT-PollParticipation · since v0.1.0_
 - `MUST rate-limit enrolment key attempts to 10 per minute per user`
 - `MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count`
 - `MUST rate-limit the live subdomain availability check to 60 requests per minute per IP`
-- `MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes, course space archiving and platform admin actions`
+- `MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation and reactivation, organisation settings changes, course space archiving and platform admin actions`
 - `MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory`
 - `MUST run composer audit and npm audit in CI`
 

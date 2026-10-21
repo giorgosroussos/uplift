@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-8 — Platform administration: separate admin guard with required MFA, organisation management, platform dashboard
 
-_design v2.1.0 · dcadfdfa5719_
+_design v2.2.0 · 4556fdd66232_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Platform, CMP-Audit
 
@@ -82,7 +82,7 @@ States: initial `active`; allowed transitions: `active -> suspended`, `suspended
 - MUST rate-limit enrolment key attempts to 10 per minute per user  (SEC-010)
 - MUST rate-limit organisation registration to 3 successful registrations per hour per IP; submissions rejected by validation do not count  (SEC-010)
 - MUST rate-limit the live subdomain availability check to 60 requests per minute per IP  (SEC-010)
-- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation, organisation settings changes, course space archiving and platform admin actions  (SEC-010)
+- MUST write an audit entry for organisation registration, grade changes, role changes, user deactivation and reactivation, organisation settings changes, course space archiving and platform admin actions  (SEC-010)
 - MUST accept logo uploads only as png, jpg or sanitised svg up to 2 MB and CSV uploads up to 1 MB, stored outside the public directory  (SEC-010)
 - MUST run composer audit and npm audit in CI  (SEC-010)
 - MUST NOT write ENT-PlatformAdmin fields name, email, password to logs or error messages

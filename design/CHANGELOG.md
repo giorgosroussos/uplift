@@ -1,5 +1,9 @@
 # Design changelog
 
+## v2.2.0 — 2026-10-21
+
+- Audit actions for role changes, user deactivation and reactivation specified (P2-T7) (CR-P2-T7-1)
+
 ## v2.1.0 — 2026-10-20
 
 - Profile, MFA and avatars (P2-T2); notification centre and email opt-out (P2-T6); invitation delivery failure and resend (new P2-T9) (CR-P2-T2-1, CR-P2-T6-1)
