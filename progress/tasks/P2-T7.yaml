@@ -1,0 +1,8 @@
+id: P2-T7
+status: ready_to_merge
+commit: 45d61e7
+handoff: |
+  app/Modules/Audit/Listeners: AuditOrganizationRegistered, AuditUserRoleChanged, AuditUserDeactivated, AuditUserReactivated, AuditOrganizationSettingsChanged, AuditCourseSpaceArchived, registered in AuditServiceProvider::$listen.
+  Actions: organization.registered, user.role_changed, user.deactivated, user.reactivated, organization.settings_changed, course_space.archived (ids only, no personal data); invitation events are not audited.
+  Migration app/Modules/Audit/Database/Migrations/2026_10_23_700000_*: FK audit_entries.organization_id -> organizations.id on delete restrict.
+  Tests: tests/Feature/Audit/AuditEntriesTest.php (incl. negative cases and invitations), tests/Feature/Audit/AuditLogTest.php.
