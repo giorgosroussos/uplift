@@ -30,6 +30,7 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
 
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::post('invitations/{invitation}/revoke', [InvitationController::class, 'revoke'])->whereUuid('invitation')->name('invitations.revoke');
+    Route::post('invitations/{invitation}/resend', [InvitationController::class, 'resend'])->whereUuid('invitation')->name('invitations.resend');
 
     // The user's own settings (UC-006): no user id, only ever one's own record.
     Route::redirect('settings', 'settings/profile')->name('settings');

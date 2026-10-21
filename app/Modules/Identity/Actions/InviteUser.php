@@ -7,12 +7,10 @@ use App\Modules\Identity\Enums\Role;
 use App\Modules\Identity\Events\InvitationCreated;
 use App\Modules\Identity\Models\Invitation;
 use App\Modules\Identity\Models\User;
-use App\Modules\Identity\Notifications\InvitationNotification;
 use App\Modules\Identity\Support\EmailLock;
-use App\Modules\Identity\Support\OrganizationUrl;
+use App\Modules\Identity\Support\InvitationMail;
 use App\Modules\Identity\Support\PlatformEmails;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -59,20 +57,7 @@ final class InviteUser
             return [$invitation, $token];
         });
 
-        $organization = $admin->organization;
-        $url = OrganizationUrl::for($organization)->route('invitation.show', [
-            'invitation' => $invitation->getKey(),
-            'token' => $token,
-        ]);
-
-        Notification::route('mail', $invitation->email)
-            ->notify((new InvitationNotification(
-                (string) $invitation->getKey(),
-                $url,
-                $organization->name,
-                $invitation->role->value,
-                Invitation::VALID_DAYS,
-            ))->locale($organization->default_locale->value));
+        InvitationMail::queue($invitation, $admin->organization, $token);
 
         InvitationCreated::dispatch($invitation->organization_id, (string) $invitation->getKey(), (string) $admin->getKey());
 

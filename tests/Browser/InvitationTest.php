@@ -39,6 +39,24 @@ it('lets an org admin invite a user from the user list', function () {
         ->toBe(Role::Teacher);
 });
 
+it('shows Email not delivered with Resend and resends the invitation (DATA-015)', function () {
+    $admin = User::factory()->for($this->organization, 'organization')->orgAdmin()->create();
+    $invitation = Invitation::factory()->for($this->organization, 'organization')->create(['email' => 'bounced@acme.test']);
+    $invitation->markEmailFailed();
+    $this->actingAs($admin);
+
+    visit('/users')
+        ->assertSee('bounced@acme.test')
+        ->assertSee('Email not delivered')
+        ->click('@invitation-resend')
+        ->assertSee('Invitation sent again.')
+        ->assertDontSee('Email not delivered')
+        ->assertNoJavaScriptErrors();
+
+    expect(Invitation::query()->withoutGlobalScope(OrganizationScope::class)->findOrFail($invitation->getKey())->email_failed_at)
+        ->toBeNull();
+});
+
 it('lets an invitee accept an invitation and reach the teacher dashboard', function () {
     $invitation = Invitation::factory()->for($this->organization, 'organization')->role(Role::Teacher)->create();
     $token = InvitationFactory::$lastToken;

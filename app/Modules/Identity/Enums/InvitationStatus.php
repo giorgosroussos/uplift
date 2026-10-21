@@ -4,7 +4,8 @@ namespace App\Modules\Identity\Enums;
 
 /**
  * State model of ENT-Invitation: initial `pending`; transitions
- * `pending -> accepted`, `pending -> revoked` and `pending -> expired`.
+ * `pending -> accepted`, `pending -> revoked`, `pending -> expired` and
+ * `expired -> pending` (resend, DATA-015).
  */
 enum InvitationStatus: string
 {
@@ -25,7 +26,8 @@ enum InvitationStatus: string
     {
         return match ($this) {
             self::Pending => [self::Accepted, self::Revoked, self::Expired],
-            self::Accepted, self::Revoked, self::Expired => [],
+            self::Expired => [self::Pending],
+            self::Accepted, self::Revoked => [],
         };
     }
 

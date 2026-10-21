@@ -93,7 +93,7 @@ describe('inviting (UC-032)', function () {
     });
 
     it('sends the invitation email with the INT-001 retry policy', function () {
-        $notification = new InvitationNotification('id', 'http://acme.uplift.test/x', 'Acme', 'teacher', 7);
+        $notification = new InvitationNotification('id', 'http://acme.uplift.test/x', 'Acme', 'teacher', 7, 'token');
 
         expect($notification->tries)->toBe(6)
             ->and($notification->timeout)->toBe(10)

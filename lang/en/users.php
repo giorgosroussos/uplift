@@ -62,6 +62,8 @@ return [
         'expires' => 'Expires',
         'expired' => 'Link expired',
         'revoke' => 'Revoke',
+        'resend' => 'Resend',
+        'email_failed' => 'Email not delivered',
     ],
 
     'errors' => [
@@ -69,11 +71,13 @@ return [
         'already_invited' => 'This email address already has a pending invitation.',
         'last_admin' => 'The organisation needs at least one active organisation admin.',
         'not_pending' => 'This invitation is no longer pending.',
+        'not_resendable' => 'Only pending or expired invitations can be resent.',
     ],
 
     'flash' => [
         'invited' => 'Invitation sent.',
         'revoked' => 'Invitation revoked.',
+        'resent' => 'Invitation sent again.',
         'role_changed' => 'Role changed.',
         'deactivated' => 'User deactivated.',
         'reactivated' => 'User reactivated.',
