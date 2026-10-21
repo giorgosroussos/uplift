@@ -1,0 +1,9 @@
+id: P8-T1
+status: ready_to_merge
+commit: 3bf3e78
+handoff: |
+  app/Modules/Platform: Models/PlatformAdmin (table platform_admins, UUID, lower-cased unique email, argon2id, Fortify TwoFactorAuthenticatable, no remember token) + Database/Factories/PlatformAdminFactory (->withTwoFactor($secret), PASSWORD, RECOVERY_CODES); guard `platform` + provider platform_admins registered in PlatformServiceProvider::register.
+  Routes (apex host only, Http/Middleware/RequireApexHost; else 404) prefix /admin, names platform.*: login, login.store, two-factor.challenge(.store), two-factor.setup(.store) (pending login, limiter 'platform-two-factor' 5/min/session), dashboard (GET /admin placeholder for P8-T2), recovery-codes, logout.
+  Protect P8-T2 routes with Http/Middleware/AuthenticatePlatformAdmin (platform guard + confirmed MFA); current admin via Support/PlatformSession::admin(). Password step = Actions/AttemptPlatformLogin (5 failures/min/email, EqualWork); MFA: StartTwoFactorSetup, ConfirmTwoFactorSetup, PassTwoFactorChallenge.
+  Admins are created only by `php artisan platform:create-admin` (Console/CreatePlatformAdminCommand -> Actions/CreatePlatformAdmin); MFA is set up at first login before entering. No domain events yet (P8-T3 audit needs events from P8-T2 actions).
+  UI: resources/js/pages/Platform/{Login,TwoFactorChallenge,TwoFactorSetup,RecoveryCodes,Dashboard}.vue (AuthLayout), strings lang/{en,el}/platform.php. Tests: tests/Feature/Platform/{PlatformAuthentication,CreatePlatformAdminCommand}Test.php, tests/Browser/PlatformLoginTest.php.
