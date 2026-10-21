@@ -4,6 +4,7 @@ namespace App\Modules\Identity\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Identity\Actions\InviteUser;
+use App\Modules\Identity\Actions\ResendInvitation;
 use App\Modules\Identity\Actions\RevokeInvitation;
 use App\Modules\Identity\Http\Requests\InviteUserRequest;
 use App\Modules\Identity\Models\Invitation;
@@ -14,8 +15,9 @@ use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 /**
- * UC-032: an org admin invites users and revokes pending invitations of
- * their own organisation (OWN-002).
+ * UC-032: an org admin invites users, revokes pending invitations and
+ * resends pending or expired ones (DATA-015) of their own organisation
+ * (OWN-002).
  */
 class InvitationController extends Controller
 {
@@ -39,6 +41,17 @@ class InvitationController extends Controller
         $revokeInvitation->handle($actor, $invitation);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => (string) __('users.flash.revoked')]);
+
+        return back();
+    }
+
+    public function resend(Invitation $invitation, ResendInvitation $resendInvitation): RedirectResponse
+    {
+        Gate::authorize('resend', $invitation);
+
+        $resendInvitation->handle($invitation);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => (string) __('users.flash.resent')]);
 
         return back();
     }

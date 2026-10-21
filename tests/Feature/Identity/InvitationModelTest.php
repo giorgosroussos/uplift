@@ -50,6 +50,14 @@ it('allows exactly the transitions of the state model', function (InvitationStat
     expect(rawInvitationRow($invitation)->status)->toBe($to->value);
 })->with([InvitationStatus::Accepted, InvitationStatus::Revoked, InvitationStatus::Expired]);
 
+it('allows an expired invitation to become pending again (resend)', function () {
+    $invitation = Invitation::factory()->for($this->acme, 'organization')->inStatus(InvitationStatus::Expired)->create();
+
+    $invitation->transitionTo(InvitationStatus::Pending);
+
+    expect(rawInvitationRow($invitation)->status)->toBe('pending');
+});
+
 it('rejects every transition not in the state model and leaves the state unchanged', function (InvitationStatus $from, InvitationStatus $to) {
     $invitation = Invitation::factory()->for($this->acme, 'organization')->inStatus($from)->create();
 
@@ -67,6 +75,10 @@ it('rejects every transition not in the state model and leaves the state unchang
 })->with(function () {
     foreach ([InvitationStatus::Accepted, InvitationStatus::Revoked, InvitationStatus::Expired] as $from) {
         foreach (InvitationStatus::cases() as $to) {
+            if ($from === InvitationStatus::Expired && $to === InvitationStatus::Pending) {
+                continue; // allowed: expired -> pending (resend, DATA-015)
+            }
+
             yield "{$from->value} -> {$to->value}" => [$from, $to];
         }
     }

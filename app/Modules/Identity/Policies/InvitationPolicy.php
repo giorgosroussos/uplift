@@ -32,6 +32,14 @@ class InvitationPolicy
         return $this->grants($actor, $invitation);
     }
 
+    /**
+     * DATA-015: only org admins of the invitation's organisation resend it.
+     */
+    public function resend(User $actor, Invitation $invitation): bool
+    {
+        return $this->grants($actor, $invitation);
+    }
+
     private function grants(User $actor, Invitation $invitation): bool
     {
         return $this->isActiveOrgAdmin($actor)

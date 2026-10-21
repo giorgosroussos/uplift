@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { revoke, store } from '@/routes/invitations';
+import { resend, revoke, store } from '@/routes/invitations';
 import { deactivate, index, reactivate, role } from '@/routes/users';
 import type { Role } from '@/types';
 
@@ -36,6 +36,8 @@ type InvitationRow = {
     role: Role;
     expires_at: string;
     expired: boolean;
+    email_failed: boolean;
+    revocable: boolean;
 };
 
 const props = defineProps<{
@@ -102,6 +104,10 @@ function setActive(user: UserRow, active: boolean): void {
 
 function revokeInvitation(invitation: InvitationRow): void {
     router.post(revoke.url(invitation.id), {}, { preserveScroll: true });
+}
+
+function resendInvitation(invitation: InvitationRow): void {
+    router.post(resend.url(invitation.id), {}, { preserveScroll: true });
 }
 
 function formatDate(iso: string): string {
@@ -201,7 +207,22 @@ function formatDate(iso: string): string {
                         {{ $t('users.invitations.expires') }}
                         {{ formatDate(invitation.expires_at) }}
                     </span>
+                    <Badge
+                        v-if="invitation.email_failed"
+                        variant="destructive"
+                        data-test="invitation-email-failed"
+                        >{{ $t('users.invitations.email_failed') }}</Badge
+                    >
                     <Button
+                        variant="outline"
+                        size="sm"
+                        data-test="invitation-resend"
+                        @click="resendInvitation(invitation)"
+                    >
+                        {{ $t('users.invitations.resend') }}
+                    </Button>
+                    <Button
+                        v-if="invitation.revocable"
                         variant="outline"
                         size="sm"
                         @click="revokeInvitation(invitation)"
