@@ -2,7 +2,17 @@
 
 namespace App\Modules\Audit;
 
+use App\Modules\Audit\Listeners\AuditCourseSpaceArchived;
+use App\Modules\Audit\Listeners\AuditOrganizationRegistered;
+use App\Modules\Audit\Listeners\AuditOrganizationSettingsChanged;
+use App\Modules\Audit\Listeners\AuditUserDeactivated;
+use App\Modules\Audit\Listeners\AuditUserRoleChanged;
 use App\Modules\Audit\Models\AuditEntry;
+use App\Modules\Courses\Events\CourseSpaceArchived;
+use App\Modules\Identity\Events\OrganizationRegistered;
+use App\Modules\Identity\Events\UserDeactivated;
+use App\Modules\Identity\Events\UserRoleChanged;
+use App\Modules\Tenancy\Events\OrganizationSettingsChanged;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 
@@ -13,7 +23,13 @@ class AuditServiceProvider extends ModuleServiceProvider
      *
      * @var array<class-string, list<class-string>>
      */
-    protected array $listen = [];
+    protected array $listen = [
+        OrganizationRegistered::class => [AuditOrganizationRegistered::class],
+        UserRoleChanged::class => [AuditUserRoleChanged::class],
+        UserDeactivated::class => [AuditUserDeactivated::class],
+        OrganizationSettingsChanged::class => [AuditOrganizationSettingsChanged::class],
+        CourseSpaceArchived::class => [AuditCourseSpaceArchived::class],
+    ];
 
     public function boot(): void
     {

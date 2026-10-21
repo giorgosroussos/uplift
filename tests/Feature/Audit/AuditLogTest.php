@@ -7,6 +7,7 @@ use App\Modules\Audit\Enums\ActorType;
 use App\Modules\Audit\Listeners\AuditListener;
 use App\Modules\Audit\Models\AppendOnlyViolation;
 use App\Modules\Audit\Models\AuditEntry;
+use App\Modules\Tenancy\Models\Organization;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\QueryException;
@@ -55,7 +56,7 @@ function auditRecord(array $overrides = []): AuditRecord
         'actorId' => (string) Str::uuid(),
         'subjectType' => 'user',
         'subjectId' => (string) Str::uuid(),
-        'organizationId' => (string) Str::uuid(),
+        'organizationId' => array_key_exists('organizationId', $overrides) ? $overrides['organizationId'] : Organization::factory()->create()->id,
         'changes' => ['role' => ['from' => 'student', 'to' => 'teacher']],
     ], $overrides));
 }
@@ -187,7 +188,7 @@ it('schedules the daily retention prune of audit entries', function () {
 
 it('writes an entry when an event with an audit listener is dispatched', function () {
     Event::listen(AuditLogTestEvent::class, AuditLogTestListener::class);
-    $organizationId = (string) Str::uuid();
+    $organizationId = Organization::factory()->create()->id;
     $subjectId = (string) Str::uuid();
 
     event(new AuditLogTestEvent($organizationId, $subjectId));
@@ -203,7 +204,7 @@ it('writes an entry when an event with an audit listener is dispatched', functio
 it('writes nothing when the audit listener maps the event to no entry', function () {
     Event::listen(AuditLogTestEvent::class, AuditLogTestListener::class);
 
-    event(new AuditLogTestEvent((string) Str::uuid(), (string) Str::uuid(), audited: false));
+    event(new AuditLogTestEvent(Organization::factory()->create()->id, (string) Str::uuid(), audited: false));
 
     expect(AuditEntry::query()->count())->toBe(0);
 });
@@ -216,4 +217,4 @@ it('registers only audit listeners in the Audit module', function () {
             expect(is_subclass_of($listener, AuditListener::class))->toBeTrue("{$listener} must extend AuditListener");
         }
     }
-})->throwsNoExceptions();
+});
