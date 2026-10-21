@@ -1,0 +1,9 @@
+id: P3-T2
+status: ready_to_merge
+commit: f22be9a
+handoff: |
+  app/Modules/Assessment: Models/{Question, ChoiceOption, MatchingPair} (tables questions, choice_options, matching_pairs; points decimal(5,2); position unique per question, deferred), Enums/QuestionType, factories (Question: ->trueFalse() ->matching() ->freeText() ->withOptions() ->quizCopy() for in_bank=false copies).
+  Actions/SaveBankQuestion (create/edit, syncs options and pairs by id in given order), ShowBankQuestion, ListBankQuestions (newest first), DeleteBankQuestion (hard delete); Http/Requests/QuestionRequest = DATA-016 rules, reusable for quiz questions in P3-T3.
+  Policies/QuestionPolicy = OWN-016 (viewAny/create/view/update/delete: active teacher, own in_bank question). Routes question-bank/* named assessment.questions.{index,create,store,edit,update,destroy}.
+  UI: pages/Assessment/QuestionBank/{Index,Create,Edit}.vue, components/assessment/QuestionFields.vue (vue-draggable-plus), lib/questionForm.ts, types/assessment.ts; sidebar item for teachers; lang/{en,el}/assessment.php (true/false labels assessment.true_false.*).
+  Tests: tests/Feature/Assessment/{QuestionBankTest,QuestionOwnershipTest}.php, tests/Browser/QuestionBankTest.php, resources/js/lib/questionForm.test.ts. Copying bank questions into quizzes (DATA-008) is left to P3-T3.
