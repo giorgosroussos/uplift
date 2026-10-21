@@ -30,6 +30,16 @@ defineProps<Props>();
         </div>
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
+     <DropdownMenuItem :as-child="true">
+        <Link
+            class="block w-full cursor-pointer"
+            :href="profileSettings()"
+            data-test="settings-link"
+        >
+            <Settings class="mr-2 h-4 w-4" />
+            {{ $t('profile.nav') }}
+        </Link>
+    </DropdownMenuItem>
     <DropdownMenuItem :as-child="true">
         <Link
             class="block w-full cursor-pointer"
@@ -38,11 +48,6 @@ defineProps<Props>();
         >
             <BellRing class="mr-2 h-4 w-4" />
             {{ $t('notifications.settings.nav') }}
-            :href="profileSettings()"
-            data-test="settings-link"
-        >
-            <Settings class="mr-2 h-4 w-4" />
-            {{ $t('profile.nav') }}
         </Link>
     </DropdownMenuItem>
     <DropdownMenuSeparator />
