@@ -30,7 +30,7 @@ defineProps<Props>();
         </div>
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
-     <DropdownMenuItem :as-child="true">
+    <DropdownMenuItem :as-child="true">
         <Link
             class="block w-full cursor-pointer"
             :href="profileSettings()"
