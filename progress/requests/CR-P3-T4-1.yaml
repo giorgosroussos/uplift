@@ -1,0 +1,65 @@
+id: CR-P3-T4-1
+raised_by: implementation-agent
+task: P3-T4
+status: open
+problem: >
+  The P3-T4 brief (UC-012, SCOPE-008, SCOPE-009, SCOPE-023, DATA-003/004)
+  leaves open how an attempt is scored and when it ends. Each point changes
+  students' scores or what they may do, so it is not an internal choice.
+  (1) Partial credit for multiple choice (SCOPE-009): "proportional partial
+  credit" is defined only by a matching example (2 of 3 pairs = 2/3).
+  For multiple choice it is open whether selected wrong options reduce the
+  credit. If only correct selections count, selecting every option always
+  earns full points.
+  (2) Negative marking (SCOPE-008, UC-012 criterion): the deduction is
+  negative_mark_fraction % of the question's points "per wrong answer".
+  It is defined for single choice and true/false. Still open: (a) when a
+  multiple-choice or matching answer counts as "wrong" (any wrong element,
+  or only when it earns no credit), (b) whether an unanswered question is
+  penalised, (c) whether an attempt's total (earned_points) may go below 0.
+  (3) Rounding of stored points: partial credit gives non-terminating values
+  (1 point x 2/3), but answers.points_awarded and quiz_attempts.earned_points
+  are decimal(8,2) (P3-T3). DATA-005 covers rounding only for display, not
+  for storage.
+  (4) Time limit vs deadline (DATA-004): it is open whether an attempt
+  started shortly before the activity's deadline_at ends at the deadline or
+  only when its time limit runs out, and when an attempt on a quiz without a
+  time limit ends.
+  (5) Attempt status on submission: the state model is in_progress ->
+  submitted -> graded. It is open whether an attempt without free-text
+  questions, which is fully auto-graded, moves on to `graded` (score final)
+  at submission, or stays `submitted` until something else moves it.
+  P3-T5's provisional/final score and GradeFinalised event depend on this.
+  (6) Attempt count: it is open whether an attempt still in progress counts
+  toward max_attempts, and whether "start" with an attempt in progress
+  resumes it or opens a second one.
+affects:
+  - SCOPE-008 / SCOPE-009 (scoring rules)
+  - UC-012 (take self-paced quiz)
+  - ENT-Answer.points_awarded, ENT-QuizAttempt.earned_points / ends_at / status
+  - P3-T5 (provisional vs final score, GradeFinalised)
+proposal: >
+  (1) Multiple choice earns points x max(0, correct options selected -
+  wrong options selected) / number of correct options. Matching earns
+  points x correct matches / number of pairs. Single choice and true/false
+  earn all points or none.
+  (2) Negative marking deducts fraction x points only from an answered
+  auto-graded question that earns 0 credit (a wrong single/true-false
+  option, or a multiple-choice or matching answer with no credit). A
+  partly correct answer keeps its partial credit with no deduction.
+  Unanswered questions and free text are never penalised. A question may
+  score below 0, as in the UC-012 criterion, but an attempt's earned_points
+  never goes below 0.
+  (3) points_awarded is rounded half-up to 2 decimals when stored.
+  earned_points is the sum of those stored values. max_points is the sum of
+  the question points.
+  (4) ends_at = the earlier of started_at + time_limit and the activity's
+  deadline_at, or null when the quiz has neither. A scheduled job
+  auto-submits in-progress attempts at ends_at with the answers saved so
+  far. Any request on such an attempt also submits it first. Attempts start
+  only on a published (not closed) self-paced quiz before its deadline.
+  (5) On submission, an attempt with no pending answers moves on to
+  `graded` at once (final score). With free-text answers it stays
+  `submitted` (provisional score) until P3-T5 grades them.
+  (6) Every attempt, including one in progress, counts toward max_attempts.
+  Starting while an attempt is in progress resumes that attempt.
