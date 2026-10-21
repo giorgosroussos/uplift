@@ -3,8 +3,9 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     BookOpen,
     Building2,
-    LayoutGrid,
     Library,
+    ClipboardList,
+    LayoutGrid,
     Search,
     Users,
 } from '@lucide/vue';
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { index as questionBank } from '@/routes/assessment/questions';
+import { index as activities } from '@/routes/activities';
 import { catalogue, index as courses } from '@/routes/courses';
 import { edit as organizationSettings } from '@/routes/organization/settings';
 import { index as usersIndex } from '@/routes/users';
@@ -41,6 +43,10 @@ const mainNavItems = computed<NavItem[]>(() => [
         href: courses(),
         icon: BookOpen,
     },
+    // Activities of the own course spaces (UC-022), for teachers and students.
+    ...(page.props.auth.user?.role !== 'org_admin'
+        ? [{ title: 'activities.nav', href: activities(), icon: ClipboardList }]
+        : []),
     ...(page.props.auth.user?.role === 'student'
         ? [
               {

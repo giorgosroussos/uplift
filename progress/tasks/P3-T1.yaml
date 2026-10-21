@@ -1,0 +1,9 @@
+id: P3-T1
+status: ready_to_merge
+commit: 6a980d8
+handoff: |
+  app/Modules/Activities: Models/Activity (tenant-scoped, soft-deleted, Enums/ActivityStatus state model via transitionTo, Enums/ActivityKind), activities migration (unique (organization_id, id) for subtype FKs), ActivityFactory (->published/closed/ofKind), Events/ActivityPublished(organizationId, courseSpaceId, activityId, actorId) after commit (for P3-T7).
+  Contracts/ActivityType (component/stepData/rules/save per WizardStep settings|content, changesGrading, publishErrors, hasSubmissions, submissions -> Support/Submission); types register via callAfterResolving(Support/ActivityTypes::class, fn ($t) => $t->register(QuizType::class)).
+  Actions Create/Publish/CloseActivity, SaveWizardStep (409 GradingLocked when hasSubmissions && changesGrading), ShowWizard, ListActivities, ListSubmissions; Policies/ActivityPolicy on CourseSpace manageActivities/participate (draft = 404 for all but the owner).
+  Routes /activities[/create|/{a}|/{a}/edit|/{a}/publish|/{a}/close|/{a}/submissions?status=]; JSON POST /activities and PUT /activities/{a}/wizard/{basics|settings|content} answer RFC 9457 problem details. Pages resources/js/pages/Activities/{Index,Show,Wizard,Submissions}.vue (type steps = Vue page named by ActivityType::component, props modelValue/errors/activity/locked), lib/activityWizard.ts, lang/{en,el}/activities.php, sidebar item.
+  Tests: tests/Feature/Activities/*, tests/Browser/ActivityWizardTest.php, quiz ACs via tests/Support/Activities/FakeQuizType (P3-T3 covers the real quiz). Type chosen with the basics on step 1; groups not offered (is_group false).
