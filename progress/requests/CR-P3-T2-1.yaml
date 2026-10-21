@@ -1,0 +1,71 @@
+id: CR-P3-T2-1
+raised_by: implementation-agent
+task: P3-T2
+status: accepted
+problem: >
+  The P3-T2 brief (Personal question bank, UC-023) contradicts itself on what
+  "done" means. Its only acceptance criteria are OWN-006 (ENT-QuizAttempt,
+  3 roles), OWN-007 (ENT-Answer, 3 roles) and the state-model criteria of
+  ENT-QuizAttempt and ENT-Answer. They reach the brief only because
+  build.py attaches every phase entity owned by the written component
+  (CMP-Assessment). None of them concerns the question bank: attempts and
+  answers are built by P3-T4 ("Attempts, ... autosaved answers") and graded
+  by P3-T5, and a quiz_attempts table needs quizzes (P3-T3), which needs
+  activities and course-space ownership of activities (P3-T1, a parallel
+  task this one may not read). P3-T2 therefore cannot make these criteria
+  pass without building P3-T3/P3-T4 scope on top of a component it does not
+  have. Conversely, UC-023 has no acceptance criteria at all, so nothing in
+  the brief says when the bank itself is correct.
+  Secondary gaps in the bank itself (behaviour/data, not internal choices):
+  (a) validation per type: number of options (min/max) for single and
+  multiple choice; exactly one correct for single_choice, at least one for
+  multiple_choice; true_false as two fixed options - with which stored text
+  (the option text is data, not a UI string, so Greek or English?);
+  minimum/maximum matching pairs; free_text has no options or pairs;
+  (b) points: allowed range and decimal places (e.g. > 0, <= 100, 2 dp);
+  (c) may a teacher delete a bank question (hard delete; quiz copies are
+  separate rows per DATA-008, so they are unaffected)?
+  (d) access: DATA-008 forbids showing a bank to other teachers, but there
+  is no OWN rule for ENT-Question; may an org admin see teachers' banks,
+  and are students/org admins refused the bank pages entirely?
+  (e) "drag-and-drop ordering" in the builder: is this the order of options
+  and matching pairs (their position column)? Bank questions themselves have
+  no position.
+affects:
+  - PHASE-3 phase file (P3-T2 acceptance criteria; OWN-006/OWN-007 and the ENT-QuizAttempt/ENT-Answer state criteria belong to P3-T4/P3-T5)
+  - build.py brief generation (entity selection by component) if the fix is generic
+  - UC-023 (acceptance criteria and validation rules)
+  - security model (ownership rule for ENT-Question)
+  - ENT-Question / ENT-ChoiceOption / ENT-MatchingPair validation
+proposal: >
+  1. Scope P3-T2 to ENT-Question, ENT-ChoiceOption and ENT-MatchingPair (an
+  explicit task `entities` list that build.py honours instead of adding all
+  component entities); OWN-006, OWN-007 and the QuizAttempt/Answer state
+  criteria are verified in P3-T4 (attempts, answers) and P3-T5 (grading).
+  2. Add an ownership rule on ENT-Question: "a teacher reads and edits only
+  their own bank questions (in_bank = true, owner_id = self); org admins and
+  students have no access to any bank (DATA-008)", applies_to
+  [ROLE-Teacher, ROLE-OrgAdmin, ROLE-Student].
+  3. Add UC-023 rules and acceptance criteria:
+  single_choice 2-10 options, exactly 1 correct; multiple_choice 2-10
+  options, at least 1 correct; true_false exactly 2 options stored with the
+  text in the teacher's UI locale ("Σωστό"/"Λάθος" or "True"/"False"),
+  exactly 1 correct; matching 2-10 pairs, no empty side; free_text no
+  options or pairs; points > 0 and <= 100 with 2 decimal places; a teacher
+  may edit and hard-delete their bank questions (quiz copies unaffected);
+  the builder orders options and pairs by drag and drop (position).
+  Criteria, e.g.: "Given a single-choice question with 2 correct options,
+  When saved, Then it is refused"; "Given a matching question with 1 pair,
+  When saved, Then it is refused"; "Given teacher A's bank question, When
+  teacher B opens or edits it, Then it is refused"; "Given a bank question
+  copied into a quiz, When the teacher edits the bank question, Then the
+  quiz copy is unchanged" (the last one in P3-T3).
+resolution: >
+  Accepted in design v2.3.0. (1) build.py is not changed now (engineer: "Δεν
+  επιθυμώ την αλλαγή του skill τώρα"); the P3-T2 description states that the
+  OWN-006/OWN-007 and ENT-QuizAttempt/ENT-Answer state criteria in its brief
+  belong to P3-T4/P3-T5 and are not verified in P3-T2. (2) OWN-016 added on
+  ENT-Question as proposed. (3) Rules recorded in DATA-016 and UC-023 criteria
+  as proposed, except true_false: the stored texts are 'true' and 'false',
+  shown through translation keys in the viewer's locale (engineer: "Ερώτηση 2
+  Α, οκ"). The bank-copy criterion is in P3-T3.

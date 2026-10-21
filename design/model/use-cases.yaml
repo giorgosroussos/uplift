@@ -341,7 +341,32 @@ use_cases:
       - "Given a draft activity, Then no student can see it"
       - "Given a teacher who leaves the wizard at step 3, When they return, Then the steps they completed are restored"
       - "Given a published quiz with 1 submission, When the teacher changes a question's correct answer, Then it is refused"
-  - {id: UC-023, title: Manage question bank, actors: [ACT-Teacher], goal: "Create and edit reusable questions of the five question types", priority: should, source: inferred, confirmed: true}
+  - id: UC-023
+    title: Manage question bank
+    actors: [ACT-Teacher]
+    goal: "Create and edit reusable questions of the five question types"
+    priority: should
+    source: inferred
+    confirmed: true
+    main_flow:
+      - "Teacher opens their question bank (newest first)"
+      - "Creates a question: chooses the type, writes the prompt, sets the points and adds options or matching pairs, ordering them by drag and drop"
+      - "Saves; the question is validated per DATA-016 and kept in the bank"
+      - "Later edits or deletes it; quiz copies are unaffected"
+    exceptions:
+      - "Question breaks a DATA-016 rule: nothing is saved and the field shows the reason"
+      - "Another teacher, an org admin or a student opens a bank question or the bank pages: refused (OWN-016)"
+    acceptance_criteria:
+      - "Given a single-choice question with 2 correct options, When saved, Then it is refused"
+      - "Given a multiple-choice question with no correct option, When saved, Then it is refused"
+      - "Given a choice question with 1 or 11 options, When saved, Then it is refused"
+      - "Given a matching question with 1 pair or a pair with an empty side, When saved, Then it is refused"
+      - "Given a free-text question with options, When saved, Then it is refused"
+      - "Given points of 0, 100.01 or 1.005, When saved, Then it is refused"
+      - "Given a true/false question, When a teacher with the English UI and one with the Greek UI view it, Then they see 'True'/'False' and 'Σωστό'/'Λάθος' respectively, and the stored texts are 'true' and 'false'"
+      - "Given a choice question, When the teacher reorders its options by drag and drop and saves, Then the new order is kept"
+      - "Given teacher A's bank question, When teacher B opens, edits or deletes it, Then it is refused and nothing changes"
+      - "Given a teacher's bank question, When they delete it, Then it is gone from the bank"
   - id: UC-024
     title: Run live quiz
     actors: [ACT-Teacher]

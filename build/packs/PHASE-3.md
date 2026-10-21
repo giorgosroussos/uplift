@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-3 — Activities framework and self-paced quizzes end to end: wizard, question bank, taking, grading, results
 
-_design v2.2.0 · 4556fdd66232_
+_design v2.3.0 · 0e600f65152f_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Activities, CMP-Assessment, CMP-Notifications
 
@@ -45,6 +45,16 @@ Exceptions:
 #### UC-023 — Manage question bank (should)
 
 Actors: ACT-Teacher · Goal: Create and edit reusable questions of the five question types
+
+Main flow:
+1. Teacher opens their question bank (newest first)
+2. Creates a question: chooses the type, writes the prompt, sets the points and adds options or matching pairs, ordering them by drag and drop
+3. Saves; the question is validated per DATA-016 and kept in the bank
+4. Later edits or deletes it; quiz copies are unaffected
+
+Exceptions:
+- Question breaks a DATA-016 rule: nothing is saved and the field shows the reason
+- Another teacher, an org admin or a student opens a bank question or the bank pages: refused (OWN-016)
 
 #### UC-012 — Take self-paced quiz (must)
 
@@ -282,6 +292,12 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST round converted grades and percentages half-up to 1 decimal, only at display or export  (DATA-005)
 - MUST copy a bank question with its options and pairs when it is added to a quiz  (DATA-008)
 - MUST NOT show a teacher's bank to other teachers  (DATA-008)
+- MUST refuse a single_choice or true_false question without exactly 1 correct option  (DATA-016)
+- MUST refuse a multiple_choice question without at least 1 correct option  (DATA-016)
+- MUST refuse choice questions with fewer than 2 or more than 10 options and matching questions with fewer than 2 or more than 10 pairs or an empty side  (DATA-016)
+- MUST store true_false option texts as 'true' and 'false' and display them only through translation keys  (DATA-016)
+- MUST refuse points outside (0, 100] or with more than 2 decimal places  (DATA-016)
+- MUST NOT change or delete quiz copies when a bank question is edited or deleted  (DATA-016)
 - MUST NOT allow self-paced attempts on a live quiz  (SCOPE-016)
 - MUST NOT allow live sessions on a self-paced quiz  (SCOPE-016)
 - MUST reject ENT-Activity state transitions that are not listed in its state model
@@ -293,6 +309,7 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - Timestamps are stored in UTC.  (type timestamp)
 - MUST enforce OWN-006 on every read and write of ENT-QuizAttempt: A student reads only their own attempts or attempts of their group; a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)
 - MUST enforce OWN-007 on every read and write of ENT-Answer: A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)
+- MUST enforce OWN-016 on every read and write of ENT-Question: A teacher reads, edits and deletes only their own bank questions (in_bank = true, owner_id = self); org admins and students have no access to any question bank (DATA-008)
 - CMP-Activities MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses
 - CMP-Assessment MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities
 - CMP-Notifications MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment
@@ -328,6 +345,16 @@ Standing constraints from deferred decisions (apply now):
 - [UC-022] Given a draft activity, Then no student can see it
 - [UC-022] Given a teacher who leaves the wizard at step 3, When they return, Then the steps they completed are restored
 - [UC-022] Given a published quiz with 1 submission, When the teacher changes a question's correct answer, Then it is refused
+- [UC-023] Given a single-choice question with 2 correct options, When saved, Then it is refused
+- [UC-023] Given a multiple-choice question with no correct option, When saved, Then it is refused
+- [UC-023] Given a choice question with 1 or 11 options, When saved, Then it is refused
+- [UC-023] Given a matching question with 1 pair or a pair with an empty side, When saved, Then it is refused
+- [UC-023] Given a free-text question with options, When saved, Then it is refused
+- [UC-023] Given points of 0, 100.01 or 1.005, When saved, Then it is refused
+- [UC-023] Given a true/false question, When a teacher with the English UI and one with the Greek UI view it, Then they see 'True'/'False' and 'Σωστό'/'Λάθος' respectively, and the stored texts are 'true' and 'false'
+- [UC-023] Given a choice question, When the teacher reorders its options by drag and drop and saves, Then the new order is kept
+- [UC-023] Given teacher A's bank question, When teacher B opens, edits or deletes it, Then it is refused and nothing changes
+- [UC-023] Given a teacher's bank question, When they delete it, Then it is gone from the bank
 - [UC-012] Given a quiz allowing 2 attempts and a student with 2 submitted attempts, When they start another, Then it is refused
 - [UC-012] Given an attempt with a 10-minute limit and 3 of 5 questions answered, When 10 minutes pass, Then the attempt is submitted with those 3 answers
 - [UC-012] Given negative marking enabled with -0.25 per wrong answer on a 1-point question, When the answer is wrong, Then that question scores -0.25; given negative marking disabled, Then it scores 0
@@ -347,6 +374,9 @@ Standing constraints from deferred decisions (apply now):
 - [OWN-007] Given a ROLE-Student user, When they read or modify an ENT-Answer record the rule does not grant them (A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)), Then access is denied and nothing changes
 - [OWN-007] Given a ROLE-Teacher user, When they read or modify an ENT-Answer record the rule does not grant them (A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)), Then access is denied and nothing changes
 - [OWN-007] Given a ROLE-OrgAdmin user, When they read or modify an ENT-Answer record the rule does not grant them (A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)), Then access is denied and nothing changes
+- [OWN-016] Given a ROLE-Teacher user, When they read or modify an ENT-Question record the rule does not grant them (A teacher reads, edits and deletes only their own bank questions (in_bank = true, owner_id = self); org admins and students have no access to any question bank (DATA-008)), Then access is denied and nothing changes
+- [OWN-016] Given a ROLE-OrgAdmin user, When they read or modify an ENT-Question record the rule does not grant them (A teacher reads, edits and deletes only their own bank questions (in_bank = true, owner_id = self); org admins and students have no access to any question bank (DATA-008)), Then access is denied and nothing changes
+- [OWN-016] Given a ROLE-Student user, When they read or modify an ENT-Question record the rule does not grant them (A teacher reads, edits and deletes only their own bank questions (in_bank = true, owner_id = self); org admins and students have no access to any question bank (DATA-008)), Then access is denied and nothing changes
 - [ENT-Activity] Given any state, When a transition not in the state model is attempted, Then it is rejected and the state is unchanged
 - [ENT-QuizAttempt] Given any state, When a transition not in the state model is attempted, Then it is rejected and the state is unchanged
 - [ENT-Answer] Given any state, When a transition not in the state model is attempted, Then it is rejected and the state is unchanged

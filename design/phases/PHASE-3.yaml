@@ -4,7 +4,7 @@ depends_on: [PHASE-2]
 use_cases: [UC-022, UC-023, UC-012, UC-026, UC-017, UC-028, UC-030]
 entities: [ENT-Activity, ENT-Quiz, ENT-Question, ENT-ChoiceOption, ENT-MatchingPair, ENT-QuizQuestion, ENT-QuizAttempt, ENT-Answer, ENT-AnswerSelection, ENT-AnswerMatch]
 components: [CMP-Activities, CMP-Assessment, CMP-Notifications]
-decisions: [ARCH-004, DATA-003, DATA-004, DATA-005, DATA-008, SCOPE-008, SCOPE-009, SCOPE-016]
+decisions: [ARCH-004, DATA-003, DATA-004, DATA-005, DATA-008, DATA-016, SCOPE-008, SCOPE-009, SCOPE-016]
 environment: development
 out_of_scope:
   - "Polls, topics, slots, groups and group attempts (PHASE-4)"
@@ -18,14 +18,17 @@ tasks:
     touches: {writes: [CMP-Activities], reads: [CMP-Courses], migrations: true}
   - id: P3-T2
     title: Personal question bank
-    description: "Question model with the five types, builder UI including matching pairs and drag-and-drop ordering"
+    description: "Question model with the five types, validation per DATA-016, builder UI including matching pairs and drag-and-drop ordering of options and pairs; bank pages for teachers only (OWN-016). Scope is ENT-Question, ENT-ChoiceOption and ENT-MatchingPair only: the OWN-006 and OWN-007 criteria and the state-model criteria of ENT-QuizAttempt and ENT-Answer that appear in this brief belong to P3-T4 and P3-T5 and are NOT verified here"
     use_cases: [UC-023]
+    entities: [ENT-Question, ENT-ChoiceOption, ENT-MatchingPair]
     touches: {writes: [CMP-Assessment], migrations: true}
   - id: P3-T3
     title: Quiz activity type
     description: "Quiz subtype registered through ActivityType; quiz settings in the wizard; adding questions by copying from the bank; ordering"
     depends_on: [P3-T1, P3-T2]
     use_cases: [UC-022]
+    acceptance_criteria:
+      - "Given a bank question copied into a quiz, When the teacher edits or deletes the bank question, Then the quiz copy is unchanged"
     touches: {writes: [CMP-Assessment], reads: [CMP-Activities], migrations: true}
   - id: P3-T4
     title: Take a self-paced quiz

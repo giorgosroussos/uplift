@@ -1,5 +1,9 @@
 # Design changelog
 
+## v2.3.0 — 2026-10-21
+
+- Question bank validation, ownership and criteria specified (P3-T2) (CR-P3-T2-1)
+
 ## v2.2.0 — 2026-10-21
 
 - Audit actions for role changes, user deactivation and reactivation specified (P2-T7) (CR-P2-T7-1)

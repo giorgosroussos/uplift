@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v2.2.0 · source 4556fdd66232_
+_Generated document · design v2.3.0 · source 0e600f65152f_
 
 
 ## Actors
@@ -466,6 +466,28 @@ Acceptance criteria:
 #### UC-023 — Manage question bank (should)
 
 Actors: ACT-Teacher · Goal: Create and edit reusable questions of the five question types
+
+Main flow:
+1. Teacher opens their question bank (newest first)
+2. Creates a question: chooses the type, writes the prompt, sets the points and adds options or matching pairs, ordering them by drag and drop
+3. Saves; the question is validated per DATA-016 and kept in the bank
+4. Later edits or deletes it; quiz copies are unaffected
+
+Exceptions:
+- Question breaks a DATA-016 rule: nothing is saved and the field shows the reason
+- Another teacher, an org admin or a student opens a bank question or the bank pages: refused (OWN-016)
+
+Acceptance criteria:
+- Given a single-choice question with 2 correct options, When saved, Then it is refused
+- Given a multiple-choice question with no correct option, When saved, Then it is refused
+- Given a choice question with 1 or 11 options, When saved, Then it is refused
+- Given a matching question with 1 pair or a pair with an empty side, When saved, Then it is refused
+- Given a free-text question with options, When saved, Then it is refused
+- Given points of 0, 100.01 or 1.005, When saved, Then it is refused
+- Given a true/false question, When a teacher with the English UI and one with the Greek UI view it, Then they see 'True'/'False' and 'Σωστό'/'Λάθος' respectively, and the stored texts are 'true' and 'false'
+- Given a choice question, When the teacher reorders its options by drag and drop and saves, Then the new order is kept
+- Given teacher A's bank question, When teacher B opens, edits or deletes it, Then it is refused and nothing changes
+- Given a teacher's bank question, When they delete it, Then it is gone from the bank
 
 #### UC-024 — Run live quiz (must)
 

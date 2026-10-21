@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v2.2.0 · source 4556fdd66232_
+_Generated document · design v2.3.0 · source 0e600f65152f_
 
 
 ## Scope
@@ -439,6 +439,22 @@ _affects UC-006, P2-T2 · since v2.1.0_
 - `MUST issue a new token on resend, invalidate the old one, restart expires_at at 7 days and clear email_failed_at`
 
 _affects UC-032, P2-T9 · since v2.1.0_
+
+### DATA-016 — Question validation and bank editing · decided · source: inferred
+
+**Decision:** Per type: single_choice 2-10 options with exactly 1 correct; multiple_choice 2-10 options with at least 1 correct; true_false exactly 2 options with the fixed texts 'true' and 'false' and exactly 1 correct, shown through translation keys in the viewer's locale; matching 2-10 pairs with no empty side; free_text no options or pairs. Points are greater than 0 and at most 100, with 2 decimal places. A teacher edits and hard-deletes their own bank questions; quiz copies are separate rows (DATA-008) and are unaffected. Drag-and-drop in the builder orders options and pairs (position); the bank list is ordered newest first
+
+**Why:** Closes the validation gaps of UC-023 found in CR-P3-T2-1; true/false labels are UI strings (SCOPE-020), so they are not stored in one language
+
+**Constraints for implementation:**
+- `MUST refuse a single_choice or true_false question without exactly 1 correct option`
+- `MUST refuse a multiple_choice question without at least 1 correct option`
+- `MUST refuse choice questions with fewer than 2 or more than 10 options and matching questions with fewer than 2 or more than 10 pairs or an empty side`
+- `MUST store true_false option texts as 'true' and 'false' and display them only through translation keys`
+- `MUST refuse points outside (0, 100] or with more than 2 decimal places`
+- `MUST NOT change or delete quiz copies when a bank question is edited or deleted`
+
+_affects UC-023, ENT-Question, ENT-ChoiceOption, ENT-MatchingPair, P3-T2 · since v2.3.0_
 
 ## Security
 

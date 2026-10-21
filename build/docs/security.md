@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Security and compliance
 
-_Generated document · design v2.2.0 · source 4556fdd66232_
+_Generated document · design v2.3.0 · source 0e600f65152f_
 
 
 ## Trust boundaries
@@ -96,6 +96,7 @@ flowchart LR
 | OWN-013 | ENT-LiveAnswer | A student sees only their own live answers; during the session the host teacher sees only how many questions each participant has answered, after it finishes the scores and answer distributions of their own session | ROLE-Student, ROLE-Teacher |
 | OWN-014 | ENT-XpEvent | A student sees only their own XP events; others see only totals on leaderboards when enabled | ROLE-Student |
 | OWN-015 | ENT-UserBadge | A student sees only their own badges | ROLE-Student |
+| OWN-016 | ENT-Question | A teacher reads, edits and deletes only their own bank questions (in_bank = true, owner_id = self); org admins and students have no access to any question bank (DATA-008) | ROLE-Teacher, ROLE-OrgAdmin, ROLE-Student |
 
 ## Personal and sensitive data
 

@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Scope
 
-_Generated document · design v2.2.0 · source 4556fdd66232_
+_Generated document · design v2.3.0 · source 0e600f65152f_
 
 
 **Category:** sensitive-data
