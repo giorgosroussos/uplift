@@ -11,6 +11,7 @@ import {
     DialogFooter,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { create as createImport } from '@/routes/assessment/imports';
 import { create, destroy, edit, index } from '@/routes/assessment/questions';
 import type { BankQuestionSummary } from '@/types/assessment';
 import type { Paginated } from '@/types/courses';
@@ -52,11 +53,18 @@ function confirmDelete(): void {
             <h1 class="text-xl font-medium">
                 {{ $t('assessment.index.heading') }}
             </h1>
-            <Button as-child>
-                <Link :href="create()" data-test="create-question">
-                    {{ $t('assessment.index.create') }}
-                </Link>
-            </Button>
+            <div class="flex flex-wrap gap-2">
+                <Button variant="outline" as-child>
+                    <Link :href="createImport()" data-test="import-questions">
+                        {{ $t('assessment.index.import') }}
+                    </Link>
+                </Button>
+                <Button as-child>
+                    <Link :href="create()" data-test="create-question">
+                        {{ $t('assessment.index.create') }}
+                    </Link>
+                </Button>
+            </div>
         </div>
 
         <p
