@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-8 — Platform administration: separate admin guard with required MFA, organisation management, platform dashboard
 
-_design v2.6.0 · 1e1896d1b977_
+_design v3.0.0 · 6e6da0d35751_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Platform, CMP-Audit
 

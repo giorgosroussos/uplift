@@ -443,7 +443,7 @@ use_cases:
     main_flow:
       - "Teacher opens the answers waiting for grading, per activity"
       - "Enters points (0 to the question's maximum) and optional feedback"
-      - "When all free-text answers of an attempt are graded, its score becomes final and the student is notified"
+      - "When all free-text answers of an attempt are graded, its score becomes final; the student is notified when the final score becomes visible to them (DEC-003)"
     acceptance_criteria:
       - "Given a 5-point free-text question, When the teacher enters 6, Then it is rejected"
       - "Given an attempt with 2 free-text answers and 1 graded, Then the attempt remains provisional; When the 2nd is graded, Then it becomes final"

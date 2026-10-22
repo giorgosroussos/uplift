@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v2.6.0 · source 1e1896d1b977_
+_Generated document · design v3.0.0 · source 6e6da0d35751_
 
 
 ## Phase map
@@ -217,7 +217,7 @@ Depends on: PHASE-2 · use cases: UC-022, UC-023, UC-012, UC-026, UC-017, UC-028
 | P3-T4 | Take a self-paced quiz | P3-T3 | CMP-Assessment, CMP-Activities | yes |
 | P3-T5 | Grading, results and quiz submissions | P3-T4 | CMP-Assessment |  |
 | P3-T6 | CSV question import | P3-T2 | CMP-Assessment |  |
-| P3-T7 | Notifications for new activities and grades | P3-T1, P3-T5 | CMP-Notifications |  |
+| P3-T7 | Notifications for new activities and grades | P3-T1, P3-T5 | CMP-Notifications, CMP-Assessment | yes |
 
 Task waves:
 
@@ -241,15 +241,19 @@ flowchart LR
   W3 --> W4
   subgraph W5["Wave 5"]
     P3_T6["P3-T6"]
-    P3_T7["P3-T7"]
   end
   W4 --> W5
+  subgraph W6["Wave 6"]
+    P3_T7["P3-T7"]
+  end
+  W5 --> W6
 ```
 
 Serialised:
 - P3-T6 serialised after P3-T3 (writes CMP-Assessment)
 - P3-T6 serialised after P3-T4 (writes CMP-Assessment)
 - P3-T6 serialised after P3-T5 (writes CMP-Assessment)
+- P3-T7 serialised after P3-T6 (writes CMP-Assessment)
 
 Out of scope:
 - Polls, topics, slots, groups and group attempts (PHASE-4)

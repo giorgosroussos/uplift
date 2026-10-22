@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-3 — Activities framework and self-paced quizzes end to end: wizard, question bank, taking, grading, results
 
-_design v2.6.0 · 1e1896d1b977_
+_design v3.0.0 · 6e6da0d35751_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Activities, CMP-Assessment, CMP-Notifications
 
@@ -15,9 +15,9 @@ Depends on: PHASE-2 · environment: development · components: CMP-Activities, C
 | P3-T4 | Take a self-paced quiz | P3-T3 | CMP-Assessment, CMP-Activities |
 | P3-T5 | Grading, results and quiz submissions | P3-T4 | CMP-Assessment |
 | P3-T6 | CSV question import | P3-T2 | CMP-Assessment |
-| P3-T7 | Notifications for new activities and grades | P3-T1, P3-T5 | CMP-Notifications |
+| P3-T7 | Notifications for new activities and grades | P3-T1, P3-T5 | CMP-Notifications, CMP-Assessment |
 
-Execution waves: [P3-T1, P3-T2] → [P3-T3] → [P3-T4] → [P3-T5] → [P3-T6, P3-T7]
+Execution waves: [P3-T1, P3-T2] → [P3-T3] → [P3-T4] → [P3-T5] → [P3-T6] → [P3-T7]
 
 ## Out of scope (do not build)
 
@@ -82,7 +82,7 @@ Actors: ACT-Teacher · Goal: Grade deferred free-text answers with a score and f
 Main flow:
 1. Teacher opens the answers waiting for grading, per activity
 2. Enters points (0 to the question's maximum) and optional feedback
-3. When all free-text answers of an attempt are graded, its score becomes final and the student is notified
+3. When all free-text answers of an attempt are graded, its score becomes final; the student is notified when the final score becomes visible to them (DEC-003)
 
 #### UC-017 — View my results (must)
 
@@ -228,6 +228,7 @@ Owned by CMP-Assessment · retention: Kept while the course space exists; follow
 | earned_points | decimal | decimal | personal |
 | max_points | decimal | decimal |  |
 | status | enum | string | required |
+| result_released_at | timestamp | timestamptz |  |
 
 Relations: one-to-many → ENT-Answer (on delete cascade)
 
@@ -287,6 +288,7 @@ Operations:
 - `AnnouncementPublished(announcement_id)`
 - `ActivityPublished(activity_id)`
 - `GradeFinalised(attempt_id)`
+- `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
 - `GroupInvitation(group_membership_id)`
 

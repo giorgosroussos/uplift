@@ -13,6 +13,7 @@ integrations:
         - "AnnouncementPublished(announcement_id)"
         - "ActivityPublished(activity_id)"
         - "GradeFinalised(attempt_id)"
+        - "GradeChanged(attempt_id)"
         - "TopicProposalDecided(proposal_id)"
         - "GroupInvitation(group_membership_id)"
     failure:

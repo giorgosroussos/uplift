@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Integrations
 
-_Generated document · design v2.6.0 · source 1e1896d1b977_
+_Generated document · design v3.0.0 · source 6e6da0d35751_
 
 
 #### Laravel Mail / Notification mail channel (INT-001: CMP-Notifications ↔ EXT-002)
@@ -15,6 +15,7 @@ Operations:
 - `AnnouncementPublished(announcement_id)`
 - `ActivityPublished(activity_id)`
 - `GradeFinalised(attempt_id)`
+- `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
 - `GroupInvitation(group_membership_id)`
 

@@ -49,5 +49,18 @@ tasks:
     touches: {writes: [CMP-Assessment]}
   - id: P3-T7
     title: Notifications for new activities and grades
+    description: "activity_published and grade notifications. Grade notifications follow DEC-003: Assessment gains ENT-QuizAttempt.result_released_at, the ResultReleased and ResultChanged events and an every-minute release command; Notifications listen to those events instead of GradeFinalised and add the grade_changed kind"
     depends_on: [P3-T1, P3-T5]
-    touches: {writes: [CMP-Notifications], reads: [CMP-Activities, CMP-Assessment]}
+    entities: [ENT-QuizAttempt]
+    acceptance_criteria:
+      - "Given a fully auto-graded attempt of a quiz with score_visibility immediate, When submitted, Then the student gets one grade_finalised in-app entry and one queued email at once"
+      - "Given score_visibility after_deadline and a deadline in 1 hour, When an auto-graded attempt is submitted, Then no notification exists; When the deadline passes and the release command runs, Then the student gets one in-app entry and one email"
+      - "Given score_visibility after_deadline and no deadline, When an auto-graded attempt is submitted, Then the student is notified at once"
+      - "Given score_visibility after_deadline and a passed deadline, When the last free-text answer is graded, Then the student is notified at once"
+      - "Given an attempt with a pending free-text answer, When the deadline passes, Then nothing is sent; When the answer is graded, Then the student is notified once"
+      - "Given score_visibility hidden, When an attempt becomes final and the deadline passes, Then no grade notification is sent; When the teacher changes visibility to immediate, Then the next release command notifies the student once"
+      - "Given a released attempt, When the release command runs again or the attempt is finalised again, Then no second grade_finalised notification is sent"
+      - "Given a released attempt, When the teacher regrades an answer and earned_points changes, Then the student gets one grade_changed in-app entry and email; When a regrade leaves earned_points unchanged, Then nothing is sent"
+      - "Given an unreleased attempt, When the teacher regrades an answer, Then nothing is sent before the release"
+      - "Given a deadline moved later before it passed, When the old deadline passes, Then nothing is sent; When the new one passes, Then the students are notified"
+    touches: {writes: [CMP-Notifications, CMP-Assessment], reads: [CMP-Activities], migrations: true}

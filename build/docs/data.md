@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v2.6.0 · source 1e1896d1b977_
+_Generated document · design v3.0.0 · source 6e6da0d35751_
 
 
 ## Entity–relationship diagram
@@ -213,6 +213,7 @@ erDiagram
     decimal earned_points
     decimal max_points
     enum status
+    timestamp result_released_at
   }
   Answer {
     uuid organization_id FK
@@ -759,6 +760,7 @@ Owned by CMP-Assessment · retention: Kept while the course space exists; follow
 | earned_points | decimal | decimal | personal |
 | max_points | decimal | decimal |  |
 | status | enum | string | required |
+| result_released_at | timestamp | timestamptz |  |
 
 Relations: one-to-many → ENT-Answer (on delete cascade)
 

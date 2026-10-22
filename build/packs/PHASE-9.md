@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-9 — Ready for real users: GDPR and minors hardening, production hosting and operations, remaining could use cases
 
-_design v2.6.0 · 1e1896d1b977_
+_design v3.0.0 · 6e6da0d35751_
 
 Depends on: PHASE-7, PHASE-8 · environment: development · components: CMP-Identity, CMP-Notifications, CMP-Tenancy
 
@@ -73,6 +73,7 @@ Operations:
 - `AnnouncementPublished(announcement_id)`
 - `ActivityPublished(activity_id)`
 - `GradeFinalised(attempt_id)`
+- `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
 - `GroupInvitation(group_membership_id)`
 

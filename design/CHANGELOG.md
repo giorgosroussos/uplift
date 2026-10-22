@@ -1,5 +1,9 @@
 # Design changelog
 
+## v3.0.0 — 2026-10-22
+
+- Grade notifications sent when the final score becomes visible (release marker, ResultReleased/ResultChanged, grade_changed); P3-T7 extended (CR-P3-T7-1)
+
 ## v2.6.0 — 2026-10-22
 
 - CSV question import format, confirm semantics, limits and upload lifecycle specified (P3-T6) (CR-P3-T6-1)

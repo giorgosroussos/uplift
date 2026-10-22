@@ -25,3 +25,21 @@ decisions:
       - "MUST send notification emails in the user's locale, else the organisation's default_locale"
     affects: [UC-006, UC-007, P2-T6]
     since: 2.1.0
+  - id: DEC-003
+    area: external
+    title: Grade notification timing
+    status: decided
+    source: user
+    user_statement: "θέλω τα email να στέλνονται ότνα πρέπει όχι όταν βαθμολογούνται. Π.χ. αν μια προσπάθεια μαθητή ολοκληρώνεται αλλά το quiz δείχνει τα scores με την λήξη του deadline τότε πρέπει μόλις περάσει το deadline να σταλθούν τα mails, αν τα scores φαίνονται άμεσα μετά την υποβολή τότε τα mails πρέπει να φεύγουν άμεσα / 1 A, 2A, 3 A, 4 A, 5 A"
+    decision: "A student is notified of a quiz grade (grade_finalised, in-app entry and DEC-001 email together) when the final score becomes visible to them, not when it is graded. An attempt's result is released once it is graded (final) and its quiz's score_visibility is immediate, or after_deadline with no deadline or a deadline that has passed. Assessment records the release in ENT-QuizAttempt.result_released_at and dispatches ResultReleased(organization_id, attempt_id) exactly once: in the action that makes the attempt final when it is visible then, otherwise from a scheduled command running every minute that releases every graded, unreleased attempt that has become visible (deadline passed, visibility or deadline changed by the teacher). Visibility hidden releases nothing and sends no grade notification. A release is never revoked. Provisional scores send nothing. When a regrade changes earned_points of a released attempt, Assessment dispatches ResultChanged(organization_id, attempt_id) and the student gets a grade_changed notification (in-app and email); regrades before the release send nothing beyond the later release. Notifications listen to ResultReleased and ResultChanged, not to GradeFinalised. There are no per-student deadlines"
+    rationale: "A notification must not announce a grade the student cannot see yet (CR-P3-T7-1); one marker on the attempt keeps the release idempotent between the finalising action and the scheduled command"
+    constraints:
+      - "MUST notify a quiz grade only when the attempt is graded and its score is visible to the student, never earlier"
+      - "MUST create the grade in-app entry and queue its email together, at the release"
+      - "MUST set result_released_at and dispatch ResultReleased at most once per attempt"
+      - "MUST release, within one minute through a scheduled command, graded attempts whose score has become visible because the deadline passed or the teacher changed visibility or deadline"
+      - "MUST NOT release or notify attempts of a quiz with score_visibility hidden"
+      - "MUST NOT notify provisional scores"
+      - "MUST send a grade_changed notification when a regrade changes earned_points of a released attempt, and none for regrades before the release"
+    affects: [UC-026, UC-017, ENT-QuizAttempt, INT-001, P3-T7]
+    since: 3.0.0

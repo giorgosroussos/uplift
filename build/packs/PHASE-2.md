@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-2 — Organisations run with real users: invitations, profiles, settings, course spaces, enrolment, announcements and notifications
 
-_design v2.6.0 · 1e1896d1b977_
+_design v3.0.0 · 6e6da0d35751_
 
 Depends on: PHASE-1 · environment: development · components: CMP-Identity, CMP-Tenancy, CMP-Courses, CMP-Notifications, CMP-Audit
 
@@ -275,6 +275,7 @@ Operations:
 - `AnnouncementPublished(announcement_id)`
 - `ActivityPublished(activity_id)`
 - `GradeFinalised(attempt_id)`
+- `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
 - `GroupInvitation(group_membership_id)`
 

@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v2.6.0 · source 1e1896d1b977_
+_Generated document · design v3.0.0 · source 6e6da0d35751_
 
 
 ## Actors
@@ -566,7 +566,7 @@ Actors: ACT-Teacher · Goal: Grade deferred free-text answers with a score and f
 Main flow:
 1. Teacher opens the answers waiting for grading, per activity
 2. Enters points (0 to the question's maximum) and optional feedback
-3. When all free-text answers of an attempt are graded, its score becomes final and the student is notified
+3. When all free-text answers of an attempt are graded, its score becomes final; the student is notified when the final score becomes visible to them (DEC-003)
 
 Acceptance criteria:
 - Given a 5-point free-text question, When the teacher enters 6, Then it is rejected
