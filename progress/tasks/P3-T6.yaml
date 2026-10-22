@@ -1,0 +1,5 @@
+id: P3-T6
+status: blocked
+commit: null
+handoff: |
+  Blocked on progress/requests/CR-P3-T6-1.yaml: UC-030 defines no CSV format, confirm semantics, limits or upload lifecycle.

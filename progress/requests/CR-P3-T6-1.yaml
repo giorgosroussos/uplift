@@ -1,0 +1,63 @@
+id: CR-P3-T6-1
+raised_by: implementation-agent
+task: P3-T6
+status: open
+problem: >
+  UC-030 ("Upload a CSV of questions into the question bank, review a
+  per-row validation report, confirm the import") is the only spec for the
+  CSV import. It has no steps or acceptance criteria, and no decision
+  defines the file format. SEC-010 only limits CSV uploads to 1 MB, stored
+  outside the public directory. Open points that change behaviour, data or
+  copy:
+  (1) Column layout: which columns exist, whether the header row is
+  required, and whether header names are fixed (English) or localised.
+  (2) Encoding of the five question types in one row: how options and
+  their correct flags are given (single/multiple choice), how true/false's
+  correct answer is given, how matching pairs (left/right) are given, and
+  what a free_text row contains.
+  (3) File details: character encoding (Greek text; Excel saves UTF-8 with
+  BOM or Windows-1253), delimiter (Greek-locale Excel writes ';'), decimal
+  separator for points ('.' or ',').
+  (4) Confirm semantics: whether confirm imports only the valid rows and
+  skips the invalid ones, or is allowed only when every row is valid
+  (all or nothing).
+  (5) Limits: maximum number of data rows per file beyond the 1 MB cap.
+  (6) Where the uploaded file / parsed rows live between upload (report)
+  and confirm, and when the file is deleted (OPS-001 forbids server-local
+  state; SEC-010 says uploads are stored).
+  (7) Whether a downloadable example/template CSV is offered.
+affects:
+  - UC-030 (bulk import from CSV)
+  - ENT-Question, ENT-ChoiceOption, ENT-MatchingPair (rows created)
+  - SEC-010 (upload handling), OPS-001 (storage)
+  - UI copy of the import page (lang/en, lang/el)
+proposal: >
+  (1) UTF-8 file (an optional BOM is ignored) with a required header row of
+  fixed English names: type, prompt, points, correct, option_1 ... option_10.
+  Column order is free; unknown or missing columns refuse the whole file.
+  (2) type is the stored value: single_choice, multiple_choice, true_false,
+  matching, free_text. single/multiple_choice: option_n hold the option
+  texts in order (empty cells after the last option are ignored); correct
+  lists the 1-based numbers of the correct options separated by '|'
+  (e.g. "1|3"). true_false: no options; correct is "true" or "false"
+  (options stored as 'true'/'false' per DATA-016). matching: each option_n
+  holds one pair as "left => right" (split on the first " => "); correct is
+  empty. free_text: no options, correct empty. Every row is validated with
+  the DATA-016 rules (2-10 options/pairs, correct counts, points in
+  (0, 100] with at most 2 decimals).
+  (3) Delimiter auto-detected from the header row (',' or ';'). Points
+  accept '.' or ',' as decimal separator. A file that is not valid UTF-8 is
+  refused as a whole with a message to save it as "CSV UTF-8".
+  (4) The report lists every row with its line number and either "valid"
+  or its translated error messages. Confirm imports all valid rows into the
+  teacher's own bank (in_bank = true, owner = teacher) in one transaction,
+  in file order, and skips invalid rows; confirm is disabled when no row is
+  valid. The result shows imported and skipped counts.
+  (5) At most 500 data rows; a larger file is refused as a whole.
+  (6) The upload is stored on the private local Storage disk under
+  question-imports/<organization_id>/<user_id>/<uuid>.csv, re-parsed and
+  re-validated at confirm (only its uploader may confirm or cancel it), and
+  deleted after confirm or cancel; a daily scheduled command deletes
+  leftover files older than 24 hours.
+  (7) The import page offers a downloadable template CSV with the header
+  and one example row per question type.
