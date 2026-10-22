@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v2.5.0 · source a4fd23ca974f_
+_Generated document · design v2.6.0 · source 1e1896d1b977_
 
 
 ## Scope
@@ -491,6 +491,27 @@ _affects UC-032, P2-T9 · since v2.1.0_
 - `MUST NOT change or delete quiz copies when a bank question is edited or deleted`
 
 _affects UC-023, ENT-Question, ENT-ChoiceOption, ENT-MatchingPair, P3-T2 · since v2.3.0_
+
+### DATA-017 — CSV question import format and lifecycle · decided · source: inferred
+
+> Engineer: “οκ”
+
+**Decision:** UTF-8 CSV (optional BOM ignored) with a required header row of fixed English names: type, prompt, points, correct, option_1 ... option_10, in any order. type is the stored value (single_choice, multiple_choice, true_false, matching, free_text). Choice types: option_n hold the option texts in order (empty trailing cells ignored) and correct lists the 1-based numbers of the correct options separated by '|'. true_false: no options, correct is 'true' or 'false'. matching: each option_n holds one pair 'left => right' (split on the first ' => '), correct empty. free_text: no options, correct empty. Delimiter ',' or ';' detected from the header row; points accept '.' or ',' as decimal separator. Every row is validated with DATA-016. The report lists every row with its line number and 'valid' or its translated errors. Confirm imports all valid rows into the uploader's bank (in_bank = true, owner = uploader) in one transaction in file order and skips invalid rows; it is disabled when no row is valid; the result shows imported and skipped counts. At most 500 data rows per file. The upload is stored on the private local disk under question-imports/<organization_id>/<user_id>/<uuid>.csv, re-parsed and re-validated at confirm, and deleted after confirm or cancel; a daily scheduled command deletes leftovers older than 24 hours. The import page offers a template CSV with the header and one example row per type
+
+**Why:** Closes the format, semantics and lifecycle gaps of UC-030 found in CR-P3-T6-1; fixed English headers keep one template for both UI languages; re-validation at confirm keeps no parsed state between requests
+
+**Constraints for implementation:**
+- `MUST refuse the whole file when it is not valid UTF-8, with a message to save it as CSV UTF-8`
+- `MUST refuse the whole file when a required header is missing or an unknown header is present`
+- `MUST refuse the whole file when it has more than 500 data rows or exceeds 1 MB`
+- `MUST validate every row with the DATA-016 rules and report each invalid row's line number and translated errors`
+- `MUST import only valid rows, in file order, in one transaction, into the uploader's own bank`
+- `MUST re-parse and re-validate the stored file at confirm`
+- `MUST let only the uploader confirm or cancel an import`
+- `MUST store uploads on the private disk under question-imports/<organization_id>/<user_id>/ and delete them after confirm or cancel`
+- `MUST delete leftover import files older than 24 hours with a daily scheduled command`
+
+_affects UC-030, ENT-Question, ENT-ChoiceOption, ENT-MatchingPair, P3-T6 · since v2.6.0_
 
 ## Security
 

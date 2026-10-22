@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v2.5.0 · source a4fd23ca974f_
+_Generated document · design v2.6.0 · source 1e1896d1b977_
 
 
 ## Actors
@@ -617,6 +617,32 @@ Acceptance criteria:
 #### UC-030 — Bulk import from CSV (should)
 
 Actors: ACT-Teacher · Goal: Upload a CSV of questions into the question bank, review a per-row validation report, confirm the import
+
+Main flow:
+1. Teacher opens the import page of their question bank and may download the template CSV
+2. Uploads a CSV file in the DATA-017 format
+3. Sees the report: every row with its line number and 'valid' or its errors
+4. Confirms; the valid rows become bank questions in file order and the invalid ones are skipped
+5. Sees the imported and skipped counts; the uploaded file is deleted
+
+Exceptions:
+- File not UTF-8, wrong headers, over 500 data rows or over 1 MB: the whole file is refused with the reason
+- No valid row: confirm is disabled
+- Teacher cancels: nothing is imported and the file is deleted
+- Another user confirms or cancels the import: refused
+
+Acceptance criteria:
+- Given a valid file with one row of each of the five types, When confirmed, Then five bank questions owned by the teacher exist with the given options, correct flags, pairs and points
+- Given a ';'-delimited file with points '2,5' and a UTF-8 BOM, When uploaded, Then the rows are valid and points are 2.50
+- Given a file with 3 valid rows and 1 row breaking a DATA-016 rule, When uploaded, Then the report shows the invalid row's line number and error, and When confirmed, Then 3 are imported and 1 skipped
+- Given a file where every row is invalid, When the report is shown, Then confirm is disabled and a confirm request imports nothing
+- Given a Windows-1253 file, When uploaded, Then the whole file is refused with the save-as-CSV-UTF-8 message
+- Given a file with a missing or an unknown header, When uploaded, Then the whole file is refused
+- Given a file with 501 data rows, When uploaded, Then the whole file is refused
+- Given teacher A's pending import, When teacher B or a teacher of another organisation confirms or cancels it, Then it is refused and nothing changes
+- Given a pending import, When it is confirmed or cancelled, Then its file is deleted; Given a leftover file older than 24 hours, When the daily command runs, Then it is deleted
+- Given a file changed so a row turns invalid between report and confirm, When confirmed, Then the row is re-validated and skipped
+- Given the import page, When the template is downloaded, Then it has the header and one valid example row per type
 
 > Engineer: “για την μαζική εισαγωγή προς το παρόν μόνο ερωτήσεις”
 

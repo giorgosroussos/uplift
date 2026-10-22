@@ -492,7 +492,37 @@ use_cases:
       - "Given a pass mark of 50% and scores 40%, 50%, 90%, Then the pass rate is 66.7%"
       - "Given a CSV export, Then it contains exactly the rows matching the current filters"
       - "Given a teacher, When they open analytics of another teacher's course space, Then it is refused"
-  - {id: UC-030, title: Bulk import from CSV, actors: [ACT-Teacher], goal: "Upload a CSV of questions into the question bank, review a per-row validation report, confirm the import", user_statement: "για την μαζική εισαγωγή προς το παρόν μόνο ερωτήσεις", priority: should, source: inferred, confirmed: true}
+  - id: UC-030
+    title: Bulk import from CSV
+    actors: [ACT-Teacher]
+    goal: "Upload a CSV of questions into the question bank, review a per-row validation report, confirm the import"
+    user_statement: "για την μαζική εισαγωγή προς το παρόν μόνο ερωτήσεις"
+    priority: should
+    source: inferred
+    confirmed: true
+    main_flow:
+      - "Teacher opens the import page of their question bank and may download the template CSV"
+      - "Uploads a CSV file in the DATA-017 format"
+      - "Sees the report: every row with its line number and 'valid' or its errors"
+      - "Confirms; the valid rows become bank questions in file order and the invalid ones are skipped"
+      - "Sees the imported and skipped counts; the uploaded file is deleted"
+    exceptions:
+      - "File not UTF-8, wrong headers, over 500 data rows or over 1 MB: the whole file is refused with the reason"
+      - "No valid row: confirm is disabled"
+      - "Teacher cancels: nothing is imported and the file is deleted"
+      - "Another user confirms or cancels the import: refused"
+    acceptance_criteria:
+      - "Given a valid file with one row of each of the five types, When confirmed, Then five bank questions owned by the teacher exist with the given options, correct flags, pairs and points"
+      - "Given a ';'-delimited file with points '2,5' and a UTF-8 BOM, When uploaded, Then the rows are valid and points are 2.50"
+      - "Given a file with 3 valid rows and 1 row breaking a DATA-016 rule, When uploaded, Then the report shows the invalid row's line number and error, and When confirmed, Then 3 are imported and 1 skipped"
+      - "Given a file where every row is invalid, When the report is shown, Then confirm is disabled and a confirm request imports nothing"
+      - "Given a Windows-1253 file, When uploaded, Then the whole file is refused with the save-as-CSV-UTF-8 message"
+      - "Given a file with a missing or an unknown header, When uploaded, Then the whole file is refused"
+      - "Given a file with 501 data rows, When uploaded, Then the whole file is refused"
+      - "Given teacher A's pending import, When teacher B or a teacher of another organisation confirms or cancels it, Then it is refused and nothing changes"
+      - "Given a pending import, When it is confirmed or cancelled, Then its file is deleted; Given a leftover file older than 24 hours, When the daily command runs, Then it is deleted"
+      - "Given a file changed so a row turns invalid between report and confirm, When confirmed, Then the row is re-validated and skipped"
+      - "Given the import page, When the template is downloaded, Then it has the header and one valid example row per type"
   # Organisation admin
   - {id: UC-031, title: Organisation dashboard, actors: [ACT-OrgAdmin], goal: "Overview of users, activity and usage", priority: should, source: inferred, confirmed: true}
   - id: UC-032

@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-5 — Live quiz end to end: lobby or scheduled start, common time window, live monitoring, reconnection, final ranking
 
-_design v2.5.0 · a4fd23ca974f_
+_design v2.6.0 · 1e1896d1b977_
 
 Depends on: PHASE-4 · environment: development · components: CMP-Live, CMP-Assessment
 

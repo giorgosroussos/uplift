@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-7 — Analytics and dashboards for students, teachers and organisation admins
 
-_design v2.5.0 · a4fd23ca974f_
+_design v2.6.0 · 1e1896d1b977_
 
 Depends on: PHASE-6 · environment: development · components: CMP-Analytics
 

@@ -1,5 +1,9 @@
 # Design changelog
 
+## v2.6.0 — 2026-10-22
+
+- CSV question import format, confirm semantics, limits and upload lifecycle specified (P3-T6) (CR-P3-T6-1)
+
 ## v2.5.0 — 2026-10-21
 
 - Self-paced quiz scoring, negative marking, attempt end and lifecycle specified (P3-T4) (CR-P3-T4-1)
