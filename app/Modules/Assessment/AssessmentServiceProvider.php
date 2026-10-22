@@ -5,6 +5,7 @@ namespace App\Modules\Assessment;
 use App\Modules\Activities\Events\ActivityClosed;
 use App\Modules\Activities\Http\Responses\ProblemDetails;
 use App\Modules\Activities\Support\ActivityTypes;
+use App\Modules\Assessment\Console\PruneQuestionImportsCommand;
 use App\Modules\Assessment\Console\SubmitDueAttemptsCommand;
 use App\Modules\Assessment\Exceptions\AttemptClosed;
 use App\Modules\Assessment\Listeners\SubmitAttemptsOfClosedQuiz;
@@ -24,8 +25,9 @@ use Illuminate\Support\Facades\Gate;
 use Throwable;
 
 /**
- * Questions, the personal question bank (UC-023) and quizzes: the quiz
- * activity type (UC-022), attempts and answers (UC-012).
+ * Questions, the personal question bank (UC-023) and its CSV import
+ * (UC-030), and quizzes: the quiz activity type (UC-022), attempts and
+ * answers (UC-012).
  */
 class AssessmentServiceProvider extends ModuleServiceProvider
 {
@@ -60,10 +62,12 @@ class AssessmentServiceProvider extends ModuleServiceProvider
         // SCOPE-024: attempts whose time is up are submitted within a minute.
         $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
             $schedule->command('assessment:submit-due-attempts')->everyMinute()->withoutOverlapping();
+            // DATA-017: leftover question imports are deleted after 24 hours.
+            $schedule->command('assessment:prune-question-imports')->daily();
         });
 
         if ($this->app->runningInConsole()) {
-            $this->commands([SubmitDueAttemptsCommand::class]);
+            $this->commands([SubmitDueAttemptsCommand::class, PruneQuestionImportsCommand::class]);
         }
 
         $this->app->afterResolving(Handler::class, function (Handler $handler): void {

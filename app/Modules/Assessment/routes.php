@@ -2,6 +2,7 @@
 
 use App\Modules\Assessment\Http\Controllers\GradingController;
 use App\Modules\Assessment\Http\Controllers\QuestionBankController;
+use App\Modules\Assessment\Http\Controllers\QuestionImportController;
 use App\Modules\Assessment\Http\Controllers\QuizAttemptController;
 use App\Modules\Assessment\Http\Controllers\ResultController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,14 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
     Route::get('question-bank', [QuestionBankController::class, 'index'])->name('assessment.questions.index');
     // UC-022: JSON for copying bank questions into a quiz (RFC 9457 errors).
     Route::get('question-bank/copyable', [QuestionBankController::class, 'copyable'])->name('assessment.questions.copyable');
+    // UC-030: bulk import from CSV (DATA-017); {import} is found only among
+    // the current user's own uploads.
+    Route::get('question-bank/import', [QuestionImportController::class, 'create'])->name('assessment.imports.create');
+    Route::get('question-bank/import/template', [QuestionImportController::class, 'template'])->name('assessment.imports.template');
+    Route::post('question-bank/import', [QuestionImportController::class, 'store'])->name('assessment.imports.store');
+    Route::get('question-bank/import/{import}', [QuestionImportController::class, 'show'])->whereUuid('import')->name('assessment.imports.show');
+    Route::post('question-bank/import/{import}/confirm', [QuestionImportController::class, 'confirm'])->whereUuid('import')->name('assessment.imports.confirm');
+    Route::delete('question-bank/import/{import}', [QuestionImportController::class, 'destroy'])->whereUuid('import')->name('assessment.imports.destroy');
     Route::get('question-bank/create', [QuestionBankController::class, 'create'])->name('assessment.questions.create');
     Route::post('question-bank', [QuestionBankController::class, 'store'])->name('assessment.questions.store');
     Route::get('question-bank/{question}/edit', [QuestionBankController::class, 'edit'])->name('assessment.questions.edit');

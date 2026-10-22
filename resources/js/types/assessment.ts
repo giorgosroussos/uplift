@@ -67,3 +67,21 @@ export type QuestionForm = {
     options: ChoiceOptionInput[];
     pairs: MatchingPairInput[];
 };
+
+/** UC-030, DATA-017: one data row of an uploaded question CSV. */
+export type QuestionImportRow = {
+    line: number;
+    type: string;
+    prompt: string;
+    valid: boolean;
+    errors: string[];
+};
+
+/** UC-030, DATA-017: the report of a pending question import. */
+export type QuestionImportReport = {
+    id: string;
+    refusal: string | null;
+    valid_count: number;
+    invalid_count: number;
+    rows: QuestionImportRow[];
+};
