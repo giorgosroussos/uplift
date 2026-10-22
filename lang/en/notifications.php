@@ -41,6 +41,27 @@ return [
         'outro' => 'You can turn notification emails off in your notification settings.',
     ],
 
+    'activity_published' => [
+        'subject' => 'New activity in :space',
+        'intro' => 'A new activity was published in :space.',
+        'title' => 'Title: :title',
+        'action' => 'Open the activity',
+    ],
+
+    'grade_finalised' => [
+        'subject' => 'Your attempt at :title has been graded',
+        'intro' => 'Your attempt at :title in :space has been graded.',
+        'action' => 'View your result',
+    ],
+
+    'grade_changed' => [
+        'subject' => 'Your grade for :title has changed',
+        'intro' => 'Your grade for :title in :space has changed after a regrade.',
+        'action' => 'View your result',
+    ],
+
+    'outro' => 'You can turn notification emails off in your notification settings.',
+
     /*
     | Notification centre, header bell and notification settings (UC-007,
     | DEC-002), used by the Vue frontend.
@@ -61,6 +82,9 @@ return [
         'settings' => 'Notification settings',
         'kinds' => [
             'announcement_published' => 'New announcement in :space: :title',
+            'activity_published' => 'New activity in :space: :title',
+            'grade_finalised' => 'Your attempt at :title in :space has been graded',
+            'grade_changed' => 'Your grade for :title in :space has changed',
         ],
     ],
 

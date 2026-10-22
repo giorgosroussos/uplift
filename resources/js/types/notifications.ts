@@ -1,4 +1,8 @@
-export type NotificationKind = 'announcement_published';
+export type NotificationKind =
+    | 'announcement_published'
+    | 'activity_published'
+    | 'grade_finalised'
+    | 'grade_changed';
 
 export type AnnouncementPublishedData = {
     course_space_id: string;
@@ -7,16 +11,33 @@ export type AnnouncementPublishedData = {
     announcement_title: string;
 };
 
-/**
- * One entry of the notification centre (UC-007, DEC-002).
- */
-export type NotificationEntry = {
+export type ActivityPublishedData = {
+    course_space_id: string;
+    activity_id: string;
+    course_space_title: string;
+    activity_title: string;
+};
+
+export type GradeFinalisedData = ActivityPublishedData & {
+    attempt_id: string;
+};
+
+type Entry<K extends NotificationKind, D> = {
     id: string;
-    kind: NotificationKind;
-    data: AnnouncementPublishedData;
+    kind: K;
+    data: D;
     read: boolean;
     created_at: string;
 };
+
+/**
+ * One entry of the notification centre (UC-007, DEC-002).
+ */
+export type NotificationEntry =
+    | Entry<'announcement_published', AnnouncementPublishedData>
+    | Entry<'activity_published', ActivityPublishedData>
+    | Entry<'grade_finalised', GradeFinalisedData>
+    | Entry<'grade_changed', GradeFinalisedData>;
 
 /**
  * The shared prop `notifications`; null for guests.

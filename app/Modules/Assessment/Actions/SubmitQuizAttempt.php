@@ -20,13 +20,17 @@ use Illuminate\Support\Facades\DB;
  * pending. earned_points is the sum of the stored points, never below 0.
  * Without pending answers the attempt is graded (final score); otherwise
  * it stays submitted (provisional score). A final score dispatches
- * GradeFinalised after commit.
+ * GradeFinalised after commit and is released at once when the student
+ * may see it now (DEC-003, ReleaseResult).
  *
  * Submitting an attempt that is no longer in progress changes nothing.
  */
 class SubmitQuizAttempt
 {
-    public function __construct(private readonly AnswerScorer $scorer) {}
+    public function __construct(
+        private readonly AnswerScorer $scorer,
+        private readonly ReleaseResult $release,
+    ) {}
 
     /**
      * @param  User|null  $by  the student who submits, or null for an automatic submission
@@ -71,6 +75,7 @@ class SubmitQuizAttempt
             if (! $pending) {
                 $locked->transitionTo(AttemptStatus::Graded);
                 GradeFinalised::dispatch($locked->organization_id, $locked->id);
+                $this->release->handle($locked);
             }
 
             return $locked;

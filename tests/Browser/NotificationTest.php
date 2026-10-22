@@ -55,6 +55,25 @@ it('shows a posted announcement in the notification centre and opens its course 
     expect(Notification::query()->sole()->read_at)->not->toBeNull();
 });
 
+it('shows activity, grade and grade change notifications in the notification centre', function () {
+    $data = [
+        'course_space_id' => $this->space->id,
+        'activity_id' => 'activity-id',
+        'course_space_title' => 'Algorithms',
+        'activity_title' => 'Sorting quiz',
+    ];
+    Notification::factory()->for($this->student)->create(['kind' => 'activity_published', 'data' => $data]);
+    Notification::factory()->for($this->student)->create(['kind' => 'grade_finalised', 'data' => [...$data, 'attempt_id' => 'attempt-id']]);
+    Notification::factory()->for($this->student)->create(['kind' => 'grade_changed', 'data' => [...$data, 'attempt_id' => 'attempt-id']]);
+    $this->actingAs($this->student);
+
+    visit('/notifications')
+        ->assertSee('New activity in Algorithms: Sorting quiz')
+        ->assertSee('Your attempt at Sorting quiz in Algorithms has been graded')
+        ->assertSee('Your grade for Sorting quiz in Algorithms has changed')
+        ->assertNoJavaScriptErrors();
+});
+
 it('marks all notifications as read', function () {
     Notification::factory()->for($this->student)->count(3)->create();
     $this->actingAs($this->student);

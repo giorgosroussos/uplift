@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $earned_points
  * @property string|null $max_points
  * @property AttemptStatus $status
+ * @property CarbonImmutable|null $result_released_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read Quiz $quiz
@@ -185,6 +186,7 @@ class QuizAttempt extends Model
             'started_at' => 'immutable_datetime',
             'ends_at' => 'immutable_datetime',
             'submitted_at' => 'immutable_datetime',
+            'result_released_at' => 'immutable_datetime',
             'earned_points' => 'decimal:2',
             'max_points' => 'decimal:2',
         ];
