@@ -1,0 +1,40 @@
+id: CR-P3-T7-1
+raised_by: implementation-agent
+task: P3-T7
+status: open
+problem: >
+  When grade notifications are sent is not specified. DEC-001 says only that
+  email is sent for a "new or final grade". The P3-T7 implementation (branch
+  P3-T7) notifies the student as soon as the Assessment module dispatches
+  GradeFinalised, i.e. when the attempt moves submitted -> graded. A fully
+  auto-graded attempt is final at submission, so the student gets the
+  grade_finalised in-app entry and email ("your attempt has been graded") at
+  once. That also happens when the quiz's score_visibility (ResultVisibility:
+  immediate | after_deadline | hidden) is after_deadline and the score is not
+  shown yet (Quiz::isScoreVisible). The notification arrives before the
+  result can be seen, and it tells the student the grading is done before
+  the deadline. The engineer's intent is that such a quiz sends its grade
+  notifications at the deadline, when results become visible. The design does
+  not cover this.
+affects:
+  - "DEC-001 (Email notifications: 'new or final grade') and DEC-002 (in-app notifications)"
+  - "CMP-Notifications: Listeners/SendGradeNotification, Actions/NotifyGradeFinalised, Notifications/GradeFinalisedEmail, NotificationKind::GradeFinalised"
+  - "CMP-Assessment: Events/GradeFinalised (dispatched by SubmitQuizAttempt and GradeAnswer) and the quiz setting score_visibility (also answers_visibility) of ENT-Quiz, ResultVisibility after_deadline, SCOPE-008 / SCOPE-023"
+  - "Scheduler/queue: a new scheduled job (next to assessment:submit-due-attempts, which runs every minute) or a delayed job to notify at the activity's deadline_at"
+  - "INT-001 operation GradeFinalised(attempt_id)"
+proposal: >
+  When a quiz's score_visibility is after_deadline and its activity has a
+  deadline that has not passed yet, defer the grade_finalised in-app and
+  email notifications until the deadline. A scheduled job (e.g. every minute,
+  like assessment:submit-due-attempts) notifies, once per attempt, the
+  students whose attempts are graded once the deadline has passed. Grades
+  finalised after the deadline notify at once, as today. With immediate
+  visibility nothing changes. Open points the design must settle:
+  (1) whether the in-app entry and the email are both deferred, or only the
+  email; (2) what happens when the deadline is moved, i.e. extended or
+  brought forward after grades are final, and whether per-student deadlines
+  or extensions will exist; (3) quizzes without a deadline, where
+  after_deadline means visible immediately (SCOPE-023), presumably notified
+  at once; (4) score_visibility hidden: notify at all, and with what wording;
+  (5) the idempotency marker, i.e. where "already notified" is recorded so
+  that the job and a late grading never notify twice.

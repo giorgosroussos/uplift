@@ -1,6 +1,7 @@
 id: P3-T7
-status: ready_to_merge
+status: blocked
 commit: 456fced6f4590e77c6d6bed09850c9b13d3b1449
+request: progress/requests/CR-P3-T7-1.yaml (grade notification timing for after_deadline score visibility)
 handoff: |
   Notifications kinds activity_published (Listeners/SendActivityNotifications -> Actions/NotifyActivityPublished: enrolled students, publisher excluded) and grade_finalised (Listeners/SendGradeNotification -> Actions/NotifyGradeFinalised: the attempt's student, no score); data = ids + title snapshots.
   Emails Notifications/{ActivityPublished,GradeFinalised}Email extend the new Notifications/NotificationEmail (INT-001 tries 6, timeout 10, backoff 1m..6h, failed() logs ids); Support/NotificationMailer queues them (opt-out, user locale, queue failure logged) and now also serves announcements.
