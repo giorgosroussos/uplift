@@ -44,6 +44,20 @@ function time(value: string): string {
     );
 }
 
+/** The replacements of the entry's `notifications.centre.kinds` message. */
+function messageParams(notification: NotificationEntry): {
+    space: string;
+    title: string;
+} {
+    return {
+        space: notification.data.course_space_title,
+        title:
+            notification.kind === 'announcement_published'
+                ? notification.data.announcement_title
+                : notification.data.activity_title,
+    };
+}
+
 function post(target: { url: string }): void {
     router.post(target.url, {}, { preserveScroll: true });
 }
@@ -115,12 +129,7 @@ function post(target: { url: string }): void {
                             {{
                                 $t(
                                     `notifications.centre.kinds.${notification.kind}`,
-                                    {
-                                        space: notification.data
-                                            .course_space_title,
-                                        title: notification.data
-                                            .announcement_title,
-                                    },
+                                    messageParams(notification),
                                 )
                             }}
                         </span>

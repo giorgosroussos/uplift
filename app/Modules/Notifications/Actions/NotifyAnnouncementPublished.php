@@ -3,18 +3,14 @@
 namespace App\Modules\Notifications\Actions;
 
 use App\Modules\Courses\Models\Announcement;
-use App\Modules\Courses\Models\CourseSpace;
 use App\Modules\Courses\Models\Enrolment;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Support\OrganizationUrl;
 use App\Modules\Notifications\Enums\NotificationKind;
 use App\Modules\Notifications\Models\Notification;
-use App\Modules\Notifications\Models\NotificationPreference;
 use App\Modules\Notifications\Notifications\AnnouncementPublishedEmail;
+use App\Modules\Notifications\Support\NotificationMailer;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification as Notifier;
-use Throwable;
 
 /**
  * DEC-002: one in-app announcement_published notification per student
@@ -29,6 +25,8 @@ use Throwable;
  */
 class NotifyAnnouncementPublished
 {
+    public function __construct(private readonly NotificationMailer $mailer) {}
+
     public function handle(string $announcementId, string $authorId): void
     {
         $announcement = Announcement::query()->with('courseSpace.organization')->find($announcementId);
@@ -65,43 +63,16 @@ class NotifyAnnouncementPublished
             }
         });
 
-        if (! NotificationKind::AnnouncementPublished->sendsEmail()) {
-            return;
-        }
-
         $url = OrganizationUrl::for($space->organization)->route('courses.show', $space);
 
         foreach ($students as $student) {
-            if (! NotificationPreference::emailEnabledFor($student)) {
-                continue;
-            }
-
-            $this->email($student, $announcement, $space, $url);
-        }
-    }
-
-    private function email(User $student, Announcement $announcement, CourseSpace $space, string $url): void
-    {
-        try {
-            // An on-demand recipient keeps the user model out of the queued
-            // job; the locale is fixed when the email is queued.
-            Notifier::route('mail', $student->email)->notify(
-                (new AnnouncementPublishedEmail(
-                    $student->id,
-                    $announcement->id,
-                    $space->title,
-                    $announcement->title,
-                    $url,
-                ))->locale($student->preferredLocale()),
-            );
-        } catch (Throwable $exception) {
-            // ARCH-006: ids only, never emails or names.
-            Log::warning('notifications.email_not_queued', [
-                'kind' => NotificationKind::AnnouncementPublished->value,
-                'user_id' => $student->id,
-                'announcement_id' => $announcement->id,
-                'error' => $exception::class,
-            ]);
+            $this->mailer->queue($student, new AnnouncementPublishedEmail(
+                $student->id,
+                $announcement->id,
+                $space->title,
+                $announcement->title,
+                $url,
+            ));
         }
     }
 }

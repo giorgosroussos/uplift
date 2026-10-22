@@ -1,0 +1,9 @@
+id: P3-T7
+status: ready_to_merge
+commit: 85c8007
+handoff: |
+  Assessment (DEC-003): quiz_attempts.result_released_at (migration 2026_10_26_100000); Actions/ReleaseResult (graded + Quiz::isScoreVisible -> set marker, ResultReleased once) called by SubmitQuizAttempt/GradeAnswer on finalising; GradeAnswer dispatches ResultChanged when earned_points of a released attempt changes.
+  Actions/ReleaseVisibleResults + Console assessment:release-results (every minute) release graded, unreleased, non-hidden attempts per tenant under a row lock. Events/{ResultReleased,ResultChanged}(organizationId, attemptId) after commit; GradeFinalised kept, no longer used by Notifications.
+  Notifications: kinds activity_published, grade_finalised, grade_changed; Listeners/SendActivityNotifications (ActivityPublished) and SendGradeNotification (ResultReleased/ResultChanged) -> Actions/NotifyActivityPublished, NotifyGrade; in-app entry first, then Support/NotificationMailer queues the email.
+  Emails Notifications/{NotificationEmail (abstract, INT-001 tries/timeout/backoff, failed log), ActivityPublishedEmail, GradeFinalisedEmail, GradeChangedEmail (trait GradeEmail)}; OpenNotification targets; lang notifications.{activity_published,grade_finalised,grade_changed,centre.kinds.*}; Notifications/Index.vue + types.
+  Tests: tests/Feature/Notifications/{ActivityNotificationTest,GradeNotificationTest}.php, tests/Browser/NotificationTest.php.

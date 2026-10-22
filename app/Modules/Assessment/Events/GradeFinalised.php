@@ -8,9 +8,10 @@ use Illuminate\Foundation\Events\Dispatchable;
 /**
  * The score of a quiz attempt became final (SCOPE-024: submitted ->
  * graded): on submission when nothing waits for grading, or when the
- * teacher grades its last pending free-text answer (UC-026 step 3), e.g.
- * for Notifications, which tells the student. Dispatched after the change
- * has committed; carries ids only, never points (SEC-003).
+ * teacher grades its last pending free-text answer (UC-026 step 3).
+ * Students are told only when the result is released (ResultReleased,
+ * DEC-003). Dispatched after the change has committed; carries ids only,
+ * never points (SEC-003).
  */
 final class GradeFinalised implements ShouldDispatchAfterCommit
 {

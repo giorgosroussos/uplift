@@ -6,6 +6,7 @@ use App\Modules\Activities\Events\ActivityClosed;
 use App\Modules\Activities\Http\Responses\ProblemDetails;
 use App\Modules\Activities\Support\ActivityTypes;
 use App\Modules\Assessment\Console\PruneQuestionImportsCommand;
+use App\Modules\Assessment\Console\ReleaseResultsCommand;
 use App\Modules\Assessment\Console\SubmitDueAttemptsCommand;
 use App\Modules\Assessment\Exceptions\AttemptClosed;
 use App\Modules\Assessment\Listeners\SubmitAttemptsOfClosedQuiz;
@@ -62,12 +63,14 @@ class AssessmentServiceProvider extends ModuleServiceProvider
         // SCOPE-024: attempts whose time is up are submitted within a minute.
         $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
             $schedule->command('assessment:submit-due-attempts')->everyMinute()->withoutOverlapping();
+            // DEC-003: graded attempts whose score became visible are released within a minute.
+            $schedule->command('assessment:release-results')->everyMinute()->withoutOverlapping();
             // DATA-017: leftover question imports are deleted after 24 hours.
             $schedule->command('assessment:prune-question-imports')->daily();
         });
 
         if ($this->app->runningInConsole()) {
-            $this->commands([SubmitDueAttemptsCommand::class, PruneQuestionImportsCommand::class]);
+            $this->commands([SubmitDueAttemptsCommand::class, ReleaseResultsCommand::class, PruneQuestionImportsCommand::class]);
         }
 
         $this->app->afterResolving(Handler::class, function (Handler $handler): void {

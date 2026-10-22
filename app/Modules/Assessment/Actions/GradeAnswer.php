@@ -5,6 +5,7 @@ namespace App\Modules\Assessment\Actions;
 use App\Modules\Assessment\Enums\AttemptStatus;
 use App\Modules\Assessment\Enums\GradingStatus;
 use App\Modules\Assessment\Events\GradeFinalised;
+use App\Modules\Assessment\Events\ResultChanged;
 use App\Modules\Assessment\Models\Answer;
 use App\Modules\Assessment\Models\QuizAttempt;
 use App\Modules\Assessment\Support\Points;
@@ -21,7 +22,10 @@ use Illuminate\Validation\ValidationException;
  * may be corrected. The attempt's earned_points is recalculated as the sum
  * of its answers' points, never below 0. Once no answer waits for grading,
  * a submitted attempt becomes graded (final score) and GradeFinalised is
- * dispatched after commit.
+ * dispatched after commit; its result is released at once when the student
+ * may see it now (DEC-003, ReleaseResult). A regrade that changes
+ * earned_points of a released attempt dispatches ResultChanged; regrades
+ * before the release dispatch nothing (DEC-003).
  *
  * Validation messages never repeat the answer, the feedback or the points
  * (SEC-003).
@@ -29,6 +33,8 @@ use Illuminate\Validation\ValidationException;
 class GradeAnswer
 {
     public const int FEEDBACK_MAX = 5000;
+
+    public function __construct(private readonly ReleaseResult $release) {}
 
     /**
      * @param  array<string, mixed>  $data  points (decimal string) and feedback (optional)
@@ -66,12 +72,19 @@ class GradeAnswer
                 $total += Points::toHundredths((string) $awarded);
             }
 
-            $attempt->earned_points = Points::format(max(0, $total));
+            $before = Points::toHundredths((string) ($attempt->earned_points ?? '0'));
+            $after = max(0, $total);
+            $attempt->earned_points = Points::format($after);
             $attempt->save();
+
+            if ($attempt->result_released_at !== null && $before !== $after) {
+                ResultChanged::dispatch($attempt->organization_id, $attempt->id);
+            }
 
             if ($attempt->status === AttemptStatus::Submitted && ! $attempt->hasPendingAnswers()) {
                 $attempt->transitionTo(AttemptStatus::Graded);
                 GradeFinalised::dispatch($attempt->organization_id, $attempt->id);
+                $this->release->handle($attempt);
             }
 
             $answer->setRawAttributes($locked->getAttributes(), true);
