@@ -1,0 +1,8 @@
+id: P3-T7
+status: ready_to_merge
+commit: 456fced6f4590e77c6d6bed09850c9b13d3b1449
+handoff: |
+  Notifications kinds activity_published (Listeners/SendActivityNotifications -> Actions/NotifyActivityPublished: enrolled students, publisher excluded) and grade_finalised (Listeners/SendGradeNotification -> Actions/NotifyGradeFinalised: the attempt's student, no score); data = ids + title snapshots.
+  Emails Notifications/{ActivityPublished,GradeFinalised}Email extend the new Notifications/NotificationEmail (INT-001 tries 6, timeout 10, backoff 1m..6h, failed() logs ids); Support/NotificationMailer queues them (opt-out, user locale, queue failure logged) and now also serves announcements.
+  OpenNotification targets activities.show (ActivityPolicy::view) and assessment.results.show (QuizAttemptPolicy::viewResult), else 404; centre page renders the new kinds (types/notifications.ts union); lang notifications.{activity_published,grade_finalised,outro,centre.kinds.*}.
+  Tests: tests/Feature/Notifications/{ActivityNotificationTest,GradeNotificationTest}.php, tests/Browser/NotificationTest.php (new kinds render).
