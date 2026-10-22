@@ -2,9 +2,13 @@
 
 namespace App\Modules\Notifications;
 
+use App\Modules\Activities\Events\ActivityPublished;
+use App\Modules\Assessment\Events\GradeFinalised;
 use App\Modules\Courses\Events\AnnouncementPublished;
 use App\Modules\Notifications\Http\Middleware\ShareNotifications;
+use App\Modules\Notifications\Listeners\SendActivityNotifications;
 use App\Modules\Notifications\Listeners\SendAnnouncementNotifications;
+use App\Modules\Notifications\Listeners\SendGradeNotification;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Notifications\Policies\NotificationPolicy;
 use App\Support\Modules\ModuleServiceProvider;
@@ -23,6 +27,8 @@ class NotificationsServiceProvider extends ModuleServiceProvider
      */
     protected array $listen = [
         AnnouncementPublished::class => [SendAnnouncementNotifications::class],
+        ActivityPublished::class => [SendActivityNotifications::class],
+        GradeFinalised::class => [SendGradeNotification::class],
     ];
 
     public function boot(): void

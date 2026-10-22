@@ -2,6 +2,8 @@
 
 namespace App\Modules\Notifications\Actions;
 
+use App\Modules\Activities\Models\Activity;
+use App\Modules\Assessment\Models\QuizAttempt;
 use App\Modules\Courses\Models\CourseSpace;
 use App\Modules\Identity\Models\User;
 use App\Modules\Notifications\Enums\NotificationKind;
@@ -11,7 +13,9 @@ use Illuminate\Support\Facades\Gate;
 /**
  * UC-007: opening a notification marks it read and returns its target. The
  * target obeys the normal access rules (DEC-002): an announcement_published
- * entry opens its course space while the user may read its announcements;
+ * entry opens its course space while the user may read its announcements,
+ * an activity_published entry its activity while the user may view it, a
+ * grade_finalised entry the attempt's result while the user may view it;
  * otherwise (archived, unenrolled, gone) there is no target.
  */
 class OpenNotification
@@ -27,6 +31,8 @@ class OpenNotification
 
         return match ($notification->kind) {
             NotificationKind::AnnouncementPublished => $this->courseSpace($user, $notification),
+            NotificationKind::ActivityPublished => $this->activity($user, $notification),
+            NotificationKind::GradeFinalised => $this->result($user, $notification),
         };
     }
 
@@ -39,5 +45,27 @@ class OpenNotification
         }
 
         return route('courses.show', $space, absolute: false);
+    }
+
+    private function activity(User $user, Notification $notification): ?string
+    {
+        $activity = Activity::query()->find($notification->data['activity_id'] ?? null);
+
+        if ($activity === null || Gate::forUser($user)->denies('view', $activity)) {
+            return null;
+        }
+
+        return route('activities.show', $activity, absolute: false);
+    }
+
+    private function result(User $user, Notification $notification): ?string
+    {
+        $attempt = QuizAttempt::query()->find($notification->data['attempt_id'] ?? null);
+
+        if ($attempt === null || Gate::forUser($user)->denies('viewResult', $attempt)) {
+            return null;
+        }
+
+        return route('assessment.results.show', $attempt, absolute: false);
     }
 }
