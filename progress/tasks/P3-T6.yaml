@@ -1,0 +1,9 @@
+id: P3-T6
+status: ready_to_merge
+commit: a40542b
+handoff: |
+  app/Modules/Assessment Support/{QuestionCsv (DATA-017 parse: UTF-8/BOM, ';'|',' detection, fixed headers, 500 rows, 1 MB), QuestionImportRows (row -> DATA-016 validation via QuestionRules), QuestionImportFiles (disk config assessment.question_import_disk, question-imports/<org>/<user>/<uuid>.csv; found only for its uploader)}.
+  Actions/{StoreQuestionImport, ShowQuestionImport, ConfirmQuestionImport (re-validates, imports valid rows via SaveBankQuestion in one transaction, deletes file), CancelQuestionImport, PruneQuestionImports, BuildQuestionImportTemplate}; Console assessment:prune-question-imports scheduled daily.
+  Routes question-bank/import[/template|/{import}|/{import}/confirm] named assessment.imports.{create,template,store,show,confirm,destroy}; QuestionPolicy create gates all (OWN-016); config/assessment.php.
+  UI pages/Assessment/QuestionBank/{Import,ImportReport}.vue, "Import from CSV" button on Index; lang assessment.import.* and assessment.index.import (en, el).
+  Tests: tests/Feature/Assessment/QuestionImportTest.php, tests/Browser/QuestionImportTest.php (browser server has no multipart support, so it starts from a stored import).
