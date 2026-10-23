@@ -14,11 +14,14 @@ use Illuminate\Support\Facades\DB;
  * again, following the state model.
  *
  * DATA-012: archiving deletes every enrolment of the space in the same
- * transaction and dispatches CourseSpaceArchived after commit; restoring
+ * transaction, with every group of the space (SCOPE-025,
+ * DeleteGroupsOfCourseSpace), and dispatches CourseSpaceArchived after commit; restoring
  * gives an active space without students, who enrol again.
  */
 class ChangeCourseSpaceStatus
 {
+    public function __construct(private readonly DeleteGroupsOfCourseSpace $groups) {}
+
     /**
      * @throws InvalidCourseSpaceTransition when the state model does not allow it
      */
@@ -37,6 +40,7 @@ class ChangeCourseSpaceStatus
             }
 
             $removed = $space->enrolments()->delete();
+            $this->groups->handle($space->id);
 
             CourseSpaceArchived::dispatch(
                 $space->organization_id,

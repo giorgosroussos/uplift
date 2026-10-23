@@ -170,6 +170,16 @@ class CourseSpace extends Model
     }
 
     /**
+     * Groups of the space that are not deleted (SCOPE-025).
+     *
+     * @return HasMany<Group, $this>
+     */
+    public function groups(): HasMany
+    {
+        return $this->hasMany(Group::class);
+    }
+
+    /**
      * @return HasMany<Announcement, $this>
      */
     public function announcements(): HasMany
