@@ -156,9 +156,10 @@ it('stores deadlines and publication times in UTC', function () {
 
 describe('ARCH-004: ActivityType registry', function () {
     it('offers only registered types', function () {
-        $types = app(ActivityTypes::class);
+        // A registry of its own: every module registers its type with the application's one.
+        $types = new ActivityTypes(app());
 
-        expect($types->kinds())->not->toContain(ActivityKind::SlotBooking)
+        expect($types->kinds())->toBe([])
             ->and(fn () => $types->get(ActivityKind::SlotBooking))->toThrow(UnknownActivityType::class);
 
         $types->register(FakeQuizType::class);

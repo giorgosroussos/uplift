@@ -3,6 +3,7 @@
 use App\Modules\Activities\Enums\WizardStep;
 use App\Modules\Activities\Http\Controllers\ActivityController;
 use App\Modules\Activities\Http\Controllers\PollController;
+use App\Modules\Activities\Http\Controllers\SlotBookingController;
 use App\Modules\Activities\Http\Controllers\SubmissionController;
 use App\Modules\Activities\Http\Controllers\TopicProposalController;
 use App\Modules\Activities\Http\Controllers\TopicSelectionController;
@@ -44,4 +45,9 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
     Route::put('proposals/{activity}/{proposal}/decision', [TopicProposalController::class, 'decide'])
         ->whereUuid('proposal')
         ->name('activities.proposals.decide');
+
+    // UC-016: a slot booking's page and the acting student's (or group's) booking.
+    Route::get('slots/{activity}', [SlotBookingController::class, 'show'])->name('activities.slots.show');
+    Route::put('slots/{activity}/booking', [SlotBookingController::class, 'book'])->name('activities.slots.book');
+    Route::delete('slots/{activity}/booking', [SlotBookingController::class, 'cancel'])->name('activities.slots.cancel');
 });
