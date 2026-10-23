@@ -4,7 +4,7 @@ depends_on: [PHASE-3]
 use_cases: [UC-019, UC-013, UC-014, UC-015, UC-027, UC-016, UC-040]
 entities: [ENT-Group, ENT-GroupMembership, ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote, ENT-TopicActivity, ENT-Topic, ENT-TopicChoice, ENT-TopicProposal, ENT-SlotActivity, ENT-Slot, ENT-Booking]
 components: [CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications, CMP-Audit]
-decisions: [SCOPE-011, SCOPE-012, SCOPE-013, SCOPE-017, SCOPE-025, SCOPE-026, SCOPE-027, SEC-009, DATA-006]
+decisions: [SCOPE-011, SCOPE-012, SCOPE-013, SCOPE-017, SCOPE-025, SCOPE-026, SCOPE-028, SCOPE-029, SEC-009, DATA-006]
 environment: development
 out_of_scope:
   - "Live quizzes (PHASE-5)"
@@ -63,7 +63,7 @@ tasks:
     touches: {writes: [CMP-Notifications], reads: [CMP-Activities, CMP-Courses]}
   - id: P4-T8
     title: Activity deletion
-    description: "UC-040 per SCOPE-027: ActivityType gains hasSubmissions(Activity), implemented by every registered type (quiz in Assessment: any attempt; poll: any participation; topic selection: any choice; topic proposal: any proposal; slot booking: any booking); DeleteActivity soft-deletes after the policy and that check, with a confirmation dialog; ActivityDeleted(organizationId, activityId, actorId, type) after commit; Audit listener writes action activity.deleted, actor_type user with actor_id = actorId, subject activity, changes {type}; one entry. Live sessions are added to the quiz check by P5-T2"
+    description: "UC-040 per SCOPE-029: ActivityType gains hasSubmissions(Activity), implemented by every registered type (quiz in Assessment: any attempt; poll: any participation; topic selection: any choice; topic proposal: any proposal; slot booking: any current booking); DeleteActivity soft-deletes after the policy and that check, with a confirmation dialog; ActivityDeleted(organizationId, activityId, actorId, type) after commit; Audit listener writes action activity.deleted, actor_type user with actor_id = actorId, subject activity, changes {type}; one entry. Live sessions are added to the quiz check by P5-T2"
     depends_on: [P4-T2, P4-T3, P4-T4, P4-T5, P4-T6]
     use_cases: [UC-040]
     acceptance_criteria:

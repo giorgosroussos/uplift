@@ -1,0 +1,69 @@
+id: CR-P4-T5-1
+raised_by: implementation-agent
+task: P4-T5
+status: accepted
+problem: >
+  (1) Cancelled bookings cannot be stored. SCOPE-027 (and UC-040 criterion
+  "a slot activity with one cancelled booking, When its teacher deletes it,
+  Then it is refused") counts "a booking (also cancelled)" as a submission,
+  and P4-T8 implements slot booking hasSubmissions as "any booking". But
+  ENT-Booking has only organization_id, slot_id, student_id and group_id: it
+  has no status, cancelled_at or deleted_at, and DATA-007 lists soft delete
+  only for User, CourseSpace, Activity, Question and Announcement. A booking
+  that UC-016 step 3 cancels must therefore either be deleted (and then the
+  activity no longer counts as having a submission, contradicting
+  SCOPE-027) or be kept with a cancellation marker that the model does not
+  have. The same question applies to a change: when a student books another
+  slot, "the first booking is released" can mean the row moves to the new
+  slot (slot_id updated) or the old row is kept as cancelled and a new row
+  is created. This also decides the uniqueness rule "one booking per
+  student or group and activity" (all rows, or only non-cancelled rows).
+  (2) The teacher side of slot booking is not specified, unlike the topic
+  limits P4-T3 implemented: how many slots an activity may have, the range
+  of capacity, whether ends_at must be after starts_at, whether slots may
+  overlap, whether a published activity may remove a booked slot or lower
+  its capacity below its bookings, and what the optional
+  ENT-SlotActivity.slot_duration does (the default length of new slots in
+  the wizard, an enforced length of every slot, or something else), and
+  whether the activity can be published without slots.
+  (3) Student side: whether a slot that has already started (starts_at in
+  the past) can still be booked before the activity's deadline, and what a
+  student sees of other slots' holders (UC-016 says only "remaining
+  capacity").
+affects:
+  - ENT-Booking (cancellation marker, uniqueness), DATA-007 (soft delete list)
+  - SCOPE-027 / UC-040 / P4-T8 (slot booking hasSubmissions counts cancelled bookings)
+  - UC-016 (main flow 1-3, exceptions), SCOPE-011
+  - ENT-Slot, ENT-SlotActivity (slot_duration meaning, limits)
+  - "CMP-Activities: the slot booking ActivityType (wizard settings/content steps), BookSlot/CancelBooking actions, BookingPolicy (OWN-010)"
+proposal: >
+  (1) Add a nullable cancelled_at (timestamp, UTC) to ENT-Booking. One
+  booking row per student or group and activity at any time is "active"
+  (cancelled_at null), enforced by the booking action under a
+  lock of the activity row (as SelectTopic does; ENT-Booking has no
+  activity column for a unique index). Cancelling
+  sets cancelled_at; changing to another slot sets cancelled_at on the old
+  row and creates a new row, so the history shows every booking. Capacity
+  counts only active bookings. hasSubmissions is true when any row exists,
+  active or cancelled. Retention unchanged (student rows cascade with the
+  account; group rows stay when the group is soft-deleted).
+  Alternative: add Booking to the DATA-007 soft-delete list (deleted_at)
+  with the same semantics.
+  (2) Mirror P4-T3's topic rules: 1-100 slots per activity, capacity
+  1-1000, ends_at after starts_at, overlapping slots allowed, location
+  optional (max 255). A booked slot cannot be removed and its capacity
+  cannot drop below its active bookings. Publishing needs at least one
+  slot. slot_duration (optional, 5 min - 24 h) is a wizard setting that
+  only pre-fills ends_at = starts_at + slot_duration for new slots; it is
+  not enforced on stored slots.
+  (3) Booking is open while the activity is published and before its
+  deadline (as for topics), independent of the slot's starts_at; students
+  see each slot's remaining places and their own (or their group's)
+  booking, never other holders; the owning teacher sees every slot's
+  holders (OWN-010).
+resolution: >
+  Accepted in design v3.4.0. (1) Not as proposed: bookings mirror topic choices (change moves the
+  row, cancel deletes it, no cancelled_at); SCOPE-027 is superseded by SCOPE-029, where only a
+  current booking counts as a submission. (2) Slot limits, publish rule and slot_duration as
+  proposed (SCOPE-028). (3) A started slot cannot be booked and a booking in it cannot be changed
+  or cancelled; students never see other holders (engineer: "1 A, 2 A, ok").

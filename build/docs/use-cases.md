@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v3.3.0 · source 7b74b682e4c4_
+_Generated document · design v3.4.0 · source f327e6c4cf53_
 
 
 ## Actors
@@ -405,17 +405,25 @@ Acceptance criteria:
 Actors: ACT-Student · Goal: Pick and confirm an available time slot
 
 Main flow:
-1. Student sees slots in a calendar or list with remaining capacity
-2. Books a slot with free capacity (for the group in group activities)
-3. May change or cancel the booking until the deadline
+1. Student sees slots in a calendar or list with remaining capacity, and their own or their group's booking (SCOPE-028)
+2. Books a slot with free capacity that has not started (for the group in group activities)
+3. May change or cancel the booking until the deadline, while its slot has not started
 
 Exceptions:
 - Slot full: booking refused
-- Deadline passed: change or cancel refused
+- Deadline passed: booking, change or cancel refused
+- Slot started: booking it, or changing or cancelling a booking in it, refused
 
 Acceptance criteria:
 - Given a slot with capacity 2 holding 2 bookings, When a third student books it, Then it is refused
 - Given a student with a booking, When they book another slot of the same activity, Then the first booking is released (one booking per student or group)
+- Given a slot whose starts_at has passed and a deadline still ahead, When a student books it, Then it is refused; When a student with a booking in it changes or cancels, Then it is refused
+- Given a student who cancels their booking, Then the booking no longer exists and the slot has one more free place
+- Given a slot activity, When a student views its slots, Then they see remaining places and their own booking but not who holds other bookings; When its owning teacher views them, Then they see every holder
+- Given a slot with 2 bookings, When the teacher removes it or sets its capacity to 1, Then it is refused
+- Given 0 or 101 slots, capacity 0 or 1001, ends_at not after starts_at, or a 256-character location, When the teacher saves, Then it is refused
+- Given a slot activity without slots, When the teacher publishes it, Then it is refused
+- Given slot_duration 30 minutes, When the teacher adds a slot starting 10:00, Then ends_at is pre-filled as 10:30 and can be changed
 - Given two concurrent bookings for the last place of a slot, Then exactly one succeeds
 
 #### UC-017 — View my results (must)
@@ -532,18 +540,18 @@ Acceptance criteria:
 Actors: ACT-Teacher · Goal: Delete an activity of any type while it is a draft or has no submissions
 
 Main flow:
-1. The owning teacher chooses delete on a draft activity, or on a published or closed activity without submissions (SCOPE-027)
+1. The owning teacher chooses delete on a draft activity, or on a published or closed activity without submissions (SCOPE-029)
 2. Confirms in a dialog
 3. The activity is soft-deleted and disappears for everyone; nobody is notified
 
 Exceptions:
-- The activity has a submission (any attempt, also in progress, a started live session, vote, topic choice, proposal or booking, also cancelled): deletion is refused
+- The activity has a submission (any attempt, also in progress, a started live session, vote, topic choice, proposal or current booking): deletion is refused
 - Not the owning teacher: deletion is refused
 
 Acceptance criteria:
 - Given a draft activity of each of the five types, When its owning teacher deletes it, Then it is soft-deleted and one ActivityDeleted is dispatched after commit
 - Given a published quiz with one in-progress attempt, When its teacher deletes it, Then it is refused and nothing changes
-- Given a published poll with one vote, a topic selection with one choice, a topic proposal activity with one proposal or a slot activity with one cancelled booking, When its teacher deletes it, Then it is refused
+- Given a published poll with one vote, a topic selection with one choice, a topic proposal activity with one proposal or a slot activity with one booking, When its teacher deletes it, Then it is refused; When that booking is cancelled first, Then deletion succeeds
 - Given a published activity without submissions, When its teacher deletes it, Then it is soft-deleted and absent from the course space's activity lists for students and its teacher
 - Given a deleted activity, When a student opens it or an activity_published notification that points to it, Then they get 404 (not available)
 - Given a deleted activity, Then no notification is sent and its existing notifications stay

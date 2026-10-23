@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-4 — The other four activity types and groups: polls, topic selection, topic proposals with approval, slot booking, group activities
 
-_design v3.3.0 · 7b74b682e4c4_
+_design v3.4.0 · f327e6c4cf53_
 
 Depends on: PHASE-3 · environment: development · components: CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications, CMP-Audit
 
@@ -100,25 +100,26 @@ Main flow:
 Actors: ACT-Student · Goal: Pick and confirm an available time slot
 
 Main flow:
-1. Student sees slots in a calendar or list with remaining capacity
-2. Books a slot with free capacity (for the group in group activities)
-3. May change or cancel the booking until the deadline
+1. Student sees slots in a calendar or list with remaining capacity, and their own or their group's booking (SCOPE-028)
+2. Books a slot with free capacity that has not started (for the group in group activities)
+3. May change or cancel the booking until the deadline, while its slot has not started
 
 Exceptions:
 - Slot full: booking refused
-- Deadline passed: change or cancel refused
+- Deadline passed: booking, change or cancel refused
+- Slot started: booking it, or changing or cancelling a booking in it, refused
 
 #### UC-040 — Delete activity (should)
 
 Actors: ACT-Teacher · Goal: Delete an activity of any type while it is a draft or has no submissions
 
 Main flow:
-1. The owning teacher chooses delete on a draft activity, or on a published or closed activity without submissions (SCOPE-027)
+1. The owning teacher chooses delete on a draft activity, or on a published or closed activity without submissions (SCOPE-029)
 2. Confirms in a dialog
 3. The activity is soft-deleted and disappears for everyone; nobody is notified
 
 Exceptions:
-- The activity has a submission (any attempt, also in progress, a started live session, vote, topic choice, proposal or booking, also cancelled): deletion is refused
+- The activity has a submission (any attempt, also in progress, a started live session, vote, topic choice, proposal or current booking): deletion is refused
 - Not the owning teacher: deletion is refused
 
 ## Entities
@@ -276,7 +277,7 @@ Owned by CMP-Activities · retention: — · audit: no
 
 Relations: one-to-many → ENT-Booking (on delete cascade)
 
-#### ENT-Booking — A student's or group's booking; one per activity
+#### ENT-Booking — A student's or group's current booking; one per activity; moved on change, deleted on cancellation (SCOPE-028)
 
 Owned by CMP-Activities · retention: Kept with the activity; follows the student's erasure (SEC-003) · audit: no
 
@@ -340,13 +341,21 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST treat a poll as closed when its activity is closed or its deadline has passed, and refuse votes from then on  (SCOPE-026)
 - MUST refuse, once a vote exists, changes to max_choices and to the set or labels of options with 409 problem details  (SCOPE-026)
 - MUST delete a user's poll participations with the account and keep the anonymous votes  (SCOPE-026)
-- MUST allow deletion only by the owning teacher (OWN-004) and only for a draft or an activity for which hasSubmissions is false  (SCOPE-027)
-- MUST count any attempt (also in progress), a started live session, poll participation, topic choice, topic proposal or booking (also cancelled) as a submission  (SCOPE-027)
-- MUST decide hasSubmissions through the ActivityType contract, implemented by each type's module  (SCOPE-027)
-- MUST soft-delete the activity and provide no restore in the UI  (SCOPE-027)
-- MUST return 404 for a deleted activity, also when opened from an existing notification  (SCOPE-027)
-- MUST NOT send notifications on deletion nor delete existing notifications  (SCOPE-027)
-- MUST dispatch App\Modules\Activities\Events\ActivityDeleted(organizationId, activityId, actorId, type) after commit and audit it as activity.deleted  (SCOPE-027)
+- MUST allow 1-100 slots per activity, capacity 1-1000, ends_at after starts_at and location of at most 255 characters  (SCOPE-028)
+- MUST refuse removing a slot with bookings or lowering its capacity below its bookings  (SCOPE-028)
+- MUST refuse publishing a slot activity without slots  (SCOPE-028)
+- MUST use slot_duration (5 minutes to 24 hours) only to pre-fill ends_at of new slots  (SCOPE-028)
+- MUST refuse booking a slot whose starts_at has passed, and changing or cancelling a booking in such a slot  (SCOPE-028)
+- MUST keep at most one booking per student or group and activity, under a lock of the activity row  (SCOPE-028)
+- MUST move the booking row on a change and delete it on cancellation  (SCOPE-028)
+- MUST NOT show students who holds other bookings  (SCOPE-028)
+- MUST allow deletion only by the owning teacher (OWN-004) and only for a draft or an activity for which hasSubmissions is false  (SCOPE-029)
+- MUST count any attempt (also in progress), a started live session, poll participation, topic choice, topic proposal or current booking as a submission  (SCOPE-029)
+- MUST decide hasSubmissions through the ActivityType contract, implemented by each type's module  (SCOPE-029)
+- MUST soft-delete the activity and provide no restore in the UI  (SCOPE-029)
+- MUST return 404 for a deleted activity, also when opened from an existing notification  (SCOPE-029)
+- MUST NOT send notifications on deletion nor delete existing notifications  (SCOPE-029)
+- MUST dispatch App\Modules\Activities\Events\ActivityDeleted(organizationId, activityId, actorId, type) after commit and audit it as activity.deleted  (SCOPE-029)
 - MUST NOT expose the list of participants of a poll to teachers or admins  (SEC-009)
 - MUST NOT store a user reference on poll choices  (DATA-006)
 - MUST record poll participation separately to prevent a second vote  (DATA-006)
@@ -435,10 +444,17 @@ Standing constraints from deferred decisions (apply now):
 - [UC-027] Given a pending proposal, When approved, Then its status is approved and the student is notified
 - [UC-016] Given a slot with capacity 2 holding 2 bookings, When a third student books it, Then it is refused
 - [UC-016] Given a student with a booking, When they book another slot of the same activity, Then the first booking is released (one booking per student or group)
+- [UC-016] Given a slot whose starts_at has passed and a deadline still ahead, When a student books it, Then it is refused; When a student with a booking in it changes or cancels, Then it is refused
+- [UC-016] Given a student who cancels their booking, Then the booking no longer exists and the slot has one more free place
+- [UC-016] Given a slot activity, When a student views its slots, Then they see remaining places and their own booking but not who holds other bookings; When its owning teacher views them, Then they see every holder
+- [UC-016] Given a slot with 2 bookings, When the teacher removes it or sets its capacity to 1, Then it is refused
+- [UC-016] Given 0 or 101 slots, capacity 0 or 1001, ends_at not after starts_at, or a 256-character location, When the teacher saves, Then it is refused
+- [UC-016] Given a slot activity without slots, When the teacher publishes it, Then it is refused
+- [UC-016] Given slot_duration 30 minutes, When the teacher adds a slot starting 10:00, Then ends_at is pre-filled as 10:30 and can be changed
 - [UC-016] Given two concurrent bookings for the last place of a slot, Then exactly one succeeds
 - [UC-040] Given a draft activity of each of the five types, When its owning teacher deletes it, Then it is soft-deleted and one ActivityDeleted is dispatched after commit
 - [UC-040] Given a published quiz with one in-progress attempt, When its teacher deletes it, Then it is refused and nothing changes
-- [UC-040] Given a published poll with one vote, a topic selection with one choice, a topic proposal activity with one proposal or a slot activity with one cancelled booking, When its teacher deletes it, Then it is refused
+- [UC-040] Given a published poll with one vote, a topic selection with one choice, a topic proposal activity with one proposal or a slot activity with one booking, When its teacher deletes it, Then it is refused; When that booking is cancelled first, Then deletion succeeds
 - [UC-040] Given a published activity without submissions, When its teacher deletes it, Then it is soft-deleted and absent from the course space's activity lists for students and its teacher
 - [UC-040] Given a deleted activity, When a student opens it or an activity_published notification that points to it, Then they get 404 (not available)
 - [UC-040] Given a deleted activity, Then no notification is sent and its existing notifications stay

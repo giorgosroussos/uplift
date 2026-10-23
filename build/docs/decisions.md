@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v3.3.0 · source 7b74b682e4c4_
+_Generated document · design v3.4.0 · source f327e6c4cf53_
 
 
 ## Scope
@@ -310,7 +310,7 @@ _affects UC-019, ENT-Group, ENT-GroupMembership, OWN-005, OWN-006, SCOPE-017, P4
 
 _affects UC-013, UC-028, ENT-Poll, ENT-PollOption, ENT-PollParticipation, OWN-011, SCOPE-013, SEC-009, P4-T2 · since v3.2.0_
 
-### SCOPE-027 — Activity deletion · decided
+### SCOPE-027 — Activity deletion · superseded
 
 > Engineer: “Add activity deletion: the owning teacher can delete an activity of any type while it is a draft or has no submissions. / 1 A, 2 A, 3 A, 4 A”
 
@@ -328,6 +328,45 @@ _affects UC-013, UC-028, ENT-Poll, ENT-PollOption, ENT-PollParticipation, OWN-01
 - `MUST dispatch App\Modules\Activities\Events\ActivityDeleted(organizationId, activityId, actorId, type) after commit and audit it as activity.deleted`
 
 _affects UC-040, ENT-Activity, OWN-004, P4-T8, P5-T2 · since v3.3.0_
+
+### SCOPE-029 — Activity deletion · decided
+
+> Engineer: “Add activity deletion: the owning teacher can delete an activity of any type while it is a draft or has no submissions. / 1 A, 2 A, 3 A, 4 A / 1 A, 2 A, ok”
+
+**Decision:** The owning teacher may delete an activity of any type while it is a draft or has no submissions. A submission is any participation record: a quiz attempt in any status (also in progress), a started live session, a poll participation, a topic choice, a topic proposal or a current booking (a cancelled booking is deleted, as a cancelled topic choice, SCOPE-028). Each activity type answers through ActivityType::hasSubmissions(Activity) (ARCH-004). Deletion asks for confirmation, soft-deletes the activity (DATA-007) and has no restore in the UI; the deleted activity is absent for everyone and opening it, also from an earlier notification, returns 404. Nobody is notified and existing notifications are kept. Activities dispatches ActivityDeleted(organizationId, activityId, actorId, type) after commit, audited as activity.deleted
+
+**Why:** New requirement from the engineer; a deletion that never removes participation data keeps grades, votes and bookings intact
+
+**Constraints for implementation:**
+- `MUST allow deletion only by the owning teacher (OWN-004) and only for a draft or an activity for which hasSubmissions is false`
+- `MUST count any attempt (also in progress), a started live session, poll participation, topic choice, topic proposal or current booking as a submission`
+- `MUST decide hasSubmissions through the ActivityType contract, implemented by each type's module`
+- `MUST soft-delete the activity and provide no restore in the UI`
+- `MUST return 404 for a deleted activity, also when opened from an existing notification`
+- `MUST NOT send notifications on deletion nor delete existing notifications`
+- `MUST dispatch App\Modules\Activities\Events\ActivityDeleted(organizationId, activityId, actorId, type) after commit and audit it as activity.deleted`
+
+_affects UC-040, ENT-Activity, OWN-004, P4-T8, P5-T2 · supersedes SCOPE-027 · since v3.4.0_
+
+### SCOPE-028 — Slot booking rules · decided
+
+> Engineer: “1 A, 2 A, ok”
+
+**Decision:** A slot activity has 1-100 slots; each has capacity 1-1000, ends_at after starts_at, an optional location of at most 255 characters, and may overlap other slots. A slot with bookings cannot be removed and its capacity cannot drop below its bookings. Publishing needs at least one slot. slot_duration (optional, 5 minutes to 24 hours) only pre-fills ends_at = starts_at + slot_duration for new slots in the wizard and is not enforced. Booking, changing and cancelling are open while the activity is published and before its deadline; a slot whose starts_at has passed cannot be booked, and a booking in such a slot can no longer be changed or cancelled. A student or group has at most one booking per activity, enforced by the booking action under a lock of the activity row; changing moves the existing row to the new slot (slot_id updated) and cancelling deletes the row, as for topic choices. Capacity counts the bookings of a slot. Students see each slot's remaining places and their own or their group's booking, never other holders; the owning teacher sees every slot's holders (OWN-010)
+
+**Why:** Resolves CR-P4-T5-1; mirrors the topic rules of P4-T3 so topic choices and bookings behave alike
+
+**Constraints for implementation:**
+- `MUST allow 1-100 slots per activity, capacity 1-1000, ends_at after starts_at and location of at most 255 characters`
+- `MUST refuse removing a slot with bookings or lowering its capacity below its bookings`
+- `MUST refuse publishing a slot activity without slots`
+- `MUST use slot_duration (5 minutes to 24 hours) only to pre-fill ends_at of new slots`
+- `MUST refuse booking a slot whose starts_at has passed, and changing or cancelling a booking in such a slot`
+- `MUST keep at most one booking per student or group and activity, under a lock of the activity row`
+- `MUST move the booking row on a change and delete it on cancellation`
+- `MUST NOT show students who holds other bookings`
+
+_affects UC-016, ENT-SlotActivity, ENT-Slot, ENT-Booking, OWN-010, SCOPE-011, SCOPE-029, P4-T5 · since v3.4.0_
 
 ## External
 

@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # External systems and constraints
 
-_Generated document · design v3.3.0 · source 7b74b682e4c4_
+_Generated document · design v3.4.0 · source f327e6c4cf53_
 
 
 ## Context diagram

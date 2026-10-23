@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v3.3.0 · source 7b74b682e4c4_
+_Generated document · design v3.4.0 · source f327e6c4cf53_
 
 
 ## Entity–relationship diagram
@@ -693,7 +693,7 @@ Owned by CMP-Activities · retention: — · audit: no
 
 Relations: one-to-many → ENT-Booking (on delete cascade)
 
-#### ENT-Booking — A student's or group's booking; one per activity
+#### ENT-Booking — A student's or group's current booking; one per activity; moved on change, deleted on cancellation (SCOPE-028)
 
 Owned by CMP-Activities · retention: Kept with the activity; follows the student's erasure (SEC-003) · audit: no
 

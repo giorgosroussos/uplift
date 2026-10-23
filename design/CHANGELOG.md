@@ -1,5 +1,9 @@
 # Design changelog
 
+## v3.4.0 — 2026-10-23
+
+- Slot booking rules (SCOPE-028); activity deletion counts only current bookings (SCOPE-029 supersedes SCOPE-027) (CR-P4-T5-1)
+
 ## v3.3.0 — 2026-10-23
 
 - Activity deletion by the owning teacher while draft or without submissions (UC-040, SCOPE-027); new task P4-T8

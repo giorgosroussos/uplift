@@ -322,7 +322,7 @@ entities:
     used_by: [UC-016]
 
   - id: ENT-Booking
-    description: "A student's or group's booking; one per activity"
+    description: "A student's or group's current booking; one per activity; moved on change, deleted on cancellation (SCOPE-028)"
     source: inferred
     confirmed: true
     attributes:
