@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Security and compliance
 
-_Generated document · design v3.1.0 · source 6c4796be3fe5_
+_Generated document · design v3.2.0 · source 626aadb4b16e_
 
 
 ## Trust boundaries
@@ -91,7 +91,7 @@ flowchart LR
 | OWN-008 | ENT-TopicChoice | A student changes only their own or their group's topic choice; a teacher sees choices only of their own activities | ROLE-Student, ROLE-Teacher |
 | OWN-009 | ENT-TopicProposal | A student reads only their own or their group's proposals; a teacher decides only proposals of their own activities | ROLE-Student, ROLE-Teacher |
 | OWN-010 | ENT-Booking | A student changes only their own or their group's booking; a teacher sees bookings only of their own activities | ROLE-Student, ROLE-Teacher |
-| OWN-011 | ENT-PollParticipation | A student sees only their own participation; a teacher sees only vote counts per option and the number of participants, never who voted or what anyone voted | ROLE-Student, ROLE-Teacher |
+| OWN-011 | ENT-PollParticipation | A student sees only their own participation; the owning teacher sees vote counts per option and the number of participants at any time, never who voted or what anyone voted; other teachers and org admins do not see the poll (SCOPE-026) | ROLE-Student, ROLE-Teacher |
 | OWN-012 | ENT-LiveParticipant | A student sees only their own progress and score, plus the final ranking (nicknames only, SEC-008) when enabled; the host teacher sees all participants of their session | ROLE-Student, ROLE-Teacher |
 | OWN-013 | ENT-LiveAnswer | A student sees only their own live answers; during the session the host teacher sees only how many questions each participant has answered, after it finishes the scores and answer distributions of their own session | ROLE-Student, ROLE-Teacher |
 | OWN-014 | ENT-XpEvent | A student sees only their own XP events; others see only totals on leaderboards when enabled | ROLE-Student |

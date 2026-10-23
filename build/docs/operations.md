@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Deployment and operations
 
-_Generated document · design v3.1.0 · source 6c4796be3fe5_
+_Generated document · design v3.2.0 · source 626aadb4b16e_
 
 
 ## Environment: development

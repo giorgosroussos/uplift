@@ -229,7 +229,7 @@ entities:
       - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
       - {name: poll_id, type: uuid, ref: ENT-Poll, required: true}
       - {name: student_id, type: uuid, ref: ENT-User, required: true}
-    retention: "Kept with the poll; follows the student's erasure (SEC-003)"
+    retention: "Kept with the poll; deleted with the student's account (on delete cascade), the anonymous votes stay (SCOPE-026)"
     used_by: [UC-013]
 
   - id: ENT-PollVote

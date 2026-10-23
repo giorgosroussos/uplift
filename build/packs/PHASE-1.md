@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-1 — Walking skeleton: project, CI and all checks, modules, tenancy, organisation registration and login
 
-_design v3.1.0 · 6c4796be3fe5_
+_design v3.2.0 · 626aadb4b16e_
 
 Depends on: none · environment: development · components: CMP-Tenancy, CMP-Identity, CMP-Audit
 

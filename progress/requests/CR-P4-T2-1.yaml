@@ -1,0 +1,88 @@
+id: CR-P4-T2-1
+raised_by: implementation-agent
+task: P4-T2
+status: accepted
+problem: >
+  (1) Acceptance criteria from other tasks. The P4-T2 brief (Polls, UC-013)
+  has 13 acceptance criteria. Nine of them are not about polls: OWN-008
+  (ENT-TopicChoice), OWN-009 (ENT-TopicProposal) and OWN-010 (ENT-Booking),
+  each for ROLE-Student and ROLE-Teacher, and the ENT-TopicProposal state
+  criterion. They are in the brief only because build.py adds every phase
+  entity that the written component (CMP-Activities) owns. This is the same
+  issue as CR-P3-T2-1. Topic choices, proposals and bookings are built by
+  P4-T3, P4-T4 and P4-T5. They also need groups (group_id, "their group's"),
+  which P4-T1 builds in parallel and which P4-T2 may not read. P4-T2 cannot
+  pass these criteria without building their scope, and P4-T2 has no
+  description that defers them, as P3-T2 got after CR-P3-T2-1. The UC-013
+  and OWN-011 criteria are implemented and tested on branch P4-T2.
+  (2) The poll spec leaves open some behaviour that changes what students
+  and teachers can do or see. Branch P4-T2 made one choice for each point
+  (see proposal 2). The code is kept so it can be reused once each point is
+  decided:
+  (a) limits: how many options a poll may have, the length of an option
+  label, whether two options may have the same text, and the range of
+  max_choices;
+  (b) defaults of a new poll in the wizard (max_choices,
+  results_visibility);
+  (c) who sees the results and when. UC-013 covers only the student who
+  voted. Open: does the owning teacher see the tally while the poll is open
+  (OWN-011 says only "a teacher sees only vote counts per option and the
+  number of participants")? Does an org admin see it (UC-013 criterion 3
+  mentions the org admin, but OWN-004 / ActivityPolicy show org admins no
+  individual activities)? Does a student who did not vote see the results
+  after the poll closes, under each results_visibility?
+  (d) what "the poll closes" means: only when the teacher closes the
+  activity, or also when its deadline_at passes;
+  (e) editing a published poll that already has votes: which changes are
+  refused (the wizard's "grading lock" is the only existing mechanism);
+  (f) the submissions overview (UC-028) for an anonymous poll, and whether
+  the teacher sees the number of participants;
+  (g) what happens to a participation and its votes when the student's
+  account is deleted (retention "follows the student's erasure").
+affects:
+  - "design/phases/PHASE-4.yaml (P4-T2 description: OWN-008/009/010 and the ENT-TopicProposal state criterion belong to P4-T3/P4-T4/P4-T5)"
+  - build.py brief generation (entity selection by component), if the fix is generic
+  - UC-013 (rules and acceptance criteria), SCOPE-013, OWN-011, SEC-009
+  - ENT-Poll / ENT-PollOption / ENT-PollParticipation (validation, defaults, retention)
+  - "CMP-Activities: Actions/{SavePollSettings, SavePollOptions, CastPollVote, ShowPoll}, Support/PollType, Policies/{PollPolicy, PollParticipationPolicy}, Models/Poll"
+proposal: >
+  1. Add to the P4-T2 description, as for P3-T2, that the OWN-008, OWN-009,
+  OWN-010 and ENT-TopicProposal state criteria in its brief are verified in
+  P4-T3 (topic choices), P4-T4 (proposals and their states) and P4-T5
+  (bookings), not in P4-T2.
+  2. Adopt the choices implemented on branch P4-T2:
+  (a) 2-20 options per poll; label required, at most 255 characters, and
+  different from the other labels of the poll (ignoring case);
+  max_choices 1-20, and the poll cannot be published with more choices than
+  options;
+  (b) a new poll defaults to max_choices 1 and results_visibility
+  after_vote;
+  (c) the owning teacher sees the tally (votes per option and number of
+  participants) at any time, also while the poll is open; other teachers
+  and org admins do not see the poll (OWN-004); a student sees the results
+  after their own vote when results_visibility is after_vote, and every
+  enrolled student (also one who did not vote) sees them once the poll is
+  closed, under both settings;
+  (d) a poll is closed when its activity is closed or its deadline has
+  passed (server time, DATA-004); voting is refused from then on;
+  (e) once anyone has voted, changes to max_choices and to the set or
+  labels of the options are refused (409 problem details, as for the quiz
+  grading lock); reordering the options and changing results_visibility
+  are still allowed;
+  (f) polls have no submissions overview (the list is always empty and the
+  activity page links to the poll's results instead); the teacher sees
+  only the number of participants;
+  (g) deleting a user deletes their participations (on delete cascade);
+  the anonymous votes stay in the tally.
+  Criteria, e.g.: "Given a poll with 1 option, When the teacher publishes
+  it, Then it is refused"; "Given an open poll with votes, When the teacher
+  opens it, Then they see the counts and the number of participants";
+  "Given a poll whose deadline has passed, When a student votes, Then it is
+  refused"; "Given a poll with votes, When the teacher changes an option's
+  text, Then it is refused".
+resolution: >
+  Accepted in design v3.2.0. (1) P4-T2 gets an explicit entities list and a description that
+  leaves the OWN-008/009/010 and ENT-TopicProposal state criteria to P4-T3/P4-T4/P4-T5.
+  (2) The branch choices (a)-(g) are adopted as SCOPE-026; UC-013 criteria extended (org admin
+  removed from its tally criterion), OWN-011 and ENT-PollParticipation retention updated
+  (engineer: "1 Α, 2 Α. ok").

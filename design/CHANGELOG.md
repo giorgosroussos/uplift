@@ -1,5 +1,9 @@
 # Design changelog
 
+## v3.2.0 — 2026-10-23
+
+- Poll limits, defaults, results visibility, closing, edit lock and erasure (SCOPE-026); P4-T2 scoped to poll entities (CR-P4-T2-1)
+
 ## v3.1.0 — 2026-10-23
 
 - Group rules: several groups per student, owner with transfer, withdraw and re-invitation, soft delete, cleanup on unenrolment, acting group per activity, former members keep seeing their graded group attempts (UC-019, SCOPE-025, OWN-006) (CR-P4-T1-1)

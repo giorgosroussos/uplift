@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v3.1.0 · source 6c4796be3fe5_
+_Generated document · design v3.2.0 · source 626aadb4b16e_
 
 
 ## Entity–relationship diagram
@@ -591,7 +591,7 @@ Relations: one-to-many → ENT-PollVote (on delete cascade)
 
 #### ENT-PollParticipation — Records THAT a student voted, never what (DATA-006)
 
-Owned by CMP-Activities · retention: Kept with the poll; follows the student's erasure (SEC-003) · audit: no
+Owned by CMP-Activities · retention: Kept with the poll; deleted with the student's account (on delete cascade), the anonymous votes stay (SCOPE-026) · audit: no
 
 | attribute | type | storage | notes |
 |---|---|---|---|

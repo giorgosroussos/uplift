@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-4 — The other four activity types and groups: polls, topic selection, topic proposals with approval, slot booking, group activities
 
-_design v3.1.0 · 6c4796be3fe5_
+_design v3.2.0 · 626aadb4b16e_
 
 Depends on: PHASE-3 · environment: development · components: CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications
 
@@ -53,11 +53,11 @@ Main flow:
 1. Student opens an open poll in an enrolled course space
 2. Selects one option, or up to the allowed number of options
 3. Submits the vote; it cannot be changed
-4. Sees results after voting or after the poll closes, as set by the teacher
+4. Sees results after voting or after the poll closes, as set by the teacher; after closing every enrolled student sees them (SCOPE-026)
 
 Exceptions:
 - Already voted: a second vote is refused
-- Poll closed: voting refused
+- Poll closed (activity closed or deadline passed): voting refused
 
 #### UC-014 — Select assignment topic (must)
 
@@ -167,7 +167,7 @@ Relations: one-to-many → ENT-PollVote (on delete cascade)
 
 #### ENT-PollParticipation — Records THAT a student voted, never what (DATA-006)
 
-Owned by CMP-Activities · retention: Kept with the poll; follows the student's erasure (SEC-003) · audit: no
+Owned by CMP-Activities · retention: Kept with the poll; deleted with the student's account (on delete cascade), the anonymous votes stay (SCOPE-026) · audit: no
 
 | attribute | type | storage | notes |
 |---|---|---|---|
@@ -317,6 +317,15 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST check ENT-Activity.group_size only when a group acts in an activity, not at group level  (SCOPE-025)
 - MUST give teachers and org admins read-only access to groups (OWN-005)  (SCOPE-025)
 - MUST dispatch App\Modules\Courses\Events\GroupInvitationCreated(organizationId, groupMembershipId) and GroupMembershipChanged(organizationId, groupMembershipId, fromStatus, toStatus) after commit  (SCOPE-025)
+- MUST require 2-20 options per poll with labels of 1-255 characters, unique within the poll ignoring case  (SCOPE-026)
+- MUST keep max_choices within 1-20 and refuse publishing with max_choices above the number of options  (SCOPE-026)
+- MUST default a new poll to max_choices 1 and results_visibility after_vote  (SCOPE-026)
+- MUST show the owning teacher the votes per option and the number of participants at any time, and never the participants  (SCOPE-026)
+- MUST NOT show a poll to other teachers or to org admins  (SCOPE-026)
+- MUST show results to every enrolled student once the poll is closed  (SCOPE-026)
+- MUST treat a poll as closed when its activity is closed or its deadline has passed, and refuse votes from then on  (SCOPE-026)
+- MUST refuse, once a vote exists, changes to max_choices and to the set or labels of options with 409 problem details  (SCOPE-026)
+- MUST delete a user's poll participations with the account and keep the anonymous votes  (SCOPE-026)
 - MUST NOT expose the list of participants of a poll to teachers or admins  (SEC-009)
 - MUST NOT store a user reference on poll choices  (DATA-006)
 - MUST record poll participation separately to prevent a second vote  (DATA-006)
@@ -328,7 +337,7 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST enforce OWN-008 on every read and write of ENT-TopicChoice: A student changes only their own or their group's topic choice; a teacher sees choices only of their own activities
 - MUST enforce OWN-009 on every read and write of ENT-TopicProposal: A student reads only their own or their group's proposals; a teacher decides only proposals of their own activities
 - MUST enforce OWN-010 on every read and write of ENT-Booking: A student changes only their own or their group's booking; a teacher sees bookings only of their own activities
-- MUST enforce OWN-011 on every read and write of ENT-PollParticipation: A student sees only their own participation; a teacher sees only vote counts per option and the number of participants, never who voted or what anyone voted
+- MUST enforce OWN-011 on every read and write of ENT-PollParticipation: A student sees only their own participation; the owning teacher sees vote counts per option and the number of participants at any time, never who voted or what anyone voted; other teachers and org admins do not see the poll (SCOPE-026)
 - CMP-Courses MUST only depend on: CMP-Tenancy, CMP-Identity
 - CMP-Activities MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses
 - CMP-Assessment MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities
@@ -382,8 +391,17 @@ Standing constraints from deferred decisions (apply now):
 - [UC-019] Given a group of organisation A, When a user of organisation B requests it, Then it is not found
 - [UC-013] Given a student who has voted, When they vote again, Then it is refused and the tally is unchanged
 - [UC-013] Given a poll with results after closing, When a student has voted and the poll is still open, Then results are not shown to them
-- [UC-013] Given 3 votes on option A and 1 on B, When results are shown, Then A has 3 and B has 1 and no voter identity is shown to anyone, including the teacher and org admin
+- [UC-013] Given 3 votes on option A and 1 on B, When results are shown, Then A has 3 and B has 1 and no voter identity is shown to anyone, including the teacher
 - [UC-013] Given a poll allowing at most 2 options, When a student selects 3, Then the vote is rejected
+- [UC-013] Given a poll with 1 option, or 21 options, or two options whose labels differ only in case, When the teacher saves or publishes it, Then it is refused
+- [UC-013] Given a poll with 3 options and max_choices 4, When the teacher publishes it, Then it is refused
+- [UC-013] Given a new poll in the wizard, Then max_choices is 1 and results_visibility is after_vote
+- [UC-013] Given an open poll with votes, When the owning teacher opens it, Then they see the votes per option and the number of participants; When another teacher or an org admin opens it, Then it is refused
+- [UC-013] Given a closed poll with results after voting or after closing, When an enrolled student who did not vote opens it, Then they see the results
+- [UC-013] Given a poll whose deadline has passed, When a student votes, Then it is refused
+- [UC-013] Given a poll with votes, When the teacher changes max_choices or an option's label, or adds or removes an option, Then it is refused with 409 problem details; When they reorder the options or change results_visibility, Then it succeeds
+- [UC-013] Given a poll, When the teacher opens the activity's submissions, Then there is no submissions list and the page links to the poll's results
+- [UC-013] Given a student who voted, When their account is deleted, Then their participation is deleted and the tally is unchanged
 - [UC-014] Given a topic with capacity 1 and two students selecting it at the same time, Then exactly one selection succeeds
 - [UC-014] Given a student holding topic A before the deadline, When they switch to topic B with free capacity, Then they hold B and A regains 1 free place
 - [UC-014] Given the deadline has passed, When a student cancels their topic, Then it is refused
@@ -405,8 +423,8 @@ Standing constraints from deferred decisions (apply now):
 - [OWN-009] Given a ROLE-Teacher user, When they read or modify an ENT-TopicProposal record the rule does not grant them (A student reads only their own or their group's proposals; a teacher decides only proposals of their own activities), Then access is denied and nothing changes
 - [OWN-010] Given a ROLE-Student user, When they read or modify an ENT-Booking record the rule does not grant them (A student changes only their own or their group's booking; a teacher sees bookings only of their own activities), Then access is denied and nothing changes
 - [OWN-010] Given a ROLE-Teacher user, When they read or modify an ENT-Booking record the rule does not grant them (A student changes only their own or their group's booking; a teacher sees bookings only of their own activities), Then access is denied and nothing changes
-- [OWN-011] Given a ROLE-Student user, When they read or modify an ENT-PollParticipation record the rule does not grant them (A student sees only their own participation; a teacher sees only vote counts per option and the number of participants, never who voted or what anyone voted), Then access is denied and nothing changes
-- [OWN-011] Given a ROLE-Teacher user, When they read or modify an ENT-PollParticipation record the rule does not grant them (A student sees only their own participation; a teacher sees only vote counts per option and the number of participants, never who voted or what anyone voted), Then access is denied and nothing changes
+- [OWN-011] Given a ROLE-Student user, When they read or modify an ENT-PollParticipation record the rule does not grant them (A student sees only their own participation; the owning teacher sees vote counts per option and the number of participants at any time, never who voted or what anyone voted; other teachers and org admins do not see the poll (SCOPE-026)), Then access is denied and nothing changes
+- [OWN-011] Given a ROLE-Teacher user, When they read or modify an ENT-PollParticipation record the rule does not grant them (A student sees only their own participation; the owning teacher sees vote counts per option and the number of participants at any time, never who voted or what anyone voted; other teachers and org admins do not see the poll (SCOPE-026)), Then access is denied and nothing changes
 - [ENT-GroupMembership] Given any state, When a transition not in the state model is attempted, Then it is rejected and the state is unchanged
 - [ENT-TopicProposal] Given any state, When a transition not in the state model is attempted, Then it is rejected and the state is unchanged
 - [INT-001] Given EXT-002 is unavailable or times out, Then: Emails stay queued and are retried; no user flow is blocked; the in-app notification is created regardless; after the last retry an invitation shows 'email not delivered' to the admin, who can resend it

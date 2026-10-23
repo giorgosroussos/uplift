@@ -271,3 +271,23 @@ decisions:
       - "MUST dispatch App\\Modules\\Courses\\Events\\GroupInvitationCreated(organizationId, groupMembershipId) and GroupMembershipChanged(organizationId, groupMembershipId, fromStatus, toStatus) after commit"
     affects: [UC-019, ENT-Group, ENT-GroupMembership, OWN-005, OWN-006, SCOPE-017, P4-T1, P4-T3, P4-T4, P4-T5, P4-T6, P4-T7]
     since: 3.1.0
+  - id: SCOPE-026
+    area: scope
+    title: Poll limits, defaults, visibility and edit lock
+    status: decided
+    source: user
+    user_statement: "1 Α, 2 Α. ok"
+    decision: "A poll has 2-20 options; each label is required, at most 255 characters and unique within the poll ignoring case; max_choices is 1-20 and a poll cannot be published with max_choices above its number of options. A new poll defaults to max_choices 1 and results_visibility after_vote. The owning teacher sees votes per option and the number of participants at any time, also while the poll is open; other teachers and org admins do not see the poll (OWN-004). A student sees the results after their own vote when results_visibility is after_vote, and every enrolled student, voter or not, sees them once the poll is closed. A poll is closed when its activity is closed or its deadline has passed (server time); voting is refused from then on. Once anyone has voted, changes to max_choices and to the set or labels of the options are refused (409 problem details); reordering options and changing results_visibility stay allowed. Polls have no submissions overview (UC-028); the activity page links to the results. Deleting a user deletes their participations; the anonymous votes stay in the tally"
+    rationale: "Resolves CR-P4-T2-1 by adopting the choices implemented on branch P4-T2; refines SCOPE-013 and SEC-009"
+    constraints:
+      - "MUST require 2-20 options per poll with labels of 1-255 characters, unique within the poll ignoring case"
+      - "MUST keep max_choices within 1-20 and refuse publishing with max_choices above the number of options"
+      - "MUST default a new poll to max_choices 1 and results_visibility after_vote"
+      - "MUST show the owning teacher the votes per option and the number of participants at any time, and never the participants"
+      - "MUST NOT show a poll to other teachers or to org admins"
+      - "MUST show results to every enrolled student once the poll is closed"
+      - "MUST treat a poll as closed when its activity is closed or its deadline has passed, and refuse votes from then on"
+      - "MUST refuse, once a vote exists, changes to max_choices and to the set or labels of options with 409 problem details"
+      - "MUST delete a user's poll participations with the account and keep the anonymous votes"
+    affects: [UC-013, UC-028, ENT-Poll, ENT-PollOption, ENT-PollParticipation, OWN-011, SCOPE-013, SEC-009, P4-T2]
+    since: 3.2.0

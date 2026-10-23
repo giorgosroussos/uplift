@@ -4,7 +4,7 @@ depends_on: [PHASE-3]
 use_cases: [UC-019, UC-013, UC-014, UC-015, UC-027, UC-016]
 entities: [ENT-Group, ENT-GroupMembership, ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote, ENT-TopicActivity, ENT-Topic, ENT-TopicChoice, ENT-TopicProposal, ENT-SlotActivity, ENT-Slot, ENT-Booking]
 components: [CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications]
-decisions: [SCOPE-011, SCOPE-012, SCOPE-013, SCOPE-017, SCOPE-025, SEC-009, DATA-006]
+decisions: [SCOPE-011, SCOPE-012, SCOPE-013, SCOPE-017, SCOPE-025, SCOPE-026, SEC-009, DATA-006]
 environment: development
 out_of_scope:
   - "Live quizzes (PHASE-5)"
@@ -18,7 +18,9 @@ tasks:
     touches: {writes: [CMP-Courses], migrations: true}
   - id: P4-T2
     title: Polls
+    description: "Polls per SCOPE-013, SEC-009 and SCOPE-026: wizard settings and options with limits and defaults, voting, results visibility, closing at deadline or close, edit lock after the first vote, no submissions overview. Scope is ENT-Poll, ENT-PollOption, ENT-PollParticipation and ENT-PollVote only: the OWN-008, OWN-009 and OWN-010 criteria and the ENT-TopicProposal state criteria that appear in this brief belong to P4-T3, P4-T4 and P4-T5 and are NOT verified here"
     use_cases: [UC-013]
+    entities: [ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote]
     touches: {writes: [CMP-Activities], migrations: true}
   - id: P4-T3
     title: Topic selection

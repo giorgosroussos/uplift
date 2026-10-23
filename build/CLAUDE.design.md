@@ -1,5 +1,5 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
-# Design rules — Uplift (design v3.1.0 · 6c4796be3fe5)
+# Design rules — Uplift (design v3.2.0 · 626aadb4b16e)
 
 Multi-tenant SaaS educational platform where organisations (universities, schools, tutoring centres, companies) run course spaces with interactive activities: quizzes, polls, assignment-topic selection and proposal, and presentation/exam slot booking. Its flagship is a real-time live quiz with gamification, backed by analytics for teachers and organisations.
 
