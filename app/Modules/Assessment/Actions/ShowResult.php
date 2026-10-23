@@ -17,7 +17,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * up is submitted first (SCOPE-024).
  *
  * Returns null while the attempt is still in progress: it has no result
- * yet. The result of a deleted activity is not found.
+ * yet. The result of a deleted activity is not found. A group attempt
+ * names its group: every member gets the same result (SCOPE-012).
  */
 class ShowResult
 {
@@ -54,6 +55,7 @@ class ShowResult
             'attempt' => [
                 'id' => $attempt->id,
                 'number' => $attempt->number(),
+                'group' => $attempt->group?->name,
                 'status' => $attempt->status->value,
                 'submitted_at' => $attempt->submitted_at?->toIso8601String(),
                 'final' => $attempt->status === AttemptStatus::Graded,

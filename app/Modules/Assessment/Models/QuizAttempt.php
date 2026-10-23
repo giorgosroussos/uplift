@@ -6,6 +6,7 @@ use App\Modules\Assessment\Database\Factories\QuizAttemptFactory;
 use App\Modules\Assessment\Enums\AttemptStatus;
 use App\Modules\Assessment\Enums\GradingStatus;
 use App\Modules\Assessment\Exceptions\InvalidStateTransition;
+use App\Modules\Courses\Models\Group;
 use App\Modules\Identity\Models\User;
 use App\Modules\Tenancy\Concerns\BelongsToOrganization;
 use Carbon\CarbonImmutable;
@@ -18,7 +19,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * ENT-QuizAttempt: one attempt of a self-paced quiz. Access follows OWN-006
+ * ENT-QuizAttempt: one attempt of a self-paced quiz by a student
+ * (student_id) or, in a group quiz, by a group (group_id, SCOPE-012). Access
+ * follows OWN-006
  * (Policies/QuizAttemptPolicy). The status follows the state model
  * (in_progress -> submitted -> graded); any other change is rejected and
  * leaves the status unchanged. earned_points is personal data and never
@@ -41,6 +44,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $updated_at
  * @property-read Quiz $quiz
  * @property-read User|null $student
+ * @property-read Group|null $group
  * @property-read Collection<int, Answer> $answers
  */
 #[UseFactory(QuizAttemptFactory::class)]
@@ -128,15 +132,24 @@ class QuizAttempt extends Model
     }
 
     /**
-     * The attempt's ordinal among its student's attempts of the quiz (1 = first).
+     * The attempt's ordinal among its student's (or group's) attempts of
+     * the quiz (1 = first).
      */
     public function number(): int
     {
-        return self::query()
+        $query = self::query()
             ->where('quiz_id', $this->quiz_id)
-            ->where('student_id', $this->student_id)
-            ->where('started_at', '<=', $this->started_at)
-            ->count();
+            ->where('started_at', '<=', $this->started_at);
+
+        return ($this->isGroupAttempt()
+            ? $query->where('group_id', $this->group_id)
+            : $query->where('student_id', $this->student_id)
+        )->count();
+    }
+
+    public function isGroupAttempt(): bool
+    {
+        return $this->group_id !== null;
     }
 
     /**
@@ -166,6 +179,17 @@ class QuizAttempt extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    /**
+     * The group of a group attempt, also after the group's deletion
+     * (SCOPE-025: its attempts stay as history).
+     *
+     * @return BelongsTo<Group, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class)->withTrashed();
     }
 
     /**

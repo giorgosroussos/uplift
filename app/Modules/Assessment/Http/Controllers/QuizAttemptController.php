@@ -38,7 +38,10 @@ class QuizAttemptController extends Controller
     {
         Gate::authorize('take', [QuizAttempt::class, $activity]);
 
-        $attempt = $start->handle($this->user($request), $activity);
+        // A group quiz: the group the attempt belongs to (SCOPE-025).
+        $validated = $request->validate(['group_id' => ['nullable', 'uuid']]);
+
+        $attempt = $start->handle($this->user($request), $activity, $validated['group_id'] ?? null);
 
         return to_route('assessment.attempts.show', $attempt);
     }

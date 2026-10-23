@@ -39,6 +39,7 @@ class ShowAttemptForGrading
                 'id' => $attempt->id,
                 'number' => $attempt->number(),
                 'student' => $attempt->student?->name,
+                'group' => $attempt->group?->name,
                 'status' => $attempt->status->value,
                 'submitted_at' => $attempt->submitted_at?->toIso8601String(),
                 'final' => $attempt->status === AttemptStatus::Graded,

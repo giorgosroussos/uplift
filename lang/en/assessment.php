@@ -271,6 +271,16 @@ return [
             'back' => 'Back to the activity',
             'your_attempts' => 'Your attempts',
             'attempt_number' => 'Attempt :number',
+            // SCOPE-012, SCOPE-025: group quizzes.
+            'group_quiz' => 'Group quiz: one member answers and submits for the whole group, and every member gets the same grade.',
+            'group_size' => 'Group size: at most :size members',
+            'group' => 'Group',
+            'choose_group' => 'Take part with group',
+            'group_option' => ':name (:members members, :left attempts left)',
+            'no_groups' => 'You are not a member of a group in this course space. Create or join a group to take this quiz.',
+            'open_groups' => 'Go to the groups',
+            'no_group_can_start' => 'None of your groups can start an attempt now.',
+            'group_attempt' => 'Group :group',
         ],
         'take' => [
             'question_number' => 'Question :number',
@@ -289,6 +299,7 @@ return [
             'back' => 'Back to the quiz',
             'provisional_notice' => 'Your score is provisional until your teacher grades the free-text answers.',
             'score_hidden' => 'Your attempt was submitted. Your teacher has not made the score visible yet.',
+            'group_notice' => 'Group attempt of :group: any member can answer and submit it for the whole group.',
         ],
         'refused' => [
             'not_self_paced' => 'This quiz is not taken in attempts.',
@@ -296,6 +307,11 @@ return [
             'deadline_passed' => 'The deadline of this quiz has passed.',
             'in_progress' => 'You already have an attempt in progress. Continue that attempt.',
             'no_attempts_left' => 'You have no attempts left.',
+            'choose_group' => 'Choose one of your groups in this course space.',
+            'group_too_large' => 'This group has more members than the quiz allows.',
+            'group_in_progress' => 'This group already has an attempt in progress. Continue that attempt.',
+            'group_no_attempts_left' => 'This group has no attempts left.',
+            'other_group' => 'A member of this group already takes part in this quiz through another group.',
         ],
         'errors' => [
             'one_option' => 'Select only one option.',
@@ -342,6 +358,7 @@ return [
             'provisional_notice' => 'This result is provisional until your teacher grades the free-text answers.',
             'score_hidden' => 'Your teacher has not made the score visible yet.',
             'answers_hidden' => 'The correct answers are not visible yet.',
+            'group' => 'Group attempt of :group: every member gets this grade.',
         ],
     ],
 
@@ -367,6 +384,7 @@ return [
     'grading' => [
         'title' => 'Grade attempt',
         'student' => 'Student',
+        'group' => 'Group',
         'back' => 'Back to submissions',
         'points' => 'Points',
         'points_hint' => 'From 0 to :max, with up to 2 decimal places.',

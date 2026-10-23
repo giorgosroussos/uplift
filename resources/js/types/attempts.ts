@@ -43,6 +43,29 @@ export type StudentQuiz = {
     question_count: number;
     negative_marking: boolean;
     negative_mark_fraction: string | null;
+    /** SCOPE-012: attempts belong to a group the student picks. */
+    is_group: boolean;
+    group_size: number | null;
+    course_space_id: string;
+};
+
+/**
+ * Reasons a group may not start an attempt now (keys of
+ * assessment.attempt.refused).
+ */
+export type GroupRefusal =
+    | 'group_too_large'
+    | 'group_in_progress'
+    | 'group_no_attempts_left'
+    | 'other_group';
+
+/** One of the student's groups that may act in a group quiz (SCOPE-025). */
+export type GroupChoice = {
+    id: string;
+    name: string;
+    members: number;
+    attempts_left: number;
+    refusal: GroupRefusal | null;
 };
 
 export type AttemptSummary = {
@@ -52,6 +75,8 @@ export type AttemptSummary = {
     started_at: string;
     submitted_at: string | null;
     score: AttemptScore | null;
+    /** The group's name for a group attempt. */
+    group: string | null;
 };
 
 export type AttemptDetails = {
@@ -63,6 +88,8 @@ export type AttemptDetails = {
     /** Seconds left by the server's clock, or null without an end. */
     remaining_seconds: number | null;
     submitted_at: string | null;
+    /** The group's name for a group attempt. */
+    group: string | null;
 };
 
 export type AttemptItem = {

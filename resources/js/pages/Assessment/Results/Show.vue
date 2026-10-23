@@ -29,6 +29,7 @@ defineProps<{
         status: AttemptStatus;
         submitted_at: string | null;
         final: boolean;
+        group: string | null;
     };
     score: AttemptScore | null;
     answersVisible: boolean;
@@ -49,6 +50,13 @@ defineProps<{
                 {{
                     $t('assessment.results.index.attempt', {
                         number: String(attempt.number),
+                    })
+                }}
+            </p>
+            <p v-if="attempt.group" class="text-sm" data-test="result-group">
+                {{
+                    $t('assessment.results.show.group', {
+                        group: attempt.group,
                     })
                 }}
             </p>

@@ -17,7 +17,7 @@ use Carbon\CarbonImmutable;
  * options or pairs are correct), the answers saved so far, the time left
  * by the server's clock (DATA-004) and, once submitted, the score if the
  * quiz shows it. An attempt whose time is up is submitted first
- * (SCOPE-024).
+ * (SCOPE-024). A group attempt names its group (SCOPE-012).
  */
 class ShowAttempt
 {
@@ -37,12 +37,6 @@ class ShowAttempt
         $answers = $attempt->answers()->with(['selections', 'matches'])->get()->keyBy('quiz_question_id');
         $placements = $quiz->quizQuestions()->with(['question.options', 'question.pairs'])->get();
 
-        $number = QuizAttempt::query()
-            ->where('quiz_id', $attempt->quiz_id)
-            ->where('student_id', $attempt->student_id)
-            ->where('started_at', '<=', $attempt->started_at)
-            ->count();
-
         return [
             'quiz' => [
                 'activity_id' => $activity->id,
@@ -50,7 +44,10 @@ class ShowAttempt
             ],
             'attempt' => [
                 'id' => $attempt->id,
-                'number' => $number,
+                'number' => $attempt->number(),
+                // SCOPE-012: a group attempt is answered and submitted by
+                // any member for the whole group.
+                'group' => $attempt->group?->name,
                 'status' => $attempt->status->value,
                 'started_at' => $attempt->started_at->toIso8601String(),
                 'ends_at' => $attempt->ends_at?->toIso8601String(),

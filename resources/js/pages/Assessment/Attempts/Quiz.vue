@@ -6,12 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { index, show as showActivity } from '@/routes/activities';
 import { show as showAttempt, store } from '@/routes/assessment/attempts';
-import type { AttemptSummary, StudentQuiz } from '@/types/attempts';
+import { index as groupsIndex } from '@/routes/courses/groups';
+import type {
+    AttemptSummary,
+    GroupChoice,
+    StudentQuiz,
+} from '@/types/attempts';
 
 /*
  * UC-012: a self-paced quiz as the student sees it: its rules, their own
  * attempts with the scores they may see, and starting or continuing an
- * attempt.
+ * attempt. In a group quiz (SCOPE-012, SCOPE-025) the student picks which
+ * of their groups the attempt belongs to; groups that may not start one
+ * now show why.
  */
 defineOptions({
     layout: {
@@ -25,13 +32,30 @@ const props = defineProps<{
     attemptsLeft: number;
     inProgressId: string | null;
     canStart: boolean;
+    /** Null unless the quiz is a group quiz. */
+    groups: GroupChoice[] | null;
 }>();
 
 const page = usePage();
 const refusal = computed(
     () => (page.props.errors as Record<string, string> | undefined)?.attempt,
 );
+const groupError = computed(
+    () => (page.props.errors as Record<string, string> | undefined)?.group_id,
+);
 const starting = ref(false);
+const groupId = ref<string>(
+    props.groups?.find((group) => group.refusal === null)?.id ?? '',
+);
+const chosenGroup = computed(
+    () => props.groups?.find((group) => group.id === groupId.value) ?? null,
+);
+const canStartNow = computed(
+    () =>
+        props.canStart &&
+        (!props.quiz.is_group ||
+            (chosenGroup.value !== null && chosenGroup.value.refusal === null)),
+);
 
 const deadlinePassed = computed(
     () =>
@@ -50,7 +74,7 @@ function start(): void {
     starting.value = true;
     router.post(
         store(props.quiz.activity_id).url,
-        {},
+        props.quiz.is_group ? { group_id: groupId.value } : {},
         {
             onFinish: () => {
                 starting.value = false;
@@ -136,9 +160,85 @@ function start(): void {
             </AlertDescription>
         </Alert>
 
+        <Alert v-if="quiz.is_group" data-test="quiz-group-notice">
+            <AlertDescription class="flex flex-col gap-1">
+                <span>{{ $t('assessment.attempt.quiz.group_quiz') }}</span>
+                <span v-if="quiz.group_size">
+                    {{
+                        $t('assessment.attempt.quiz.group_size', {
+                            size: String(quiz.group_size),
+                        })
+                    }}
+                </span>
+            </AlertDescription>
+        </Alert>
+
         <Alert v-if="refusal" variant="destructive" data-test="attempt-refused">
             <AlertDescription>{{ refusal }}</AlertDescription>
         </Alert>
+        <Alert
+            v-if="groupError"
+            variant="destructive"
+            data-test="attempt-group-refused"
+        >
+            <AlertDescription>{{ groupError }}</AlertDescription>
+        </Alert>
+
+        <div
+            v-if="quiz.is_group && !inProgressId && groups"
+            class="flex flex-col gap-2"
+        >
+            <template v-if="groups.length > 0">
+                <label for="attempt-group" class="text-sm font-medium">
+                    {{ $t('assessment.attempt.quiz.choose_group') }}
+                </label>
+                <select
+                    id="attempt-group"
+                    v-model="groupId"
+                    class="h-9 max-w-md rounded-md border border-input bg-transparent px-3 text-sm shadow-xs dark:bg-input/30"
+                    data-test="attempt-group-select"
+                >
+                    <option value="" disabled>
+                        {{ $t('assessment.attempt.quiz.group') }}
+                    </option>
+                    <option
+                        v-for="group in groups"
+                        :key="group.id"
+                        :value="group.id"
+                    >
+                        {{
+                            $t('assessment.attempt.quiz.group_option', {
+                                name: group.name,
+                                members: String(group.members),
+                                left: String(group.attempts_left),
+                            })
+                        }}
+                    </option>
+                </select>
+                <p
+                    v-if="chosenGroup?.refusal"
+                    class="text-sm text-muted-foreground"
+                    data-test="attempt-group-reason"
+                >
+                    {{
+                        $t(`assessment.attempt.refused.${chosenGroup.refusal}`)
+                    }}
+                </p>
+            </template>
+            <p
+                v-else
+                class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
+                data-test="attempt-no-groups"
+            >
+                {{ $t('assessment.attempt.quiz.no_groups') }}
+                <Link
+                    :href="groupsIndex(quiz.course_space_id)"
+                    class="underline underline-offset-4"
+                >
+                    {{ $t('assessment.attempt.quiz.open_groups') }}
+                </Link>
+            </p>
+        </div>
 
         <div class="flex flex-wrap items-center gap-3">
             <Button v-if="inProgressId" as-child>
@@ -151,7 +251,7 @@ function start(): void {
             </Button>
             <Button
                 v-else-if="canStart"
-                :disabled="starting"
+                :disabled="starting || !canStartNow"
                 data-test="attempt-start"
                 @click="start"
             >
@@ -167,7 +267,9 @@ function start(): void {
                         ? $t('assessment.attempt.quiz.closed')
                         : deadlinePassed
                           ? $t('assessment.attempt.quiz.deadline_passed')
-                          : $t('assessment.attempt.quiz.no_attempts_left')
+                          : quiz.is_group
+                            ? $t('assessment.attempt.quiz.no_group_can_start')
+                            : $t('assessment.attempt.quiz.no_attempts_left')
                 }}
             </p>
             <Button variant="outline" as-child>
@@ -201,6 +303,17 @@ function start(): void {
                         </Link>
                         <span class="text-muted-foreground">
                             {{ formatDate(attempt.started_at) }}
+                        </span>
+                        <span
+                            v-if="attempt.group"
+                            class="text-muted-foreground"
+                            data-test="attempt-group-name"
+                        >
+                            {{
+                                $t('assessment.attempt.quiz.group_attempt', {
+                                    group: attempt.group,
+                                })
+                            }}
                         </span>
                     </div>
                     <div class="flex items-center gap-2">

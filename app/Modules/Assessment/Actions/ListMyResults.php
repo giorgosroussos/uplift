@@ -5,6 +5,7 @@ namespace App\Modules\Assessment\Actions;
 use App\Modules\Assessment\Enums\AttemptStatus;
 use App\Modules\Assessment\Models\QuizAttempt;
 use App\Modules\Assessment\Support\AttemptScore;
+use App\Modules\Assessment\Support\GroupAttempts;
 use App\Modules\Identity\Models\User;
 use App\Modules\Tenancy\Support\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +16,9 @@ use Illuminate\Support\Collection;
  * (OWN-006), grouped per activity with the most recent activity first:
  * each attempt's score on the organisation's grading scale (when the quiz
  * shows it), whether it is provisional or final, and whether the teacher
- * left feedback. Attempts whose time is up are submitted first
+ * left feedback. Group attempts the student takes part in are their
+ * results too, with the group's grade (SCOPE-012, OWN-006). Attempts whose
+ * time is up are submitted first
  * (SCOPE-024); attempts still in progress are not results yet.
  */
 class ListMyResults
@@ -31,10 +34,12 @@ class ListMyResults
     public function handle(User $student): array
     {
         $attempts = QuizAttempt::query()
-            ->where('student_id', $student->getKey())
+            ->where(fn (Builder $own) => $own
+                ->where('student_id', $student->getKey())
+                ->orWhere(fn (Builder $group) => GroupAttempts::whereTakesPart($group, [(string) $student->getKey()])))
             // Results of deleted activities are not listed.
             ->whereHas('quiz', fn (Builder $quiz) => $quiz->whereHas('activity'))
-            ->with(['quiz.activity.courseSpace'])
+            ->with(['quiz.activity.courseSpace', 'group'])
             ->withCount(['answers as feedback_count' => fn (Builder $answers) => $answers->whereNotNull('feedback')])
             ->orderBy('started_at')
             ->get();
@@ -58,7 +63,8 @@ class ListMyResults
                 $results = $quizAttempts->values()
                     ->map(fn (QuizAttempt $attempt, int $i): array => [
                         'id' => $attempt->id,
-                        'number' => $i + 1,
+                        'number' => $attempt->isGroupAttempt() ? $attempt->number() : $i + 1,
+                        'group' => $attempt->group?->name,
                         'status' => $attempt->status->value,
                         'submitted_at' => $attempt->submitted_at?->toIso8601String(),
                         'final' => $attempt->status === AttemptStatus::Graded,
