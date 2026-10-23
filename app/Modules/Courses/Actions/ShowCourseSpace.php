@@ -4,6 +4,7 @@ namespace App\Modules\Courses\Actions;
 
 use App\Modules\Courses\Models\CourseSpace;
 use App\Modules\Courses\Models\Enrolment;
+use App\Modules\Courses\Models\Group;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -42,6 +43,7 @@ class ShowCourseSpace
                 'enrol' => $gate->allows('enrol', $space),
                 'manageEnrolments' => $canManage,
                 'manageAnnouncements' => $gate->allows('manageAnnouncements', $space),
+                'viewGroups' => $gate->allows('viewGroups', [Group::class, $space]),
             ],
             'enrolled' => $user->hasRole(Role::Student) && $space->hasEnrolled($user),
             'announcements' => $this->announcements->handle($user, $space),

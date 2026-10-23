@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { archive, edit, enrol, index, restore } from '@/routes/courses';
+import { index as groupsIndex } from '@/routes/courses/groups';
 import { destroy, store as addStudent } from '@/routes/courses/students';
 import type {
     Announcement,
@@ -37,6 +38,7 @@ const props = defineProps<{
         enrol: boolean;
         manageEnrolments: boolean;
         manageAnnouncements: boolean;
+        viewGroups: boolean;
     };
     enrolled: boolean;
     announcements: Announcement[];
@@ -231,6 +233,14 @@ function formatDate(value: string): string {
                 </Button>
             </div>
         </form>
+
+        <div v-if="can.viewGroups">
+            <Button variant="outline" as-child>
+                <Link :href="groupsIndex(space.id)" data-test="course-groups">
+                    {{ $t('groups.nav.groups') }}
+                </Link>
+            </Button>
+        </div>
 
         <p
             v-if="enrolmentsCount !== null && !can.manageEnrolments"

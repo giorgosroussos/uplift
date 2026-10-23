@@ -72,3 +72,47 @@ export type Paginated<T> = {
     next_page_url: string | null;
     total: number;
 };
+
+export type GroupMembershipStatus =
+    'invited' | 'member' | 'declined' | 'withdrawn' | 'left';
+
+export type GroupSpace = {
+    id: string;
+    title: string;
+    status: CourseSpaceStatus;
+};
+
+export type GroupMember = {
+    membership_id: string;
+    student_id: string;
+    name: string;
+    joined_at: string | null;
+};
+
+export type GroupInvitation = {
+    membership_id: string;
+    student_id: string;
+    name: string;
+};
+
+export type GroupDetails = {
+    id: string;
+    name: string;
+    owner: { id: string; name: string };
+    members: GroupMember[];
+    invitations: GroupInvitation[];
+    own: { membership_id: string; status: GroupMembershipStatus } | null;
+    can: {
+        invite: boolean;
+        leave: boolean;
+        update: boolean;
+        transferOwnership: boolean;
+        delete: boolean;
+        respond: boolean;
+    };
+};
+
+export type InvitableStudent = {
+    id: string;
+    name: string;
+};
