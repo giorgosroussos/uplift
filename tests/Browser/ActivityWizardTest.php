@@ -40,6 +40,7 @@ it('creates a draft from the basics and restores them when the teacher returns',
 
     visit('/activities/create')
         ->select('@wizard-course-space', $this->space->id)
+        ->select('@wizard-type', 'quiz')
         ->fill('@wizard-title', 'Sorting quiz')
         ->fill('@wizard-description', 'Bubble sort and quicksort')
         ->click('@wizard-next')
@@ -68,6 +69,7 @@ it('shows a title error from the autosave and stores nothing', function () {
 
     visit('/activities/create')
         ->select('@wizard-course-space', $this->space->id)
+        ->select('@wizard-type', 'quiz')
         ->click('@wizard-next')
         ->assertSee('Your changes could not be saved.')
         ->assertNoJavaScriptErrors();
