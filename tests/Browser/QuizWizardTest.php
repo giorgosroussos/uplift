@@ -38,6 +38,7 @@ it('builds a quiz from settings, a new and a copied question, and publishes it',
 
     visit('/activities/create')
         ->select('@wizard-course-space', $this->space->id)
+        ->select('@wizard-type', 'quiz')
         ->fill('@wizard-title', 'Sorting quiz')
         ->click('@wizard-next')
         ->assertVisible('@quiz-settings')
@@ -89,6 +90,7 @@ it('refuses to publish a quiz without questions', function () {
 
     visit('/activities/create')
         ->select('@wizard-course-space', $this->space->id)
+        ->select('@wizard-type', 'quiz')
         ->fill('@wizard-title', 'Empty quiz')
         ->click('@wizard-next')
         ->assertVisible('@quiz-settings')

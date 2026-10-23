@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { close, edit, index, publish, submissions } from '@/routes/activities';
+import { show as showPoll } from '@/routes/activities/polls';
 import { show as showQuiz } from '@/routes/assessment/quizzes';
 import type { ActivityDetails } from '@/types/activities';
 
@@ -82,7 +83,27 @@ function closeActivity(): void {
                         {{ $t('activities.show.open_quiz') }}
                     </Link>
                 </Button>
-                <Button v-if="can.viewSubmissions" variant="outline" as-child>
+                <Button
+                    v-if="
+                        activity.type === 'poll' &&
+                        activity.status !== 'draft' &&
+                        (can.participate || can.viewSubmissions)
+                    "
+                    as-child
+                >
+                    <Link
+                        :href="showPoll(activity.id)"
+                        data-test="activity-open-poll"
+                    >
+                        {{ $t('activities.show.open_poll') }}
+                    </Link>
+                </Button>
+                <!-- A poll is anonymous: it has results, no submissions (SEC-009). -->
+                <Button
+                    v-if="can.viewSubmissions && activity.type !== 'poll'"
+                    variant="outline"
+                    as-child
+                >
                     <Link
                         :href="submissions(activity.id)"
                         data-test="activity-submissions"
