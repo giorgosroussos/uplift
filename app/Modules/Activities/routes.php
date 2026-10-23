@@ -2,6 +2,7 @@
 
 use App\Modules\Activities\Enums\WizardStep;
 use App\Modules\Activities\Http\Controllers\ActivityController;
+use App\Modules\Activities\Http\Controllers\PollController;
 use App\Modules\Activities\Http\Controllers\SubmissionController;
 use App\Modules\Activities\Http\Controllers\WizardStepController;
 use Illuminate\Support\Facades\Route;
@@ -25,4 +26,8 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
     Route::post('activities/{activity}/publish', [ActivityController::class, 'publish'])->name('activities.publish');
     Route::post('activities/{activity}/close', [ActivityController::class, 'close'])->name('activities.close');
     Route::get('activities/{activity}/submissions', SubmissionController::class)->name('activities.submissions');
+
+    // UC-013: a poll's page (vote and results); {activity} is the poll's activity.
+    Route::get('polls/{activity}', [PollController::class, 'show'])->name('activities.polls.show');
+    Route::post('polls/{activity}/vote', [PollController::class, 'vote'])->name('activities.polls.vote');
 });

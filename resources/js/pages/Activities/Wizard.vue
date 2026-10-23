@@ -81,14 +81,18 @@ const canCreate = computed(
     () => props.types.length > 0 && props.courseSpaces.length > 0,
 );
 
-// Vue pages of the type-owned steps, loaded on demand.
-const pages = import.meta.glob<{ default: Component }>('../**/*.vue');
+// Vue pages of the type-owned steps, loaded on demand. The glob is rooted
+// at the project, so its keys are the same for pages inside this
+// directory (e.g. Activities/Poll/Settings) and outside it.
+const pages = import.meta.glob<{ default: Component }>(
+    '/resources/js/pages/**/*.vue',
+);
 const stepComponents = computed<Record<string, Component | null>>(() => {
     const resolved: Record<string, Component | null> = {};
 
     for (const step of steps.value) {
         if (step.component) {
-            const loader = pages[`../${step.component}.vue`];
+            const loader = pages[`/resources/js/pages/${step.component}.vue`];
             resolved[step.key] = loader ? defineAsyncComponent(loader) : null;
         }
     }

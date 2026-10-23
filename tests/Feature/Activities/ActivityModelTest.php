@@ -158,8 +158,8 @@ describe('ARCH-004: ActivityType registry', function () {
     it('offers only registered types', function () {
         $types = app(ActivityTypes::class);
 
-        expect($types->kinds())->not->toContain(ActivityKind::Poll)
-            ->and(fn () => $types->get(ActivityKind::Poll))->toThrow(UnknownActivityType::class);
+        expect($types->kinds())->not->toContain(ActivityKind::SlotBooking)
+            ->and(fn () => $types->get(ActivityKind::SlotBooking))->toThrow(UnknownActivityType::class);
 
         $types->register(FakeQuizType::class);
 

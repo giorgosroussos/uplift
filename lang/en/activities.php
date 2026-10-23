@@ -47,6 +47,7 @@ return [
         'close' => 'Close activity',
         'submissions' => 'Submissions',
         'open_quiz' => 'Open quiz',
+        'open_poll' => 'Open poll',
         'draft_notice' => 'This activity is a draft: students do not see it until you publish it.',
         'closed_notice' => 'This activity is closed.',
     ],
@@ -130,6 +131,69 @@ return [
     'flash' => [
         'published' => 'Activity published.',
         'closed' => 'Activity closed.',
+    ],
+
+    'poll' => [
+        'settings' => [
+            'max_choices' => 'Options a student may choose',
+            'max_choices_hint' => 'Students choose one option, or up to this number of options.',
+            'results_visibility' => 'Students see the results',
+        ],
+        'visibility' => [
+            'after_vote' => 'Right after voting',
+            'after_close' => 'Only after the poll closes',
+        ],
+        'options' => [
+            'title' => 'Options',
+            'hint' => 'Add between :min and :max options. Drag them to change their order.',
+            'label' => 'Option :number',
+            'add' => 'Add option',
+            'remove' => 'Remove option',
+            'reorder' => 'Drag to reorder',
+            'locked' => 'Students have already voted: the options cannot be changed anymore.',
+        ],
+        'attributes' => [
+            'options' => 'options',
+            'option' => 'option',
+            'label' => 'option text',
+        ],
+        'errors' => [
+            'settings_first' => 'Save the poll settings first.',
+            'settings_missing' => 'The poll settings are missing.',
+            'min_options' => 'A poll needs at least :min options.',
+            'max_options' => 'A poll can have at most :max options.',
+            'duplicate_label' => 'Every option needs a different text.',
+            'foreign_id' => 'This option does not belong to this poll.',
+            'max_choices_above_options' => 'Students cannot choose more options than the poll has (:count).',
+        ],
+        'show' => [
+            'anonymous' => 'This poll is anonymous: nobody sees who voted or what anyone voted.',
+            'choose_one' => 'Choose one option.',
+            'choose_up_to' => 'Choose up to :max options.',
+            'submit' => 'Submit vote',
+            'final' => 'Your vote cannot be changed after you submit it.',
+            'voted' => 'You have voted. Thank you!',
+            'closed' => 'This poll is closed.',
+            'results' => 'Results',
+            'results_after_close' => 'The results will be shown when the poll closes.',
+            'results_after_vote' => 'The results will be shown after you vote.',
+            'participants' => '{0} Nobody has voted yet|{1} 1 participant|[2,*] :count participants',
+            'votes' => '{0} 0 votes|{1} 1 vote|[2,*] :count votes',
+        ],
+        'vote' => [
+            'errors' => [
+                'choose' => 'Choose at least one option.',
+            ],
+            'refused' => [
+                'closed' => 'This poll is closed, so you can no longer vote.',
+                'already_voted' => 'You have already voted in this poll. A vote cannot be changed.',
+                'too_many' => 'You can choose at most :max options.',
+                'unknown_option' => 'Choose only options of this poll.',
+            ],
+        ],
+        'flash' => [
+            'voted' => 'Your vote has been recorded.',
+        ],
     ],
 
 ];
