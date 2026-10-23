@@ -39,9 +39,9 @@ affects:
 proposal: >
   (1) Add a nullable cancelled_at (timestamp, UTC) to ENT-Booking. One
   booking row per student or group and activity at any time is "active"
-  (cancelled_at null), enforced by a partial unique index on
-  (organization_id, slot_activity_id-scope, holder) where cancelled_at is
-  null and by locking the activity row (as SelectTopic does). Cancelling
+  (cancelled_at null), enforced by the booking action under a
+  lock of the activity row (as SelectTopic does; ENT-Booking has no
+  activity column for a unique index). Cancelling
   sets cancelled_at; changing to another slot sets cancelled_at on the old
   row and creates a new row, so the history shows every booking. Capacity
   counts only active bookings. hasSubmissions is true when any row exists,
