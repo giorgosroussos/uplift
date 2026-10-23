@@ -1,0 +1,9 @@
+id: P4-T6
+status: ready_to_merge
+commit: bc71c9b
+handoff: |
+  Assessment Support/GroupAttempts: actingGroups, memberIds, refusal (group_size, in progress/max_attempts per group, other_group), takesPart/whereTakesPart (current member of a live group, or member at submitted_at by joined_at/left_at).
+  Group attempts have group_id set and student_id null; StartQuizAttempt takes group_id (required when activity.is_group), locks the group row; QuizAttempt::group() (withTrashed), isGroupAttempt(), number() per group; FK quiz_attempts(organization_id, group_id) -> groups (migration 2026_10_28_100000).
+  QuizAttemptPolicy view/update/viewResult and AnswerPolicy use QuizAttemptPolicy::takesPart; ListMyResults, ShowQuizForStudent (groups prop with refusal), ShowAttempt/ShowResult/ShowAttemptForGrading expose `group`; submissions list the group name as participant.
+  UI: group picker on pages/Assessment/Attempts/Quiz.vue, group notices on Take, Results/{Index,Show}, Grading/Attempt; lang assessment.attempt.{quiz.group_*,refused.*,take.group_notice}, results.show.group, grading.group.
+  Tests: tests/Feature/Assessment/GroupQuizAttemptTest.php, tests/Browser/GroupQuizAttemptTest.php. NotifyGrade (Notifications) still skips group attempts; the wizard does not yet offer is_group.
