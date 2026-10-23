@@ -1,0 +1,5 @@
+id: P4-T1
+status: blocked
+commit: null
+handoff: |
+  Blocked on progress/requests/CR-P4-T1-1.yaml: UC-019 group rules are unspecified (groups per student per space, creator membership, inviting, re-invitation, lifecycle, teacher/admin view, unenrolment, invitation event).
