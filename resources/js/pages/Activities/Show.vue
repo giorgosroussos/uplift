@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { close, edit, index, publish, submissions } from '@/routes/activities';
 import { show as showPoll } from '@/routes/activities/polls';
+import { show as showProposals } from '@/routes/activities/proposals';
 import { show as showTopics } from '@/routes/activities/topics';
 import { show as showQuiz } from '@/routes/assessment/quizzes';
 import type { ActivityDetails } from '@/types/activities';
@@ -112,6 +113,21 @@ function closeActivity(): void {
                         data-test="activity-open-topics"
                     >
                         {{ $t('activities.show.open_topics') }}
+                    </Link>
+                </Button>
+                <Button
+                    v-if="
+                        activity.type === 'topic_proposal' &&
+                        activity.status !== 'draft' &&
+                        (can.participate || can.viewSubmissions)
+                    "
+                    as-child
+                >
+                    <Link
+                        :href="showProposals(activity.id)"
+                        data-test="activity-open-proposals"
+                    >
+                        {{ $t('activities.show.open_proposals') }}
                     </Link>
                 </Button>
                 <!-- A poll is anonymous: it has results, no submissions (SEC-009). -->

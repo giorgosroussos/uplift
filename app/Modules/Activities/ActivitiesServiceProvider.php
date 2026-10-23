@@ -8,13 +8,16 @@ use App\Modules\Activities\Models\Poll;
 use App\Modules\Activities\Models\PollParticipation;
 use App\Modules\Activities\Models\TopicActivity;
 use App\Modules\Activities\Models\TopicChoice;
+use App\Modules\Activities\Models\TopicProposal;
 use App\Modules\Activities\Policies\ActivityPolicy;
 use App\Modules\Activities\Policies\PollParticipationPolicy;
 use App\Modules\Activities\Policies\PollPolicy;
 use App\Modules\Activities\Policies\TopicActivityPolicy;
 use App\Modules\Activities\Policies\TopicChoicePolicy;
+use App\Modules\Activities\Policies\TopicProposalPolicy;
 use App\Modules\Activities\Support\ActivityTypes;
 use App\Modules\Activities\Support\PollType;
+use App\Modules\Activities\Support\TopicProposalType;
 use App\Modules\Activities\Support\TopicSelectionType;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Foundation\Exceptions\Handler;
@@ -25,10 +28,11 @@ use Throwable;
 
 /**
  * Activity base and lifecycle, the creation wizard and the submissions
- * overview (UC-022, UC-028), polls (UC-013) and topic selection (UC-014).
- * Activity types plug in through the ActivityType contract and the
- * ActivityTypes registry (ARCH-004); the poll and topic selection types
- * register themselves like any other.
+ * overview (UC-022, UC-028), polls (UC-013), topic selection (UC-014) and
+ * topic proposals with their approval (UC-015, UC-027). Activity types plug
+ * in through the ActivityType contract and the ActivityTypes registry
+ * (ARCH-004); the poll, topic selection and topic proposal types register
+ * themselves like any other.
  */
 class ActivitiesServiceProvider extends ModuleServiceProvider
 {
@@ -41,10 +45,11 @@ class ActivitiesServiceProvider extends ModuleServiceProvider
     {
         $this->app->singleton(ActivityTypes::class);
 
-        // ARCH-004: the poll and the topic selection plug into the activity framework.
+        // ARCH-004: the poll, the topic selection and the topic proposal plug into the activity framework.
         $this->callAfterResolving(ActivityTypes::class, function (ActivityTypes $types): void {
             $types->register(PollType::class);
             $types->register(TopicSelectionType::class);
+            $types->register(TopicProposalType::class);
         });
     }
 
@@ -57,6 +62,7 @@ class ActivitiesServiceProvider extends ModuleServiceProvider
         Gate::policy(PollParticipation::class, PollParticipationPolicy::class);
         Gate::policy(TopicActivity::class, TopicActivityPolicy::class);
         Gate::policy(TopicChoice::class, TopicChoicePolicy::class);
+        Gate::policy(TopicProposal::class, TopicProposalPolicy::class);
 
         // The exception handler is resolved lazily, when the first exception is rendered.
         $this->app->afterResolving(Handler::class, function (Handler $handler): void {
