@@ -34,7 +34,8 @@ interface ActivityType
      * Vue page component (path under resources/js/pages, without .vue) that
      * renders the given wizard step, or null when the type has no such
      * step. Only WizardStep::Settings and WizardStep::Content are asked;
-     * every type has a settings step. The component gets the props
+     * a type without settings of its own (topic selection) has only a
+     * content step. The component gets the props
      * `modelValue` (the step data), `errors` (field => message),
      * `activity` and `locked` (grading locked) and emits `update:modelValue`.
      */

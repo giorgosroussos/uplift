@@ -47,7 +47,7 @@ class ShowWizard
                 'published_at' => $activity->published_at?->toIso8601String(),
             ],
             'basics' => $activity === null
-                ? ['course_space_id' => $courseSpaceId, 'type' => $kind, 'title' => '', 'description' => null, 'deadline_at' => null]
+                ? ['course_space_id' => $courseSpaceId, 'type' => $kind, 'title' => '', 'description' => null, 'deadline_at' => null, 'is_group' => false, 'group_size' => null]
                 : ['course_space_id' => $activity->course_space_id, 'type' => $activity->type->value, ...Basics::of($activity)],
             'data' => [
                 WizardStep::Settings->value => $activity !== null && $type !== null ? $type->stepData($activity, WizardStep::Settings) : null,

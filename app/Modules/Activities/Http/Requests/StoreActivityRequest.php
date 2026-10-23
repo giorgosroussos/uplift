@@ -57,6 +57,6 @@ class StoreActivityRequest extends FormRequest
      */
     public function basics(): array
     {
-        return $this->safe()->only(['title', 'description', 'deadline_at']);
+        return $this->safe()->only(['title', 'description', 'deadline_at', 'is_group', 'group_size']);
     }
 }

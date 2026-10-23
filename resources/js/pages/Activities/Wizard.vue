@@ -66,6 +66,8 @@ const basics = reactive({
     title: props.basics.title,
     description: props.basics.description ?? '',
     deadline: toLocalInput(props.basics.deadline_at),
+    is_group: props.basics.is_group,
+    group_size: props.basics.group_size ?? 2,
 });
 
 const stepData = reactive<Record<'settings' | 'content', StepData>>({
@@ -107,6 +109,8 @@ function basicsPayload(): Record<string, unknown> {
         title: basics.title,
         description: basics.description === '' ? null : basics.description,
         deadline_at: fromLocalInput(basics.deadline),
+        is_group: basics.is_group,
+        group_size: basics.is_group ? Number(basics.group_size) : null,
     };
 }
 
@@ -407,9 +411,42 @@ const reviewErrors = computed(() => Object.values(errors.value));
                     <InputError :message="errors.deadline_at" />
                 </div>
 
-                <p class="text-sm text-muted-foreground">
-                    {{ $t('activities.wizard.individual') }}
-                </p>
+                <div class="grid gap-2">
+                    <label class="flex items-center gap-2 text-sm">
+                        <input
+                            v-model="basics.is_group"
+                            type="checkbox"
+                            :disabled="gradingLocked"
+                            data-test="wizard-is-group"
+                        />
+                        {{ $t('activities.form.group_activity') }}
+                    </label>
+                    <p class="text-xs text-muted-foreground">
+                        {{
+                            basics.is_group
+                                ? $t('activities.wizard.group_hint')
+                                : $t('activities.wizard.individual')
+                        }}
+                    </p>
+                    <InputError :message="errors.is_group" />
+                </div>
+
+                <div v-if="basics.is_group" class="grid gap-2">
+                    <Label for="group_size">{{
+                        $t('activities.form.group_size')
+                    }}</Label>
+                    <Input
+                        id="group_size"
+                        v-model.number="basics.group_size"
+                        type="number"
+                        min="2"
+                        max="100"
+                        class="w-28"
+                        :disabled="gradingLocked"
+                        data-test="wizard-group-size"
+                    />
+                    <InputError :message="errors.group_size" />
+                </div>
             </section>
 
             <!-- Steps owned by the activity type -->

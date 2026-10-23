@@ -44,6 +44,8 @@ export type WizardBasics = {
     title: string;
     description: string | null;
     deadline_at: string | null;
+    is_group: boolean;
+    group_size: number | null;
 };
 
 export type StepData = Record<string, unknown>;

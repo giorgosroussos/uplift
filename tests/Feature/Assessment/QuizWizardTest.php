@@ -173,7 +173,7 @@ describe('the quiz activity type', function () {
         $this->actingAs($this->teacher)
             ->get(qwUrl('activities/create'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('types', ['quiz', 'poll']));
+            ->assertInertia(fn (Assert $page) => $page->where('types', ['quiz', 'poll', 'topic_selection']));
 
         $activity = qwNewQuiz();
 
