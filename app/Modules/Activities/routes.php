@@ -28,6 +28,8 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
         ->name('activities.wizard.update');
     Route::post('activities/{activity}/publish', [ActivityController::class, 'publish'])->name('activities.publish');
     Route::post('activities/{activity}/close', [ActivityController::class, 'close'])->name('activities.close');
+    // UC-040: soft delete; there is deliberately no restore route (SCOPE-029).
+    Route::delete('activities/{activity}', [ActivityController::class, 'destroy'])->name('activities.destroy');
     Route::get('activities/{activity}/submissions', SubmissionController::class)->name('activities.submissions');
 
     // UC-013: a poll's page (vote and results); {activity} is the poll's activity.

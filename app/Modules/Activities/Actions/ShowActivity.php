@@ -3,16 +3,20 @@
 namespace App\Modules\Activities\Actions;
 
 use App\Modules\Activities\Models\Activity;
+use App\Modules\Activities\Support\ActivityTypes;
 use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Gate;
 
 /**
  * What a user sees of an activity they may view: its basics and status,
- * for the owning teacher the links to edit, close and review submissions,
- * and for an enrolled student whether they take part.
+ * for the owning teacher the links to edit, close, review submissions and
+ * delete it (while it may be deleted), and for an enrolled student whether
+ * they take part.
  */
 class ShowActivity
 {
+    public function __construct(private readonly ActivityTypes $types) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -37,9 +41,17 @@ class ShowActivity
                 'publish' => $gate->allows('publish', $activity),
                 'close' => $gate->allows('close', $activity),
                 'viewSubmissions' => $gate->allows('viewSubmissions', $activity),
+                // UC-040: a draft, or an activity nobody has submitted to yet.
+                'delete' => $gate->allows('delete', $activity)
+                    && ($activity->isDraft() || ! $this->hasSubmissions($activity)),
                 // An enrolled student of an active space takes part (e.g. opens the quiz).
                 'participate' => ! $activity->isDraft() && $gate->allows('participate', $activity->courseSpace),
             ],
         ];
+    }
+
+    private function hasSubmissions(Activity $activity): bool
+    {
+        return $this->types->has($activity->type) && $this->types->for($activity)->hasSubmissions($activity);
     }
 }

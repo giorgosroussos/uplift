@@ -1,9 +1,25 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { close, edit, index, publish, submissions } from '@/routes/activities';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
+    close,
+    destroy,
+    edit,
+    index,
+    publish,
+    submissions,
+} from '@/routes/activities';
 import { show as showPoll } from '@/routes/activities/polls';
 import { show as showProposals } from '@/routes/activities/proposals';
 import { show as showSlots } from '@/routes/activities/slots';
@@ -25,8 +41,14 @@ const props = defineProps<{
         close: boolean;
         viewSubmissions: boolean;
         participate: boolean;
+        delete: boolean;
     };
 }>();
+
+const page = usePage();
+const deleteError = computed(
+    () => (page.props.errors as Record<string, string>).activity,
+);
 
 function formatDate(value: string): string {
     return new Date(value).toLocaleString(document.documentElement.lang, {
@@ -41,6 +63,17 @@ function publishActivity(): void {
 
 function closeActivity(): void {
     router.post(close(props.activity.id).url);
+}
+
+// UC-040: deletion cannot be undone, so the teacher confirms it.
+const confirmingDelete = ref(false);
+
+function deleteActivity(): void {
+    router.visit(destroy(props.activity.id), {
+        onFinish: () => {
+            confirmingDelete.value = false;
+        },
+    });
 }
 </script>
 
@@ -174,8 +207,24 @@ function closeActivity(): void {
                 >
                     {{ $t('activities.show.close') }}
                 </Button>
+                <Button
+                    v-if="can.delete"
+                    variant="destructive"
+                    data-test="activity-delete"
+                    @click="confirmingDelete = true"
+                >
+                    {{ $t('activities.show.delete') }}
+                </Button>
             </div>
         </div>
+
+        <Alert
+            v-if="deleteError"
+            variant="destructive"
+            data-test="delete-error"
+        >
+            <AlertDescription>{{ deleteError }}</AlertDescription>
+        </Alert>
 
         <Alert v-if="activity.status === 'draft' && can.update">
             <AlertDescription>{{
@@ -218,5 +267,34 @@ function closeActivity(): void {
                 <dd>{{ formatDate(activity.published_at) }}</dd>
             </template>
         </dl>
+
+        <Dialog v-model:open="confirmingDelete">
+            <DialogContent data-test="delete-dialog">
+                <DialogTitle>
+                    {{ $t('activities.show.confirm_delete_title') }}
+                </DialogTitle>
+                <DialogDescription>
+                    {{
+                        $t('activities.show.confirm_delete_text', {
+                            title: activity.title,
+                        })
+                    }}
+                </DialogDescription>
+                <DialogFooter class="gap-2">
+                    <DialogClose as-child>
+                        <Button variant="secondary" data-test="delete-cancel">
+                            {{ $t('activities.show.cancel') }}
+                        </Button>
+                    </DialogClose>
+                    <Button
+                        variant="destructive"
+                        data-test="delete-confirm"
+                        @click="deleteActivity"
+                    >
+                        {{ $t('activities.show.confirm_delete') }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>
