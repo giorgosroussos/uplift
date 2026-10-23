@@ -4,7 +4,7 @@ depends_on: [PHASE-3]
 use_cases: [UC-019, UC-013, UC-014, UC-015, UC-027, UC-016]
 entities: [ENT-Group, ENT-GroupMembership, ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote, ENT-TopicActivity, ENT-Topic, ENT-TopicChoice, ENT-TopicProposal, ENT-SlotActivity, ENT-Slot, ENT-Booking]
 components: [CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications]
-decisions: [SCOPE-011, SCOPE-012, SCOPE-013, SCOPE-017, SEC-009, DATA-006]
+decisions: [SCOPE-011, SCOPE-012, SCOPE-013, SCOPE-017, SCOPE-025, SEC-009, DATA-006]
 environment: development
 out_of_scope:
   - "Live quizzes (PHASE-5)"
@@ -13,6 +13,7 @@ out_of_scope:
 tasks:
   - id: P4-T1
     title: Groups
+    description: "Groups per SCOPE-025: owner, invitations with withdraw and re-invitation rows, soft delete on dissolve or when empty, membership cleanup when an enrolment is deleted (removal and archiving), read-only views for the owning teacher and org admins, GroupInvitationCreated and GroupMembershipChanged events"
     use_cases: [UC-019]
     touches: {writes: [CMP-Courses], migrations: true}
   - id: P4-T2
@@ -23,23 +24,38 @@ tasks:
     title: Topic selection
     depends_on: [P4-T1, P4-T2]
     use_cases: [UC-014]
+    acceptance_criteria:
+      - "Given student X in groups G1 and G2 of the space, When X chooses a topic in a group topic activity, Then X picks which group acts and the choice belongs to that group (SCOPE-025)"
+      - "Given G1 holds a choice in activity A and X is a member of G1 and G2, When G2 tries to choose a topic in A, Then it is refused"
+      - "Given a group with more current members than A's group_size, When it tries to choose in A, Then it is refused"
     touches: {writes: [CMP-Activities], reads: [CMP-Courses], migrations: true}
   - id: P4-T4
     title: Topic proposals and approval
     depends_on: [P4-T3]
     use_cases: [UC-015, UC-027]
-    touches: {writes: [CMP-Activities], migrations: true}
+    acceptance_criteria:
+      - "Given X takes part in a group activity through G1, When X proposes a topic in it for G2, Then it is refused (SCOPE-025)"
+    touches: {writes: [CMP-Activities], reads: [CMP-Courses], migrations: true}
   - id: P4-T5
     title: Slot booking
     depends_on: [P4-T1, P4-T4]
     use_cases: [UC-016]
+    acceptance_criteria:
+      - "Given X in groups G1 and G2, When X books a slot in a group slot activity, Then X picks which group books (SCOPE-025)"
+      - "Given G1 holds a booking in activity A and X is a member of G1 and G2, When G2 tries to book in A, Then it is refused"
     touches: {writes: [CMP-Activities], reads: [CMP-Courses], migrations: true}
   - id: P4-T6
     title: Group quiz attempts
     description: "One member submits for the group; all members see the attempt and get the same grade (SCOPE-012)"
     depends_on: [P4-T1]
+    acceptance_criteria:
+      - "Given X in groups G1 and G2, When X starts a group quiz attempt, Then X picks which group the attempt belongs to (SCOPE-025)"
+      - "Given G1 has an attempt in quiz Q and X is a member of G1 and G2, When G2 tries to start an attempt in Q, Then it is refused"
+      - "Given X was a member of G when G's attempt was submitted and graded, When X later leaves G or G is deleted, Then X still sees the attempt and its grade (OWN-006)"
+      - "Given Y joined G after G's attempt was submitted and later left, When Y requests that attempt, Then it is refused"
     touches: {writes: [CMP-Assessment], reads: [CMP-Courses], migrations: true}
   - id: P4-T7
     title: Notifications for topic decisions and group invitations
+    description: "The group invitation notification listens to GroupInvitationCreated(organizationId, groupMembershipId) from Courses (SCOPE-025)"
     depends_on: [P4-T1, P4-T4]
     touches: {writes: [CMP-Notifications], reads: [CMP-Activities, CMP-Courses]}

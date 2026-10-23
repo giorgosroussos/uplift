@@ -126,20 +126,25 @@ entities:
       - {name: course_space_id, type: uuid, ref: ENT-CourseSpace, required: true}
       - {name: name, type: string, required: true}
       - {name: created_by, type: uuid, ref: ENT-User, required: true}
+      - {name: owner_id, type: uuid, ref: ENT-User, required: true}
+      - {name: deleted_at, type: timestamp}
     relations:
       - {to: ENT-GroupMembership, type: one-to-many, on_delete: cascade, label: has}
     used_by: [UC-019]
 
   - id: ENT-GroupMembership
-    description: "Membership or pending invitation of a student in a group"
+    description: "Membership or pending invitation of a student in a group; a new row per invitation, old rows kept as history (SCOPE-025)"
     source: inferred
     confirmed: true
     attributes:
       - {name: organization_id, type: uuid, ref: ENT-Organization, required: true}
       - {name: group_id, type: uuid, ref: ENT-Group, required: true}
       - {name: student_id, type: uuid, ref: ENT-User, required: true}
-      - {name: status, type: enum, values: [invited, member, declined, left], required: true}
-    states: {initial: invited, transitions: ["invited -> member", "invited -> declined", "member -> left"]}
+      - {name: status, type: enum, values: [invited, member, declined, left, withdrawn], required: true}
+      - {name: invited_by, type: uuid, ref: ENT-User}
+      - {name: joined_at, type: timestamp}
+      - {name: left_at, type: timestamp}
+    states: {initial: invited, transitions: ["invited -> member", "invited -> declined", "invited -> withdrawn", "member -> left"]}
     retention: "Kept with the group; follows the student's erasure (SEC-003)"
     used_by: [UC-019]
 

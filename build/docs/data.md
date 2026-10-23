@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Data
 
-_Generated document · design v3.0.0 · source 6e6da0d35751_
+_Generated document · design v3.1.0 · source 6c4796be3fe5_
 
 
 ## Entity–relationship diagram
@@ -77,12 +77,17 @@ erDiagram
     uuid course_space_id FK
     string name
     uuid created_by FK
+    uuid owner_id FK
+    timestamp deleted_at
   }
   GroupMembership {
     uuid organization_id FK
     uuid group_id FK
     uuid student_id FK
     enum status
+    uuid invited_by FK
+    timestamp joined_at
+    timestamp left_at
   }
   Activity {
     uuid organization_id FK
@@ -481,10 +486,12 @@ Owned by CMP-Courses · retention: — · audit: no
 | course_space_id | uuid | uuid | → ENT-CourseSpace, required |
 | name | string | string(255) | required |
 | created_by | uuid | uuid | → ENT-User, required |
+| owner_id | uuid | uuid | → ENT-User, required |
+| deleted_at | timestamp | timestamptz |  |
 
 Relations: one-to-many → ENT-GroupMembership (on delete cascade)
 
-#### ENT-GroupMembership — Membership or pending invitation of a student in a group
+#### ENT-GroupMembership — Membership or pending invitation of a student in a group; a new row per invitation, old rows kept as history (SCOPE-025)
 
 Owned by CMP-Courses · retention: Kept with the group; follows the student's erasure (SEC-003) · audit: no
 
@@ -494,14 +501,18 @@ Owned by CMP-Courses · retention: Kept with the group; follows the student's er
 | group_id | uuid | uuid | → ENT-Group, required |
 | student_id | uuid | uuid | → ENT-User, required |
 | status | enum | string | required |
+| invited_by | uuid | uuid | → ENT-User |
+| joined_at | timestamp | timestamptz |  |
+| left_at | timestamp | timestamptz |  |
 
-States: initial `invited`; allowed transitions: `invited -> member`, `invited -> declined`, `member -> left`
+States: initial `invited`; allowed transitions: `invited -> member`, `invited -> declined`, `invited -> withdrawn`, `member -> left`
 
 ```mermaid
 stateDiagram-v2
   [*] --> invited
   invited --> member
   invited --> declined
+  invited --> withdrawn
   member --> left
 ```
 

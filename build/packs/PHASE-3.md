@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-3 — Activities framework and self-paced quizzes end to end: wizard, question bank, taking, grading, results
 
-_design v3.0.0 · 6e6da0d35751_
+_design v3.1.0 · 6c4796be3fe5_
 
 Depends on: PHASE-2 · environment: development · components: CMP-Activities, CMP-Assessment, CMP-Notifications
 
@@ -290,7 +290,7 @@ Operations:
 - `GradeFinalised(attempt_id)`
 - `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
-- `GroupInvitation(group_membership_id)`
+- `GroupInvitation(group_membership_id), on GroupInvitationCreated (SCOPE-025)`
 
 Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 15m, 1h, 6h), idempotency key —; when unavailable: Emails stay queued and are retried; no user flow is blocked; the in-app notification is created regardless; after the last retry an invitation shows 'email not delivered' to the admin, who can resend it
 
@@ -336,7 +336,7 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST NOT write ENT-Answer fields text_response, feedback to logs or error messages
 - Percentages MUST use exact decimal arithmetic.  (type percentage)
 - Timestamps are stored in UTC.  (type timestamp)
-- MUST enforce OWN-006 on every read and write of ENT-QuizAttempt: A student reads only their own attempts or attempts of their group; a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)
+- MUST enforce OWN-006 on every read and write of ENT-QuizAttempt: A student reads only their own attempts, attempts of their group, and attempts of a group they were a member of when the attempt was submitted, even after leaving it or its deletion (SCOPE-025); a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)
 - MUST enforce OWN-007 on every read and write of ENT-Answer: A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)
 - MUST enforce OWN-016 on every read and write of ENT-Question: A teacher reads, edits and deletes only their own bank questions (in_bank = true, owner_id = self); org admins and students have no access to any question bank (DATA-008)
 - CMP-Activities MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses
@@ -419,9 +419,9 @@ Standing constraints from deferred decisions (apply now):
 - [UC-030] Given a pending import, When it is confirmed or cancelled, Then its file is deleted; Given a leftover file older than 24 hours, When the daily command runs, Then it is deleted
 - [UC-030] Given a file changed so a row turns invalid between report and confirm, When confirmed, Then the row is re-validated and skipped
 - [UC-030] Given the import page, When the template is downloaded, Then it has the header and one valid example row per type
-- [OWN-006] Given a ROLE-Student user, When they read or modify an ENT-QuizAttempt record the rule does not grant them (A student reads only their own attempts or attempts of their group; a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)), Then access is denied and nothing changes
-- [OWN-006] Given a ROLE-Teacher user, When they read or modify an ENT-QuizAttempt record the rule does not grant them (A student reads only their own attempts or attempts of their group; a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)), Then access is denied and nothing changes
-- [OWN-006] Given a ROLE-OrgAdmin user, When they read or modify an ENT-QuizAttempt record the rule does not grant them (A student reads only their own attempts or attempts of their group; a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)), Then access is denied and nothing changes
+- [OWN-006] Given a ROLE-Student user, When they read or modify an ENT-QuizAttempt record the rule does not grant them (A student reads only their own attempts, attempts of their group, and attempts of a group they were a member of when the attempt was submitted, even after leaving it or its deletion (SCOPE-025); a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)), Then access is denied and nothing changes
+- [OWN-006] Given a ROLE-Teacher user, When they read or modify an ENT-QuizAttempt record the rule does not grant them (A student reads only their own attempts, attempts of their group, and attempts of a group they were a member of when the attempt was submitted, even after leaving it or its deletion (SCOPE-025); a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)), Then access is denied and nothing changes
+- [OWN-006] Given a ROLE-OrgAdmin user, When they read or modify an ENT-QuizAttempt record the rule does not grant them (A student reads only their own attempts, attempts of their group, and attempts of a group they were a member of when the attempt was submitted, even after leaving it or its deletion (SCOPE-025); a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007)), Then access is denied and nothing changes
 - [OWN-007] Given a ROLE-Student user, When they read or modify an ENT-Answer record the rule does not grant them (A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)), Then access is denied and nothing changes
 - [OWN-007] Given a ROLE-Teacher user, When they read or modify an ENT-Answer record the rule does not grant them (A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)), Then access is denied and nothing changes
 - [OWN-007] Given a ROLE-OrgAdmin user, When they read or modify an ENT-Answer record the rule does not grant them (A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007)), Then access is denied and nothing changes

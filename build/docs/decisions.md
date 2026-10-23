@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v3.0.0 · source 6e6da0d35751_
+_Generated document · design v3.1.0 · source 6c4796be3fe5_
 
 
 ## Scope
@@ -261,6 +261,33 @@ _affects UC-012, UC-022, UC-026, ENT-Quiz, ENT-Answer, P3-T3, P3-T4, P3-T5 · si
 - `MUST count in-progress attempts toward max_attempts and refuse a new attempt while one is in progress`
 
 _affects UC-012, UC-026, ENT-QuizAttempt, ENT-Answer, P3-T4, P3-T5 · since v2.5.0_
+
+### SCOPE-025 — Group membership, ownership and lifecycle · decided
+
+> Engineer: “1 Α, 2 Β, 3 Β. Για τις αποφάσεις στα υπόλοιπα σημεία στο 1 δεν συμφωνώ ένας φοιτητής μπορεί να ανήκει σε περίσσοτερες από μία ομάδα για έναν χώρο μαθήματος, 2 όλοι οι συμμετέχοντες μίας ομάδας πρέπει να είναι εγγεγραμμένοι στο χώρο μαθήματος αλλά μπορούν να είναι ήδη σε κάποια ομάδα, 3 κατα την πρόσκληση φοιτητών οι διαθέσιμοι φοιτητές είναι οι εγγεγραμμένοι φοιτητές του χώρου μαθήματος που έχει επιλεγεί. 4 μπορεί να νέα πρόσκληση μετά από declined/left/withdraw ναι. 5 σκέφτομαι κάτι σαν ownership ομάδας, ο δημιουργός είναι ο πρώτος owner, το ownership μπορεί να μεταβιβαστεί από τον owner σε κάποιο άλλο team member, ο owner της ομάδας μπορεί να αλλάξει όνομα ή να διαγράψει/διαλύσει την ομάδα, αν μια ομάδα δεν έχει μέλη (αν δηλαδή και το τελευταίο μέλος αποχωρήσει) διαγράφεται αυτόματα. 6 συμφωνώ, 7 οκ / 1 Α, 2 Α, 3 Α, 4 Α / Ναι ακόμα και αν μια ομάδα έχει διαγραφεί τα πρώην μέλη της βλέπουν τις βαθμολογιμένες ομαδικές προσπάθειες που είχαν ολοκληρώσει με την ομάδα.”
+
+**Decision:** Every member of a group is enrolled in its course space; a student may belong to several groups of the same space. An enrolled student creates a group and becomes its owner and first member (membership created directly as member, the one exception to the initial state invited). Any member invites students enrolled in the space who are neither members of nor invited to that group, and any member may withdraw a pending invitation (invited -> withdrawn). After declined, left or withdrawn the student may be invited again: a new invited row, old rows unchanged; at most one invited or member row per (organization_id, group_id, student_id). Each group has one owner (owner_id); the owner renames it, transfers ownership to another member, or dissolves it; the owner may leave only after transferring ownership. A group is soft-deleted (deleted_at) when its owner dissolves it or its last member leaves; its pending invitations become withdrawn, it disappears for everyone, and its attempts, topic choices, proposals and bookings stay as history; a student who was a member when a group attempt was submitted keeps seeing that attempt and its grade after leaving the group or its deletion (membership joined_at and left_at decide it). When an enrolment is deleted (removal by the teacher, archiving), in the same transaction the student's memberships in that space become left and their pending invitations withdrawn; an owner's ownership passes to the remaining member with the earliest joined_at, and a group left with no members is soft-deleted. There is no group-level size limit; each activity checks its group_size when a group acts. In a group activity the acting student chooses which of their groups acts; in one activity each student takes part through at most one group, so a group cannot take part while any current member already takes part through another group. The owning teacher and org admins see groups read-only. Courses dispatches GroupInvitationCreated(organizationId, groupMembershipId) after commit when a student is invited, and GroupMembershipChanged(organizationId, groupMembershipId, fromStatus, toStatus) after commit on every status change
+
+**Why:** Resolves CR-P4-T1-1: UC-019 had only a goal; these rules decide the data (owner, soft delete, withdrawn, re-invitation rows) and how P4-T3..P4-T7 identify the acting group
+
+**Constraints for implementation:**
+- `MUST allow only students enrolled in the group's course space to create, be invited to or accept membership of a group`
+- `MUST allow a student to be a member of several groups in the same course space`
+- `MUST create the creator's membership as member with joined_at and set them as owner_id`
+- `MUST keep at most one invited or member row per (organization_id, group_id, student_id) with a partial unique index; re-invitation creates a new row`
+- `MUST let only members invite and withdraw invitations, and only the owner rename, transfer ownership or dissolve`
+- `MUST refuse the owner leaving while other members remain`
+- `MUST soft-delete a group when its owner dissolves it or it has no members left, and set its pending invitations to withdrawn`
+- `MUST NOT delete or alter attempts, topic choices, proposals or bookings of a deleted group`
+- `MUST set joined_at when a membership becomes member and left_at when it becomes left`
+- `MUST let a student read a group attempt and its grade if they were a member of the group when it was submitted, even after leaving or the group's deletion`
+- `MUST, when an enrolment is deleted, set the student's memberships in that space to left and their pending invitations to withdrawn in the same transaction, passing ownership to the member with the earliest joined_at`
+- `MUST let the acting student choose which of their groups acts in a group activity, and refuse a group whose current member already takes part in that activity through another group`
+- `MUST check ENT-Activity.group_size only when a group acts in an activity, not at group level`
+- `MUST give teachers and org admins read-only access to groups (OWN-005)`
+- `MUST dispatch App\Modules\Courses\Events\GroupInvitationCreated(organizationId, groupMembershipId) and GroupMembershipChanged(organizationId, groupMembershipId, fromStatus, toStatus) after commit`
+
+_affects UC-019, ENT-Group, ENT-GroupMembership, OWN-005, OWN-006, SCOPE-017, P4-T1, P4-T3, P4-T4, P4-T5, P4-T6, P4-T7 · since v3.1.0_
 
 ## External
 

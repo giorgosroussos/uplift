@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v3.0.0 · source 6e6da0d35751_
+_Generated document · design v3.1.0 · source 6c4796be3fe5_
 
 
 ## Actors
@@ -93,6 +93,8 @@ flowchart LR
   ACT_Student --- UC_017
   ACT_Student --- UC_018
   ACT_Student --- UC_019
+  ACT_Teacher --- UC_019
+  ACT_OrgAdmin --- UC_019
   ACT_Teacher --- UC_020
   ACT_Teacher --- UC_021
   ACT_Teacher --- UC_022
@@ -425,7 +427,45 @@ Actors: ACT-Student · Goal: See XP, level progress, badges and leaderboard posi
 
 #### UC-019 — Manage groups (should)
 
-Actors: ACT-Student · Goal: Create a group, invite members, accept or decline invitations for group activities
+Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: Create a group, invite members, accept or decline invitations for group activities
+
+Main flow:
+1. An enrolled student creates a group in a course space with a name; they become its owner and its first member (SCOPE-025)
+2. Any member invites students enrolled in the same course space; the invitee is notified
+3. The invitee accepts (becomes a member) or declines; any member may withdraw a pending invitation
+4. The owner renames the group, transfers ownership to another member, or dissolves the group
+5. A member leaves; the owner leaves only after transferring ownership; when the last member leaves the group is deleted
+6. The teacher who owns the course space, and org admins, view its groups with members and pending invitations, read-only
+
+Exceptions:
+- Invitee not enrolled in the course space, already a member or already invited: the invitation is refused
+- Owner leaves while other members remain: refused until ownership is transferred
+- A student who is not a member renames, invites, transfers or dissolves: refused
+- A member is unenrolled from the course space: their membership becomes left and their pending invitations withdrawn; an unenrolled owner's ownership passes to the member with the earliest joined_at
+
+Acceptance criteria:
+- Given an enrolled student, When they create group G in space S, Then G exists with them as owner and their membership is member with joined_at set
+- Given a student who is a member of a group in S, When they create or accept a second group in S, Then it succeeds (several groups per space are allowed)
+- Given a student not enrolled in S, When they create a group in S or are invited to a group of S, Then it is refused
+- Given a member of G, When they open the invite dialog, Then only students enrolled in S who are neither members of nor invited to G are offered
+- Given member M of G, When M invites enrolled student X, Then an invited membership exists and one GroupInvitationCreated is dispatched after commit
+- Given X is already invited to or a member of G, When a member invites X again, Then it is refused
+- Given X declined, left or was withdrawn from G, When a member invites X again, Then a new invited row is created and the old row is unchanged
+- Given a pending invitation, When X accepts, Then the row becomes member with joined_at set and GroupMembershipChanged(invited, member) is dispatched; When X declines instead, Then it becomes declined
+- Given member M of G, When M leaves, Then M's row has status left and left_at set
+- Given a pending invitation, When any member of G withdraws it, Then it becomes withdrawn and X can no longer accept it
+- Given owner O and member M, When O transfers ownership to M, Then M is owner; When a non-owner tries to transfer, rename or dissolve, Then it is refused
+- Given owner O with other members, When O leaves, Then it is refused; When a non-owner member leaves, Then their row becomes left
+- Given G with one member, When that member leaves, Then G is soft-deleted, its pending invitations become withdrawn and it is absent for students, teacher and org admin
+- Given owner O, When O dissolves G, Then G is soft-deleted, its pending invitations become withdrawn, and its attempts, topic choices, proposals and bookings remain
+- Given owner O of G with members A (joined first) and B, When O is unenrolled from S, Then O's row becomes left and A is owner
+- Given space S with groups, When its teacher archives S, Then every membership in S becomes left, every pending invitation withdrawn and every group soft-deleted
+- Given the teacher who owns S, When they open S's groups, Then they see each group with members and pending invitations and cannot change them; When another teacher opens them, Then it is refused
+- Given an org admin, When they open the groups of any space of their organisation, Then they see them read-only
+- Given student X not in G and not invited to G, When X requests G's memberships, Then it is refused
+- Given a group of organisation A, When a user of organisation B requests it, Then it is not found
+
+> Engineer: “ένας φοιτητής μπορεί να ανήκει σε περίσσοτερες από μία ομάδα για έναν χώρο μαθήματος, 2 όλοι οι συμμετέχοντες μίας ομάδας πρέπει να είναι εγγεγραμμένοι στο χώρο μαθήματος αλλά μπορούν να είναι ήδη σε κάποια ομάδα, 3 κατα την πρόσκληση φοιτητών οι διαθέσιμοι φοιτητές είναι οι εγγεγραμμένοι φοιτητές του χώρου μαθήματος που έχει επιλεγεί. 4 μπορεί να νέα πρόσκληση μετά από declined/left/withdraw ναι. 5 σκέφτομαι κάτι σαν ownership ομάδας, ο δημιουργός είναι ο πρώτος owner, το ownership μπορεί να μεταβιβαστεί από τον owner σε κάποιο άλλο team member, ο owner της ομάδας μπορεί να αλλάξει όνομα ή να διαγράψει/διαλύσει την ομάδα, αν μια ομάδα δεν έχει μέλη (αν δηλαδή και το τελευταίο μέλος αποχωρήσει) διαγράφεται αυτόματα.”
 
 #### UC-020 — Teacher dashboard (should)
 

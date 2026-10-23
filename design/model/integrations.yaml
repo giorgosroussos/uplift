@@ -15,7 +15,7 @@ integrations:
         - "GradeFinalised(attempt_id)"
         - "GradeChanged(attempt_id)"
         - "TopicProposalDecided(proposal_id)"
-        - "GroupInvitation(group_membership_id)"
+        - "GroupInvitation(group_membership_id), on GroupInvitationCreated (SCOPE-025)"
     failure:
       timeout: 10s
       retries: "5, exponential backoff via queue (1m, 5m, 15m, 1h, 6h)"

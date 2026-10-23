@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-9 — Ready for real users: GDPR and minors hardening, production hosting and operations, remaining could use cases
 
-_design v3.0.0 · 6e6da0d35751_
+_design v3.1.0 · 6c4796be3fe5_
 
 Depends on: PHASE-7, PHASE-8 · environment: development · components: CMP-Identity, CMP-Notifications, CMP-Tenancy
 
@@ -75,7 +75,7 @@ Operations:
 - `GradeFinalised(attempt_id)`
 - `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
-- `GroupInvitation(group_membership_id)`
+- `GroupInvitation(group_membership_id), on GroupInvitationCreated (SCOPE-025)`
 
 Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 15m, 1h, 6h), idempotency key —; when unavailable: Emails stay queued and are retried; no user flow is blocked; the in-app notification is created regardless; after the last retry an invitation shows 'email not delivered' to the admin, who can resend it
 

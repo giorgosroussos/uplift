@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-4 — The other four activity types and groups: polls, topic selection, topic proposals with approval, slot booking, group activities
 
-_design v3.0.0 · 6e6da0d35751_
+_design v3.1.0 · 6c4796be3fe5_
 
 Depends on: PHASE-3 · environment: development · components: CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications
 
@@ -29,7 +29,21 @@ Execution waves: [P4-T1, P4-T2] → [P4-T3, P4-T6] → [P4-T4] → [P4-T5, P4-T7
 
 #### UC-019 — Manage groups (should)
 
-Actors: ACT-Student · Goal: Create a group, invite members, accept or decline invitations for group activities
+Actors: ACT-Student, ACT-Teacher, ACT-OrgAdmin · Goal: Create a group, invite members, accept or decline invitations for group activities
+
+Main flow:
+1. An enrolled student creates a group in a course space with a name; they become its owner and its first member (SCOPE-025)
+2. Any member invites students enrolled in the same course space; the invitee is notified
+3. The invitee accepts (becomes a member) or declines; any member may withdraw a pending invitation
+4. The owner renames the group, transfers ownership to another member, or dissolves the group
+5. A member leaves; the owner leaves only after transferring ownership; when the last member leaves the group is deleted
+6. The teacher who owns the course space, and org admins, view its groups with members and pending invitations, read-only
+
+Exceptions:
+- Invitee not enrolled in the course space, already a member or already invited: the invitation is refused
+- Owner leaves while other members remain: refused until ownership is transferred
+- A student who is not a member renames, invites, transfers or dissolves: refused
+- A member is unenrolled from the course space: their membership becomes left and their pending invitations withdrawn; an unenrolled owner's ownership passes to the member with the earliest joined_at
 
 #### UC-013 — Vote in poll (must)
 
@@ -105,10 +119,12 @@ Owned by CMP-Courses · retention: — · audit: no
 | course_space_id | uuid | uuid | → ENT-CourseSpace, required |
 | name | string | string(255) | required |
 | created_by | uuid | uuid | → ENT-User, required |
+| owner_id | uuid | uuid | → ENT-User, required |
+| deleted_at | timestamp | timestamptz |  |
 
 Relations: one-to-many → ENT-GroupMembership (on delete cascade)
 
-#### ENT-GroupMembership — Membership or pending invitation of a student in a group
+#### ENT-GroupMembership — Membership or pending invitation of a student in a group; a new row per invitation, old rows kept as history (SCOPE-025)
 
 Owned by CMP-Courses · retention: Kept with the group; follows the student's erasure (SEC-003) · audit: no
 
@@ -118,8 +134,11 @@ Owned by CMP-Courses · retention: Kept with the group; follows the student's er
 | group_id | uuid | uuid | → ENT-Group, required |
 | student_id | uuid | uuid | → ENT-User, required |
 | status | enum | string | required |
+| invited_by | uuid | uuid | → ENT-User |
+| joined_at | timestamp | timestamptz |  |
+| left_at | timestamp | timestamptz |  |
 
-States: initial `invited`; allowed transitions: `invited -> member`, `invited -> declined`, `member -> left`
+States: initial `invited`; allowed transitions: `invited -> member`, `invited -> declined`, `invited -> withdrawn`, `member -> left`
 
 #### ENT-Poll — Poll subtype of Activity (anonymous, SCOPE-013)
 
@@ -269,7 +288,7 @@ Operations:
 - `GradeFinalised(attempt_id)`
 - `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
-- `GroupInvitation(group_membership_id)`
+- `GroupInvitation(group_membership_id), on GroupInvitationCreated (SCOPE-025)`
 
 Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 15m, 1h, 6h), idempotency key —; when unavailable: Emails stay queued and are retried; no user flow is blocked; the in-app notification is created regardless; after the last retry an invitation shows 'email not delivered' to the admin, who can resend it
 
@@ -283,6 +302,21 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 
 - MUST NOT allow more holders of a topic or slot than its capacity, also under concurrent requests  (SCOPE-011)
 - MUST NOT expose to teachers or admins which student cast which vote  (SCOPE-013)
+- MUST allow only students enrolled in the group's course space to create, be invited to or accept membership of a group  (SCOPE-025)
+- MUST allow a student to be a member of several groups in the same course space  (SCOPE-025)
+- MUST create the creator's membership as member with joined_at and set them as owner_id  (SCOPE-025)
+- MUST keep at most one invited or member row per (organization_id, group_id, student_id) with a partial unique index; re-invitation creates a new row  (SCOPE-025)
+- MUST let only members invite and withdraw invitations, and only the owner rename, transfer ownership or dissolve  (SCOPE-025)
+- MUST refuse the owner leaving while other members remain  (SCOPE-025)
+- MUST soft-delete a group when its owner dissolves it or it has no members left, and set its pending invitations to withdrawn  (SCOPE-025)
+- MUST NOT delete or alter attempts, topic choices, proposals or bookings of a deleted group  (SCOPE-025)
+- MUST set joined_at when a membership becomes member and left_at when it becomes left  (SCOPE-025)
+- MUST let a student read a group attempt and its grade if they were a member of the group when it was submitted, even after leaving or the group's deletion  (SCOPE-025)
+- MUST, when an enrolment is deleted, set the student's memberships in that space to left and their pending invitations to withdrawn in the same transaction, passing ownership to the member with the earliest joined_at  (SCOPE-025)
+- MUST let the acting student choose which of their groups acts in a group activity, and refuse a group whose current member already takes part in that activity through another group  (SCOPE-025)
+- MUST check ENT-Activity.group_size only when a group acts in an activity, not at group level  (SCOPE-025)
+- MUST give teachers and org admins read-only access to groups (OWN-005)  (SCOPE-025)
+- MUST dispatch App\Modules\Courses\Events\GroupInvitationCreated(organizationId, groupMembershipId) and GroupMembershipChanged(organizationId, groupMembershipId, fromStatus, toStatus) after commit  (SCOPE-025)
 - MUST NOT expose the list of participants of a poll to teachers or admins  (SEC-009)
 - MUST NOT store a user reference on poll choices  (DATA-006)
 - MUST record poll participation separately to prevent a second vote  (DATA-006)
@@ -290,7 +324,7 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST reject ENT-TopicProposal state transitions that are not listed in its state model
 - MUST NOT write ENT-TopicProposal fields description to logs or error messages
 - Timestamps are stored in UTC.  (type timestamp)
-- MUST enforce OWN-005 on every read and write of ENT-GroupMembership: A student sees memberships only of groups they belong to or are invited to; a teacher sees groups only of course spaces they own
+- MUST enforce OWN-005 on every read and write of ENT-GroupMembership: A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only
 - MUST enforce OWN-008 on every read and write of ENT-TopicChoice: A student changes only their own or their group's topic choice; a teacher sees choices only of their own activities
 - MUST enforce OWN-009 on every read and write of ENT-TopicProposal: A student reads only their own or their group's proposals; a teacher decides only proposals of their own activities
 - MUST enforce OWN-010 on every read and write of ENT-Booking: A student changes only their own or their group's booking; a teacher sees bookings only of their own activities
@@ -326,6 +360,26 @@ Standing constraints from deferred decisions (apply now):
 
 ## Acceptance criteria (each needs a passing test)
 
+- [UC-019] Given an enrolled student, When they create group G in space S, Then G exists with them as owner and their membership is member with joined_at set
+- [UC-019] Given a student who is a member of a group in S, When they create or accept a second group in S, Then it succeeds (several groups per space are allowed)
+- [UC-019] Given a student not enrolled in S, When they create a group in S or are invited to a group of S, Then it is refused
+- [UC-019] Given a member of G, When they open the invite dialog, Then only students enrolled in S who are neither members of nor invited to G are offered
+- [UC-019] Given member M of G, When M invites enrolled student X, Then an invited membership exists and one GroupInvitationCreated is dispatched after commit
+- [UC-019] Given X is already invited to or a member of G, When a member invites X again, Then it is refused
+- [UC-019] Given X declined, left or was withdrawn from G, When a member invites X again, Then a new invited row is created and the old row is unchanged
+- [UC-019] Given a pending invitation, When X accepts, Then the row becomes member with joined_at set and GroupMembershipChanged(invited, member) is dispatched; When X declines instead, Then it becomes declined
+- [UC-019] Given member M of G, When M leaves, Then M's row has status left and left_at set
+- [UC-019] Given a pending invitation, When any member of G withdraws it, Then it becomes withdrawn and X can no longer accept it
+- [UC-019] Given owner O and member M, When O transfers ownership to M, Then M is owner; When a non-owner tries to transfer, rename or dissolve, Then it is refused
+- [UC-019] Given owner O with other members, When O leaves, Then it is refused; When a non-owner member leaves, Then their row becomes left
+- [UC-019] Given G with one member, When that member leaves, Then G is soft-deleted, its pending invitations become withdrawn and it is absent for students, teacher and org admin
+- [UC-019] Given owner O, When O dissolves G, Then G is soft-deleted, its pending invitations become withdrawn, and its attempts, topic choices, proposals and bookings remain
+- [UC-019] Given owner O of G with members A (joined first) and B, When O is unenrolled from S, Then O's row becomes left and A is owner
+- [UC-019] Given space S with groups, When its teacher archives S, Then every membership in S becomes left, every pending invitation withdrawn and every group soft-deleted
+- [UC-019] Given the teacher who owns S, When they open S's groups, Then they see each group with members and pending invitations and cannot change them; When another teacher opens them, Then it is refused
+- [UC-019] Given an org admin, When they open the groups of any space of their organisation, Then they see them read-only
+- [UC-019] Given student X not in G and not invited to G, When X requests G's memberships, Then it is refused
+- [UC-019] Given a group of organisation A, When a user of organisation B requests it, Then it is not found
 - [UC-013] Given a student who has voted, When they vote again, Then it is refused and the tally is unchanged
 - [UC-013] Given a poll with results after closing, When a student has voted and the poll is still open, Then results are not shown to them
 - [UC-013] Given 3 votes on option A and 1 on B, When results are shown, Then A has 3 and B has 1 and no voter identity is shown to anyone, including the teacher and org admin
@@ -342,8 +396,9 @@ Standing constraints from deferred decisions (apply now):
 - [UC-016] Given a slot with capacity 2 holding 2 bookings, When a third student books it, Then it is refused
 - [UC-016] Given a student with a booking, When they book another slot of the same activity, Then the first booking is released (one booking per student or group)
 - [UC-016] Given two concurrent bookings for the last place of a slot, Then exactly one succeeds
-- [OWN-005] Given a ROLE-Student user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; a teacher sees groups only of course spaces they own), Then access is denied and nothing changes
-- [OWN-005] Given a ROLE-Teacher user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; a teacher sees groups only of course spaces they own), Then access is denied and nothing changes
+- [OWN-005] Given a ROLE-Student user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only), Then access is denied and nothing changes
+- [OWN-005] Given a ROLE-Teacher user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only), Then access is denied and nothing changes
+- [OWN-005] Given a ROLE-OrgAdmin user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only), Then access is denied and nothing changes
 - [OWN-008] Given a ROLE-Student user, When they read or modify an ENT-TopicChoice record the rule does not grant them (A student changes only their own or their group's topic choice; a teacher sees choices only of their own activities), Then access is denied and nothing changes
 - [OWN-008] Given a ROLE-Teacher user, When they read or modify an ENT-TopicChoice record the rule does not grant them (A student changes only their own or their group's topic choice; a teacher sees choices only of their own activities), Then access is denied and nothing changes
 - [OWN-009] Given a ROLE-Student user, When they read or modify an ENT-TopicProposal record the rule does not grant them (A student reads only their own or their group's proposals; a teacher decides only proposals of their own activities), Then access is denied and nothing changes

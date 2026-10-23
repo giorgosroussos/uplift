@@ -1,5 +1,9 @@
 # Design changelog
 
+## v3.1.0 — 2026-10-23
+
+- Group rules: several groups per student, owner with transfer, withdraw and re-invitation, soft delete, cleanup on unenrolment, acting group per activity, former members keep seeing their graded group attempts (UC-019, SCOPE-025, OWN-006) (CR-P4-T1-1)
+
 ## v3.0.0 — 2026-10-22
 
 - Grade notifications sent when the final score becomes visible (release marker, ResultReleased/ResultChanged, grade_changed); P3-T7 extended (CR-P3-T7-1)

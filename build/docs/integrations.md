@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Integrations
 
-_Generated document · design v3.0.0 · source 6e6da0d35751_
+_Generated document · design v3.1.0 · source 6c4796be3fe5_
 
 
 #### Laravel Mail / Notification mail channel (INT-001: CMP-Notifications ↔ EXT-002)
@@ -17,7 +17,7 @@ Operations:
 - `GradeFinalised(attempt_id)`
 - `GradeChanged(attempt_id)`
 - `TopicProposalDecided(proposal_id)`
-- `GroupInvitation(group_membership_id)`
+- `GroupInvitation(group_membership_id), on GroupInvitationCreated (SCOPE-025)`
 
 Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 15m, 1h, 6h), idempotency key —; when unavailable: Emails stay queued and are retried; no user flow is blocked; the in-app notification is created regardless; after the last retry an invitation shows 'email not delivered' to the admin, who can resend it
 

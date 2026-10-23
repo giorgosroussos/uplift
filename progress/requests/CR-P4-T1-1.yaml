@@ -1,0 +1,88 @@
+id: CR-P4-T1-1
+raised_by: implementation-agent
+task: P4-T1
+status: accepted
+problem: >
+  UC-019 (Manage groups) has only a goal ("Create a group, invite members,
+  accept or decline invitations"), with no main flow, exceptions or
+  acceptance criteria of its own. SCOPE-017 says only that groups belong to a
+  course space, are reused across its group activities, and that each
+  activity sets its maximum group size (ENT-Activity.group_size). The
+  following rules change who can do what and which data is stored, and
+  P4-T3, P4-T5, P4-T6 and P4-T7 build on them, so they are not internal choices:
+  (1) Group per student: may a student be a member of (or invited to) more
+  than one group in the same course space? If yes, P4-T3/T5/T6 need a rule
+  for which group acts for a student in a group activity ("all members see
+  the topic as their group's selection", UC-014).
+  (2) Creator: is the creator automatically a member? The state model's
+  initial state is `invited`, so a creator membership would either start as
+  `member` (a second initial state) or be invited and accepted at once.
+  (3) Inviting: who may invite (only the creator or any member); may only
+  students enrolled in the course space be invited; may a student who is
+  already a member of, or invited to, another group be invited; may a
+  pending invitation be withdrawn (no state for it in the model).
+  (4) Re-invitation: after `declined` or `left`, may the same student be
+  invited again to the same group, and is that a new membership row (the
+  old one stays terminal) or not allowed? This decides the unique
+  constraint on (organization_id, group_id, student_id).
+  (5) Group lifecycle: may a group be renamed or deleted, and by whom; what
+  happens to a group whose last member leaves; may a member leave while the
+  group holds a topic choice, booking or attempt (P4-T3/T5/T6).
+  (6) Size: is there any limit on group size at the group level, or is
+  ENT-Activity.group_size checked only when the group acts in an activity
+  (P4-T3/T5/T6)?
+  (7) Teacher and org admin: OWN-005 says a teacher "sees" groups of course
+  spaces they own. Is the teacher read-only (list of groups with members and
+  pending invitations), or may the teacher also create groups or move
+  students? What does an org admin see?
+  (8) Enrolment: when a student is unenrolled (RemoveStudentFromCourseSpace,
+  or archiving via CourseSpaceArchived), what happens to their memberships
+  and pending invitations?
+  (9) Events for P4-T7 (INT-001 GroupInvitation(group_membership_id)): the
+  event name and payload Courses dispatches when a student is invited are
+  not specified.
+affects:
+  - UC-019 (main flow, exceptions, acceptance criteria)
+  - SCOPE-017 (reusable groups)
+  - ENT-Group, ENT-GroupMembership (states, unique constraints)
+  - OWN-005
+  - P4-T3, P4-T5, P4-T6 (which group acts for a student), P4-T7 (invitation event)
+proposal: >
+  (1) A student has at most one group per course space: at most one
+  membership in status `member` per (organization_id, course space,
+  student). Pending invitations to several groups are allowed; accepting one
+  is refused while the student is a member of another group in the space
+  (they must leave first). Accepting declines no other invitations.
+  (2) The creator must be enrolled and not a member of another group in the
+  space. Creating a group records the creator's membership directly as
+  `member`. This is the one exception to the initial state `invited`.
+  (3) Any member may invite students enrolled in the same course space who
+  are not a member of, and have no pending invitation to, that group. Being
+  in another group does not block an invitation, only its acceptance (1).
+  Pending invitations cannot be withdrawn (no new state).
+  (4) After `declined` or `left` the student may be invited again. This
+  creates a new `invited` row; old rows stay unchanged as history. A partial
+  unique index ensures at most one non-terminal (invited or member) row per
+  (organization_id, group_id, student_id).
+  (5) Any member may rename the group. Groups are not deleted by students.
+  When the last member leaves, the group stays with no members and is hidden
+  from students; its pending invitations stay open. Leaving is always
+  allowed in P4-T1; whether a group's existing choice/booking/attempt
+  restricts leaving is left to P4-T3/T5/T6.
+  (6) No group-level size limit; ENT-Activity.group_size is checked by the
+  activity tasks when the group acts.
+  (7) The teacher who owns the course space has a read-only list of its
+  groups with members and pending invitations (declined and left rows not
+  shown). Org admins see groups like the course space itself (read-only,
+  any space of their organisation). Neither can change groups in P4-T1.
+  (8) Unenrolment changes no membership rows in P4-T1; a membership of a
+  student no longer enrolled is ignored (not listed, cannot accept or act).
+  (9) Courses dispatches GroupInvitationCreated(organizationId,
+  groupMembershipId) after commit when a student is invited, and
+  GroupMembershipChanged(organizationId, groupMembershipId, fromStatus,
+  toStatus) on accept, decline and leave, for later listeners.
+resolution: >
+  Accepted in design v3.1.0 as SCOPE-025; UC-019 now has main flow, exceptions and acceptance
+  criteria; ENT-Group gains owner_id and deleted_at, ENT-GroupMembership gains withdrawn, invited_by
+  joined_at and left_at; OWN-005 and OWN-006 extended; P4-T3..P4-T7 get the acting-group rule and the invitation event
+  (engineer: "1 Α, 2 Β, 3 Β" and point-by-point corrections, then "1 Α, 2 Α, 3 Α, 4 Α").

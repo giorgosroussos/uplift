@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Security and compliance
 
-_Generated document · design v3.0.0 · source 6e6da0d35751_
+_Generated document · design v3.1.0 · source 6c4796be3fe5_
 
 
 ## Trust boundaries
@@ -85,8 +85,8 @@ flowchart LR
 | OWN-002 | ENT-Invitation | An org admin sees and revokes only invitations of their own organisation | ROLE-OrgAdmin |
 | OWN-003 | ENT-Enrolment | A student sees only their own enrolments; a teacher sees enrolments only of course spaces they own | ROLE-Student, ROLE-Teacher |
 | OWN-004 | ENT-CourseSpace | A teacher edits only course spaces they own; an org admin may view but not edit course spaces of their organisation | ROLE-Teacher, ROLE-OrgAdmin |
-| OWN-005 | ENT-GroupMembership | A student sees memberships only of groups they belong to or are invited to; a teacher sees groups only of course spaces they own | ROLE-Student, ROLE-Teacher |
-| OWN-006 | ENT-QuizAttempt | A student reads only their own attempts or attempts of their group; a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007) | ROLE-Student, ROLE-Teacher, ROLE-OrgAdmin |
+| OWN-005 | ENT-GroupMembership | A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only | ROLE-Student, ROLE-Teacher, ROLE-OrgAdmin |
+| OWN-006 | ENT-QuizAttempt | A student reads only their own attempts, attempts of their group, and attempts of a group they were a member of when the attempt was submitted, even after leaving it or its deletion (SCOPE-025); a teacher reads only attempts of quizzes in course spaces they own; an org admin never reads individual attempts, only aggregates (SEC-007) | ROLE-Student, ROLE-Teacher, ROLE-OrgAdmin |
 | OWN-007 | ENT-Answer | A student reads only answers of their own or their group's attempts; a teacher grades only answers of quizzes in course spaces they own; an org admin never reads individual answers (SEC-007) | ROLE-Student, ROLE-Teacher, ROLE-OrgAdmin |
 | OWN-008 | ENT-TopicChoice | A student changes only their own or their group's topic choice; a teacher sees choices only of their own activities | ROLE-Student, ROLE-Teacher |
 | OWN-009 | ENT-TopicProposal | A student reads only their own or their group's proposals; a teacher decides only proposals of their own activities | ROLE-Student, ROLE-Teacher |
