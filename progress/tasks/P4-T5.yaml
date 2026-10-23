@@ -1,0 +1,9 @@
+id: P4-T5
+status: ready_to_merge
+commit: d1f939f
+handoff: |
+  Activities: Models/{SlotActivity (activity_id PK, slot_duration seconds, isOpen, slots(), bookings()), Slot (capacity >= 1, ends_at > starts_at, hasStarted), Booking (student_id xor group_id; student cascade on user delete)}; migrations 2026_10_30_50000{0-2}; Database/Factories/SlotActivityFactory (withSlots).
+  Support/SlotBookingType (content step only: Activities/SlotBooking/Slots with slot_duration + slots; publish needs >= 1 slot; hasSubmissions = any current booking; submissions list holders). Actions/{SaveSlots (1-100 slots, capacity 1-1000, location <= 255, duration 5 min-24 h, no removing booked slots or capacity below bookings), BookSlot (moves the row), CancelBooking (deletes it); activity row locked; open = published and before deadline; started slots refused}, ShowSlotBooking.
+  Policies/{SlotActivityPolicy (view, book, viewBookings), BookingPolicy (OWN-010)}; routes GET slots/{activity}, PUT/DELETE slots/{activity}/booking; Http/Controllers/SlotBookingController; Activities/Show.vue links to slots; lang activities.slots.*.
+  Vue: pages/Activities/SlotBooking/{Slots,Show}.vue, lib/slotForm.ts (slot_duration pre-fills ends_at of new slots), types/slots.ts. Tests: tests/Feature/Activities/SlotBooking{,Concurrency}Test.php, tests/Browser/SlotBookingTest.php, lib/slotForm.test.ts.
+  OWN-008 is covered by P4-T3's TopicSelectionTest, OWN-009 and ENT-TopicProposal by P4-T4's TopicProposalTest, OWN-011 by P4-T2's PollTest.
