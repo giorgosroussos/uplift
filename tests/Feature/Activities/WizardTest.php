@@ -132,7 +132,7 @@ describe('creating', function () {
                 ->component('Activities/Wizard')
                 ->where('activity', null)
                 ->where('step', 'basics')
-                ->where('types', ['quiz', 'poll', 'topic_selection', 'topic_proposal'])
+                ->where('types', ['quiz', 'poll', 'topic_selection', 'topic_proposal', 'slot_booking'])
                 ->where('basics.course_space_id', $this->space->id)
                 ->where('courseSpaces', [['id' => $this->space->id, 'title' => 'Algorithms']]));
     });
@@ -151,6 +151,9 @@ describe('creating', function () {
     });
 
     it('refuses a type that no module has registered', function () {
+        // Every type is registered by now; an empty registry stands in for a missing module.
+        $this->app->instance(ActivityTypes::class, new ActivityTypes($this->app));
+
         assertProblem($this->actingAs($this->teacher)->postJson(wizardUrl(), [
             'course_space_id' => $this->space->id,
             'type' => 'slot_booking',
