@@ -1,0 +1,6 @@
+id: P4-T5
+status: blocked
+commit: 1aeda43
+handoff: |
+  Blocked on CR-P4-T5-1: ENT-Booking cannot record a cancelled booking that SCOPE-027 counts as a submission; slot limits, slot_duration and booking-open rules need a decision.
+  Nothing built yet on branch P4-T5 (base origin/main 1aeda43).
