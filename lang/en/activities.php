@@ -48,6 +48,7 @@ return [
         'submissions' => 'Submissions',
         'open_quiz' => 'Open quiz',
         'open_poll' => 'Open poll',
+        'open_topics' => 'Open topics',
         'draft_notice' => 'This activity is a draft: students do not see it until you publish it.',
         'closed_notice' => 'This activity is closed.',
     ],
@@ -82,6 +83,7 @@ return [
         'review_incomplete' => 'Complete every step before publishing.',
         'published_notice' => 'This activity is published. Changes are saved as you go.',
         'individual' => 'Individual activity',
+        'group_hint' => 'Students take part in groups of the course space: one member acts for the group and every member sees the result. This cannot be changed once anyone has taken part.',
     ],
 
     'submissions' => [
@@ -110,6 +112,8 @@ return [
         'title' => 'title',
         'description' => 'description',
         'deadline_at' => 'deadline',
+        'is_group' => 'group activity',
+        'group_size' => 'maximum group size',
     ],
 
     'form' => [
@@ -118,6 +122,8 @@ return [
         'title' => 'Title',
         'description' => 'Description',
         'deadline' => 'Deadline (optional)',
+        'group_activity' => 'Group activity',
+        'group_size' => 'Maximum group size',
     ],
 
     'errors' => [
@@ -195,6 +201,77 @@ return [
         ],
         'flash' => [
             'voted' => 'Your vote has been recorded.',
+        ],
+    ],
+
+    'topics' => [
+        'editor' => [
+            'title' => 'Topics',
+            'hint' => 'Add the topics students choose from and how many students (or groups) each topic takes.',
+            'topic_title' => 'Topic :number',
+            'description' => 'Description (optional)',
+            'capacity' => 'Places',
+            'add' => 'Add topic',
+            'remove' => 'Remove topic',
+            'held_notice' => 'Topics that are already chosen cannot be removed, and their places cannot drop below the current holders.',
+        ],
+        'attributes' => [
+            'topics' => 'topics',
+            'topic' => 'topic',
+            'title' => 'topic title',
+            'description' => 'topic description',
+            'capacity' => 'places',
+            'group' => 'group',
+        ],
+        'errors' => [
+            'min_topics' => 'A topic selection needs at least :min topic.',
+            'max_topics' => 'A topic selection can have at most :max topics.',
+            'foreign_id' => 'This topic does not belong to this activity.',
+            'capacity_below_holders' => 'This topic is already chosen :count times, so it needs at least :count places.',
+            'remove_held' => 'A topic that has already been chosen cannot be removed.',
+        ],
+        'show' => [
+            'remaining' => '{0} Full (:capacity places)|{1} 1 place left of :capacity|[2,*] :count places left of :capacity',
+            'your_choice' => 'Your topic',
+            'group_choice' => 'Topic of :group',
+            'no_choice' => 'You have not chosen a topic yet.',
+            'group_no_choice' => ':group has not chosen a topic yet.',
+            'choose' => 'Choose this topic',
+            'switch' => 'Switch to this topic',
+            'chosen' => 'Chosen',
+            'cancel' => 'Cancel my topic',
+            'cancel_group' => 'Cancel the group\'s topic',
+            'acting_group' => 'Choose for the group',
+            'group_option' => ':name (:members members)',
+            'no_groups' => 'This is a group activity: create or join a group in the course space to choose a topic.',
+            'group_activity' => 'Group activity: one member chooses for the group, for groups of up to :size members.',
+            'group_too_large' => 'This group has more members than the activity allows.',
+            'group_in_other' => 'A member of this group already takes part through another group.',
+            'closed' => 'The topic selection is closed: topics can no longer be chosen, changed or cancelled.',
+            'deadline_hint' => 'You can change or cancel your topic until the deadline.',
+            'holders' => 'Chosen by',
+            'no_holders' => 'Nobody yet',
+        ],
+        'choose' => [
+            'errors' => [
+                'choose' => 'Choose a topic.',
+            ],
+            'refused' => [
+                'closed' => 'This activity is closed, so topics can no longer be chosen, changed or cancelled.',
+                'deadline_passed' => 'The deadline has passed, so topics can no longer be chosen, changed or cancelled.',
+                'unknown_topic' => 'Choose a topic of this activity.',
+                'full' => 'This topic is full. Choose another topic.',
+                'choose_group' => 'Choose the group you are choosing for.',
+                'not_your_group' => 'You can only act for a group of this course space you are a member of.',
+                'group_too_large' => 'This group has more members than the activity allows (:size).',
+                'member_in_other_group' => 'A member of this group already takes part in this activity through another group.',
+                'no_choice' => 'There is no topic to cancel.',
+                'not_yours' => 'You can only change your own or your group\'s topic.',
+            ],
+        ],
+        'flash' => [
+            'chosen' => 'Your topic has been saved.',
+            'cancelled' => 'Your topic has been cancelled.',
         ],
     ],
 

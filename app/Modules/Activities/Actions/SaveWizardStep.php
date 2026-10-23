@@ -15,6 +15,8 @@ use InvalidArgumentException;
 /**
  * UC-022: autosave of one wizard step. Basics are stored on the activity;
  * settings and content are validated and stored by the activity's type.
+ * Whether the activity is a group activity, and its group size, cannot
+ * change once it has submissions.
  * Once a published activity has submissions, a change the type reports as
  * changing grading is refused and nothing is stored.
  */
@@ -33,7 +35,17 @@ class SaveWizardStep
         if ($step === WizardStep::Basics) {
             $basics = Basics::validate($input);
 
-            $activity->fill($basics)->save();
+            DB::transaction(function () use ($activity, $basics): void {
+                $locked = Activity::query()->lockForUpdate()->findOrFail($activity->id);
+                $locked->fill($basics);
+
+                // Who takes part (alone or as a group of up to group_size) is fixed once anyone has.
+                if ($locked->isDirty(['is_group', 'group_size']) && $this->types->has($locked->type) && $this->types->for($locked)->hasSubmissions($locked)) {
+                    throw GradingLocked::make();
+                }
+
+                $locked->save();
+            });
 
             return;
         }

@@ -59,6 +59,8 @@ class Activity extends Model
         'title',
         'description',
         'deadline_at',
+        'is_group',
+        'group_size',
     ];
 
     /**

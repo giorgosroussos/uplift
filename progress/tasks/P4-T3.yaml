@@ -1,0 +1,9 @@
+id: P4-T3
+status: ready_to_merge
+commit: 2b1e8c7
+handoff: |
+  Activities: Models/{TopicActivity (activity_id PK, isOpen, choices()), Topic (capacity >= 1), TopicChoice (student_id xor group_id; student cascade on user delete)}; migrations 2026_10_28_30000{0-2}; Database/Factories/TopicActivityFactory (withTopics).
+  Support/TopicSelectionType (content step only: Activities/TopicSelection/Topics; publish needs >= 1 topic; hasSubmissions = any choice; submissions list holders) and Support/ActingGroups (student's current groups, group_size, member-in-other-group check; reusable by P4-T4/T5). Actions/{SaveTopics (1-100 topics, places 1-1000, no removing held topics or places below holders), SelectTopic, CancelTopicChoice (activity row locked; open = published and before deadline), ShowTopicSelection}.
+  Policies/{TopicActivityPolicy (view, choose, viewChoices), TopicChoicePolicy (OWN-008)}; routes topics/{activity} (show), PUT/DELETE topics/{activity}/choice; Http/Controllers/TopicSelectionController. Basics gain is_group/group_size (2-100), locked with 409 once the activity has submissions.
+  Vue: pages/Activities/TopicSelection/{Topics,Show}.vue, lib/topicForm.ts, types/topics.ts; group option in Wizard.vue basics; Activities/Show.vue links to topics; lang activities.topics.*.
+  Tests: tests/Feature/Activities/TopicSelection{,Concurrency}Test.php (forked race), tests/Browser/TopicSelectionTest.php, lib/topicForm.test.ts. OWN-009/OWN-010/ENT-TopicProposal criteria belong to P4-T4/P4-T5 (per the P4-T2 description); OWN-011 is covered by P4-T2's PollTest.
