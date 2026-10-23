@@ -1,0 +1,9 @@
+id: P4-T1
+status: ready_to_merge
+commit: 630f55a9d6141b1a765a09390cb9fc1149bb09cb
+handoff: |
+  Courses Models/Group (soft-deleted, owner_id, created_by) and Models/GroupMembership (Enums/GroupMembershipStatus state model; partial unique index on open rows; creator row starts as member); CourseSpace::groups().
+  Actions: CreateGroup, InviteToGroup, RespondToGroupInvitation (accept/decline), WithdrawGroupInvitation, LeaveGroup, RenameGroup, TransferGroupOwnership, DissolveGroup; shared steps in Support/GroupLifecycle (lock, change, afterMemberLeft, delete).
+  RemoveStudentFromCourseSpace calls ReleaseStudentFromGroups and archiving calls DeleteGroupsOfCourseSpace, both in the same transaction; events Events/GroupInvitationCreated(organizationId, groupMembershipId) and GroupMembershipChanged(organizationId, groupMembershipId, fromStatus, toStatus), both after commit.
+  Policies/GroupPolicy (viewGroups/createGroup via [Group::class, $space], view, invite, leave, update, transferOwnership, delete) and GroupMembershipPolicy (view, respond, withdraw); routes courses.groups.* under courses/{courseSpace}/groups with scopeBindings.
+  Pages resources/js/pages/Courses/Groups/{Index,Show}.vue, link from Courses/Show (can.viewGroups), strings in lang/{en,el}/groups.php; tests in tests/Feature/Courses/GroupTest.php and GroupOwnershipTest.php.
