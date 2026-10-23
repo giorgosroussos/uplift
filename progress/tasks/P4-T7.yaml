@@ -1,0 +1,9 @@
+id: P4-T7
+status: ready_to_merge
+commit: 0f14442
+handoff: |
+  Notifications: Enums/NotificationKind gains topic_proposal_decided and group_invitation (both DEC-001 emails). Listeners/SendTopicProposalNotification (TopicProposalDecided) and SendGroupInvitationNotification (GroupInvitationCreated) registered in NotificationsServiceProvider.
+  Actions/NotifyTopicProposalDecided (proposing student, or current members of the proposing group; data ids, status, space/activity titles) and NotifyGroupInvitation (invitee while still invited; data ids, space title, group name); emails Notifications/{TopicProposalDecidedEmail,GroupInvitationEmail} via NotificationMailer (INT-001 policy).
+  OpenNotification: topic_proposal_decided opens proposals/{activity} (proposal view + activity view, deleted activity 404); group_invitation opens courses/{space}/groups/{group} (GroupPolicy view, deleted group 404).
+  Vue: lib/notificationMessage.ts (key/params per kind, used by pages/Notifications/Index.vue), types/notifications.ts; lang notifications.topic_proposal_decided.*, group_invitation.*, centre.kinds.*.
+  Tests: tests/Feature/Notifications/{TopicProposalNotificationTest,GroupInvitationNotificationTest}.php, resources/js/lib/notificationMessage.test.ts.
