@@ -1,0 +1,9 @@
+id: P4-T2
+status: ready_to_merge
+commit: 970e1ef
+handoff: |
+  Activities: Models/{Poll (activity_id PK, max_choices, results_visibility, isOpen/isClosed: published and before deadline_at), PollOption, PollParticipation (student_id cascade on user delete), PollVote (no user ref)}; migrations 2026_10_27_20000{0-3}; Enums/PollResultsVisibility; Database/Factories/PollFactory.
+  Support/PollType (ActivityType: steps Activities/Poll/{Settings,Options}; publishErrors 2-20 options, max_choices <= options; changesGrading = vote lock on max_choices and option set/labels -> 409 problem details; no submissions). Actions/{SavePollSettings (1-20), SavePollOptions (2-20, labels 1-255 unique ignoring case), CastPollVote, ShowPoll}.
+  Policies/{PollPolicy (view via ActivityPolicy; vote enrolled student; viewResults owning teacher always, student after vote/after close), PollParticipationPolicy (OWN-011)}; routes polls/{activity} (show) and polls/{activity}/vote; Http/Controllers/PollController.
+  Vue: pages/Activities/Poll/{Settings,Options,Show}.vue, lib/pollForm.ts (defaults 1/after_vote), types/polls.ts; Activities/Show.vue links to the poll; Submissions.vue shows no list for a poll and links to its results; lang activities.poll.* and activities.submissions.poll_*.
+  Tests: tests/Feature/Activities/PollTest.php, tests/Browser/PollTest.php, resources/js/lib/pollForm.test.ts. OWN-008/009/010 and ENT-TopicProposal criteria are left to P4-T3/T4/T5 per the task description.
