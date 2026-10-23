@@ -1,0 +1,9 @@
+id: P4-T4
+status: ready_to_merge
+commit: 9caa64a
+handoff: |
+  Activities: Models/TopicProposal (student_id xor group_id, status pending|approved|rejected via Enums/TopicProposalStatus, transitionTo; InvalidTopicProposalTransition); migration 2026_10_29_400000 (partial unique: one pending/approved per holder and activity; student cascade on user delete). TopicActivity gains proposals() and forActivityOrNew (proposal activities get their subtype row with the first proposal).
+  Support/TopicProposalType (kind topic_proposal, no settings/content steps; hasSubmissions = any proposal; submissions list proposers). Actions/{ProposeTopic (open = published and before deadline; group via ActingGroups, other-group = any group with a proposal), DecideTopicProposal (reject needs comment; decided once), ShowTopicProposals}.
+  Policies/TopicProposalPolicy (OWN-009: view, decide; no update/delete) and TopicActivityPolicy propose/viewProposals; routes GET/POST proposals/{activity}, PUT proposals/{activity}/{proposal}/decision; Http/Controllers/TopicProposalController.
+  Events/TopicProposalDecided(organizationId, topicProposalId, status) after commit, for P4-T7 to notify the student or group. Vue: pages/Activities/TopicProposal/Show.vue, lib/proposalForm.ts, types/proposals.ts; Show.vue links to proposals; lang activities.proposals.*.
+  Tests: tests/Feature/Activities/TopicProposalTest.php, tests/Browser/TopicProposalTest.php, lib/proposalForm.test.ts. OWN-008 is covered by P4-T3's TopicSelectionTest, OWN-011 by P4-T2's PollTest; OWN-010 (ENT-Booking) belongs to P4-T5.
