@@ -4,6 +4,7 @@ use App\Modules\Activities\Enums\WizardStep;
 use App\Modules\Activities\Http\Controllers\ActivityController;
 use App\Modules\Activities\Http\Controllers\PollController;
 use App\Modules\Activities\Http\Controllers\SubmissionController;
+use App\Modules\Activities\Http\Controllers\TopicProposalController;
 use App\Modules\Activities\Http\Controllers\TopicSelectionController;
 use App\Modules\Activities\Http\Controllers\WizardStepController;
 use Illuminate\Support\Facades\Route;
@@ -36,4 +37,11 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
     Route::get('topics/{activity}', [TopicSelectionController::class, 'show'])->name('activities.topics.show');
     Route::put('topics/{activity}/choice', [TopicSelectionController::class, 'choose'])->name('activities.topics.choose');
     Route::delete('topics/{activity}/choice', [TopicSelectionController::class, 'cancel'])->name('activities.topics.cancel');
+
+    // UC-015 and UC-027: a topic proposal activity's page, proposing a topic and deciding a proposal.
+    Route::get('proposals/{activity}', [TopicProposalController::class, 'show'])->name('activities.proposals.show');
+    Route::post('proposals/{activity}', [TopicProposalController::class, 'propose'])->name('activities.proposals.propose');
+    Route::put('proposals/{activity}/{proposal}/decision', [TopicProposalController::class, 'decide'])
+        ->whereUuid('proposal')
+        ->name('activities.proposals.decide');
 });

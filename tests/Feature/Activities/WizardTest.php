@@ -132,7 +132,7 @@ describe('creating', function () {
                 ->component('Activities/Wizard')
                 ->where('activity', null)
                 ->where('step', 'basics')
-                ->where('types', ['quiz', 'poll', 'topic_selection'])
+                ->where('types', ['quiz', 'poll', 'topic_selection', 'topic_proposal'])
                 ->where('basics.course_space_id', $this->space->id)
                 ->where('courseSpaces', [['id' => $this->space->id, 'title' => 'Algorithms']]));
     });
