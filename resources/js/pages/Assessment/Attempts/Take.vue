@@ -195,6 +195,17 @@ onBeforeUnmount(() => {
                     ·
                     {{ $t(`assessment.attempt.statuses.${attempt.status}`) }}
                 </p>
+                <p
+                    v-if="attempt.group"
+                    class="text-sm"
+                    data-test="attempt-group"
+                >
+                    {{
+                        $t('assessment.attempt.take.group_notice', {
+                            group: attempt.group,
+                        })
+                    }}
+                </p>
             </div>
             <div
                 v-if="inProgress"

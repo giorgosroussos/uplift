@@ -93,6 +93,18 @@ function formatDate(value: string | null): string {
                                         number: String(attempt.number),
                                     })
                                 }}
+                                <span
+                                    v-if="attempt.group"
+                                    class="block text-muted-foreground"
+                                    data-test="result-attempt-group"
+                                >
+                                    {{
+                                        $t(
+                                            'assessment.attempt.quiz.group_attempt',
+                                            { group: attempt.group },
+                                        )
+                                    }}
+                                </span>
                             </td>
                             <td class="py-2 pr-4">
                                 {{ formatDate(attempt.submitted_at) }}

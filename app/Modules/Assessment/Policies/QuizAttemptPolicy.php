@@ -4,13 +4,16 @@ namespace App\Modules\Assessment\Policies;
 
 use App\Modules\Activities\Models\Activity;
 use App\Modules\Assessment\Models\QuizAttempt;
+use App\Modules\Assessment\Support\GroupAttempts;
 use App\Modules\Identity\Enums\Role;
 use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * OWN-006 (SEC-007): a student reads only their own attempts (group
- * attempts come with groups, PHASE-4); a teacher reads only attempts of
+ * OWN-006 (SEC-007): a student reads only their own attempts, the attempts
+ * of their groups and the attempts of a group they were a member of when
+ * the attempt was submitted, even after leaving it or its deletion
+ * (SCOPE-025, Support/GroupAttempts); a teacher reads only attempts of
  * quizzes in course spaces they own; an org admin never reads individual
  * attempts, only aggregates.
  */
@@ -23,7 +26,7 @@ class QuizAttemptPolicy
         }
 
         return match ($actor->role) {
-            Role::Student => $attempt->isOf($actor),
+            Role::Student => self::takesPart($actor, $attempt),
             Role::Teacher => $this->managesQuizOf($actor, $attempt),
             Role::OrgAdmin => false,
         };
@@ -45,13 +48,15 @@ class QuizAttemptPolicy
     }
 
     /**
-     * Answering and submitting: only the student's own attempt.
+     * Answering and submitting: only the student's own attempt, or any
+     * current member for their group (SCOPE-012: one member submits for
+     * the group). Only attempts in progress take answers (SaveAnswer).
      */
     public function update(User $actor, QuizAttempt $attempt): bool
     {
         return $this->sameOrganization($actor, $attempt)
             && $actor->hasRole(Role::Student)
-            && $attempt->isOf($actor);
+            && self::takesPart($actor, $attempt);
     }
 
     /**
@@ -64,13 +69,22 @@ class QuizAttemptPolicy
 
     /**
      * UC-017: the result of an attempt: only the student whose attempt it
-     * is (the teacher sees it on the grading page).
+     * is, or who takes part in the group attempt; every such member gets
+     * the same grade (SCOPE-012). The teacher sees it on the grading page.
      */
     public function viewResult(User $actor, QuizAttempt $attempt): bool
     {
         return $this->sameOrganization($actor, $attempt)
             && $actor->hasRole(Role::Student)
-            && $attempt->isOf($actor);
+            && self::takesPart($actor, $attempt);
+    }
+
+    /**
+     * The student's own attempt, or a group attempt they take part in.
+     */
+    public static function takesPart(User $student, QuizAttempt $attempt): bool
+    {
+        return $attempt->isOf($student) || GroupAttempts::takesPart($student, $attempt);
     }
 
     /**

@@ -27,6 +27,7 @@ defineProps<{
         id: string;
         number: number;
         student: string | null;
+        group: string | null;
         status: AttemptStatus;
         submitted_at: string | null;
         final: boolean;
@@ -59,7 +60,11 @@ function gradable(
                     })
                 }}
             </p>
-            <p class="text-sm" data-test="grading-student">
+            <p v-if="attempt.group" class="text-sm" data-test="grading-group">
+                {{ $t('assessment.grading.group') }}:
+                {{ attempt.group }}
+            </p>
+            <p v-else class="text-sm" data-test="grading-student">
                 {{ $t('assessment.grading.student') }}:
                 {{ attempt.student }}
             </p>

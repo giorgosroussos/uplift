@@ -16,6 +16,8 @@ export type ResultAttempt = {
     /** Null while the quiz's score visibility hides it. */
     score: AttemptScore | null;
     has_feedback: boolean;
+    /** The group's name for a group attempt (same grade for every member). */
+    group: string | null;
 };
 
 export type ActivityResults = {

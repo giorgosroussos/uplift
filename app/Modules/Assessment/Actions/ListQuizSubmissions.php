@@ -38,12 +38,13 @@ class ListQuizSubmissions
             ->where('quiz_id', $activity->id)
             ->whereIn('status', array_map(static fn (AttemptStatus $s): string => $s->value, $statuses))
             ->whereNotNull('submitted_at')
-            ->with('student')
+            ->with(['student', 'group'])
             ->orderByDesc('submitted_at')
             ->get()
             ->map(fn (QuizAttempt $attempt): Submission => new Submission(
                 id: $attempt->id,
-                participant: (string) $attempt->student?->name,
+                // SCOPE-012: a group attempt is the group's submission.
+                participant: (string) ($attempt->isGroupAttempt() ? $attempt->group?->name : $attempt->student?->name),
                 submittedAt: $attempt->submitted_at ?? $attempt->started_at,
                 status: $attempt->status === AttemptStatus::Graded ? SubmissionStatus::Graded : SubmissionStatus::NeedsGrading,
                 earnedPoints: $attempt->earned_points === null ? null : (string) $attempt->earned_points,
