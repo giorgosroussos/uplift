@@ -70,6 +70,16 @@ class ActivityPolicy
     }
 
     /**
+     * UC-040 (SCOPE-029): only the owning teacher deletes an activity, in
+     * any status; DeleteActivity refuses a published or closed activity
+     * that has submissions.
+     */
+    public function delete(User $actor, Activity $activity): Response
+    {
+        return $this->managing($actor, $activity, true);
+    }
+
+    /**
      * UC-028: the submissions overview, for the owning teacher only.
      */
     public function viewSubmissions(User $actor, Activity $activity): Response

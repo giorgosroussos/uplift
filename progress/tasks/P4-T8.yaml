@@ -1,0 +1,9 @@
+id: P4-T8
+status: ready_to_merge
+commit: 7d19442
+handoff: |
+  Activities: Actions/DeleteActivity (locks the activity row; a non-draft with ActivityType::hasSubmissions is refused with a ValidationException on field "activity"; soft delete, no restore), Events/ActivityDeleted(organizationId, activityId, actorId, type) after commit; ActivityPolicy::delete (owning teacher only, any status).
+  Route DELETE activities/{activity} (activities.destroy) -> ActivityController::destroy, redirects to activities.index?course_space=...; ShowActivity exposes can.delete (owner and draft or no submissions).
+  Vue: pages/Activities/Show.vue delete button + confirmation dialog (data-test activity-delete, delete-dialog, delete-confirm, delete-cancel, delete-error); lang activities.show.{delete,confirm_delete*,cancel}, errors.has_submissions, flash.deleted.
+  Audit: Listeners/AuditActivityDeleted (activity.deleted, actor user, subject activity, changes {type}). hasSubmissions implementations were already in place (P4-T2..T5, QuizType: any attempt); P5-T2 adds live sessions to QuizType.
+  Tests: tests/Feature/Activities/DeleteActivityTest.php, tests/Browser/DeleteActivityTest.php. OWN-008..011 and ENT-TopicProposal stay covered by TopicSelectionTest, TopicProposalTest, SlotBookingTest, PollTest.

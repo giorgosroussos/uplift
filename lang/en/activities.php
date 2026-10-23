@@ -53,6 +53,11 @@ return [
         'open_slots' => 'Open slots',
         'draft_notice' => 'This activity is a draft: students do not see it until you publish it.',
         'closed_notice' => 'This activity is closed.',
+        'delete' => 'Delete',
+        'confirm_delete_title' => 'Delete this activity?',
+        'confirm_delete_text' => '“:title” will be deleted and disappear for everyone. This cannot be undone.',
+        'confirm_delete' => 'Delete activity',
+        'cancel' => 'Cancel',
     ],
 
     'wizard' => [
@@ -131,6 +136,7 @@ return [
     'errors' => [
         'deadline_passed' => 'The deadline has already passed. Choose a later deadline or remove it.',
         'grading_locked' => 'This activity already has submissions, so settings that change grading cannot be edited.',
+        'has_submissions' => 'This activity already has submissions, so it cannot be deleted.',
     ],
 
     'problems' => [
@@ -141,6 +147,7 @@ return [
     'flash' => [
         'published' => 'Activity published.',
         'closed' => 'Activity closed.',
+        'deleted' => 'Activity deleted.',
     ],
 
     'poll' => [

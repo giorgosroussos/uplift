@@ -130,12 +130,12 @@ it('shows the owning teacher the actions of each status', function () {
         ->get(activityUrl($this->draft->id))
         ->assertInertia(fn (Assert $page) => $page
             ->where('activity.status', 'draft')
-            ->where('can', ['update' => true, 'publish' => true, 'close' => false, 'viewSubmissions' => true, 'participate' => false]));
+            ->where('can', ['update' => true, 'publish' => true, 'close' => false, 'viewSubmissions' => true, 'participate' => false, 'delete' => true]));
 
     $this->actingAs($this->teacher)
         ->get(activityUrl($this->closed->id))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('can', ['update' => false, 'publish' => false, 'close' => false, 'viewSubmissions' => true, 'participate' => false]));
+            ->where('can', ['update' => false, 'publish' => false, 'close' => false, 'viewSubmissions' => true, 'participate' => false, 'delete' => true]));
 });
 
 it('does not find activities of another organisation', function () {

@@ -5,6 +5,7 @@ namespace App\Modules\Activities\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Activities\Actions\CloseActivity;
 use App\Modules\Activities\Actions\CreateActivity;
+use App\Modules\Activities\Actions\DeleteActivity;
 use App\Modules\Activities\Actions\ListActivities;
 use App\Modules\Activities\Actions\PublishActivity;
 use App\Modules\Activities\Actions\ShowActivity;
@@ -111,6 +112,21 @@ class ActivityController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('activities.flash.closed')]);
 
         return to_route('activities.show', $activity);
+    }
+
+    /**
+     * UC-040: soft-deletes the activity after the teacher confirmed it; there
+     * is no restore.
+     */
+    public function destroy(Request $request, Activity $activity, DeleteActivity $delete): RedirectResponse
+    {
+        Gate::authorize('delete', $activity);
+
+        $delete->handle($this->user($request), $activity);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('activities.flash.deleted')]);
+
+        return to_route('activities.index', ['course_space' => $activity->course_space_id]);
     }
 
     private function user(Request $request): User

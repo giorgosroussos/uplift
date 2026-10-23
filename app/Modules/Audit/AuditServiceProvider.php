@@ -2,6 +2,8 @@
 
 namespace App\Modules\Audit;
 
+use App\Modules\Activities\Events\ActivityDeleted;
+use App\Modules\Audit\Listeners\AuditActivityDeleted;
 use App\Modules\Audit\Listeners\AuditCourseSpaceArchived;
 use App\Modules\Audit\Listeners\AuditOrganizationReactivated;
 use App\Modules\Audit\Listeners\AuditOrganizationRegistered;
@@ -38,6 +40,7 @@ class AuditServiceProvider extends ModuleServiceProvider
         CourseSpaceArchived::class => [AuditCourseSpaceArchived::class],
         OrganizationSuspended::class => [AuditOrganizationSuspended::class],
         OrganizationReactivated::class => [AuditOrganizationReactivated::class],
+        ActivityDeleted::class => [AuditActivityDeleted::class],
     ];
 
     public function boot(): void
