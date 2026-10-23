@@ -60,6 +60,24 @@ return [
         'action' => 'View your result',
     ],
 
+    'topic_proposal_decided' => [
+        'approved' => [
+            'subject' => 'Your topic proposal for :title was approved',
+            'intro' => 'Your topic proposal for :title in :space was approved.',
+        ],
+        'rejected' => [
+            'subject' => 'Your topic proposal for :title was rejected',
+            'intro' => 'Your topic proposal for :title in :space was rejected. The teacher\'s comment is on the proposals page.',
+        ],
+        'action' => 'View your proposal',
+    ],
+
+    'group_invitation' => [
+        'subject' => 'Invitation to the group :group in :space',
+        'intro' => 'You have been invited to join the group :group in :space.',
+        'action' => 'View the invitation',
+    ],
+
     'outro' => 'You can turn notification emails off in your notification settings.',
 
     /*
@@ -85,6 +103,11 @@ return [
             'activity_published' => 'New activity in :space: :title',
             'grade_finalised' => 'Your attempt at :title in :space has been graded',
             'grade_changed' => 'Your grade for :title in :space has changed',
+            'topic_proposal_decided' => [
+                'approved' => 'Your topic proposal for :title in :space was approved',
+                'rejected' => 'Your topic proposal for :title in :space was rejected',
+            ],
+            'group_invitation' => 'You have been invited to the group :group in :space',
         ],
     ],
 
