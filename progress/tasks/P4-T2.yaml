@@ -1,0 +1,9 @@
+id: P4-T2
+status: blocked
+commit: 961932a
+handoff: |
+  Blocked on CR-P4-T2-1: OWN-008/009/010 and ENT-TopicProposal criteria belong to P4-T3..T5; poll limits, defaults, result visibility and edit lock need a decision.
+  Polls are built on this branch (CMP-Activities): Models/{Poll, PollOption, PollParticipation, PollVote (no user ref, no timestamps, UUID v4)}, 4 migrations 2026_10_27_20000x, Enums/PollResultsVisibility, PollFactory.
+  Support/PollType registered via ActivityTypes (settings: max_choices, results_visibility; content: ordered options); Actions/{SavePollSettings, SavePollOptions, CastPollVote, ShowPoll}; Policies/{PollPolicy, PollParticipationPolicy (OWN-011)}.
+  Routes polls/{activity} and POST polls/{activity}/vote (activities.polls.*); pages Activities/Poll/{Settings,Options,Show}.vue, lib/pollForm.ts, types/polls.ts, lang activities.poll.*; Wizard glob now rooted at /resources/js/pages.
+  Tests: tests/Feature/Activities/PollTest.php, tests/Browser/PollTest.php, resources/js/lib/pollForm.test.ts.
