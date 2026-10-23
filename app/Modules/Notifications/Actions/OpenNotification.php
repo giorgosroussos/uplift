@@ -3,8 +3,10 @@
 namespace App\Modules\Notifications\Actions;
 
 use App\Modules\Activities\Models\Activity;
+use App\Modules\Activities\Models\TopicProposal;
 use App\Modules\Assessment\Models\QuizAttempt;
 use App\Modules\Courses\Models\CourseSpace;
+use App\Modules\Courses\Models\Group;
 use App\Modules\Identity\Models\User;
 use App\Modules\Notifications\Enums\NotificationKind;
 use App\Modules\Notifications\Models\Notification;
@@ -16,7 +18,10 @@ use Illuminate\Support\Facades\Gate;
  * entry opens its course space while the user may read its announcements,
  * an activity_published entry its activity while the user may view it, a
  * grade_finalised or grade_changed entry the attempt's result while the
- * user may view it;
+ * user may view it, a topic_proposal_decided entry the proposals page of
+ * its activity while the user may view the proposal and the activity, a
+ * group_invitation entry the group while the user may view it (as invitee
+ * or member);
  * otherwise (archived, unenrolled, gone) there is no target.
  */
 class OpenNotification
@@ -34,6 +39,8 @@ class OpenNotification
             NotificationKind::AnnouncementPublished => $this->courseSpace($user, $notification),
             NotificationKind::ActivityPublished => $this->activity($user, $notification),
             NotificationKind::GradeFinalised, NotificationKind::GradeChanged => $this->result($user, $notification),
+            NotificationKind::TopicProposalDecided => $this->proposal($user, $notification),
+            NotificationKind::GroupInvitation => $this->group($user, $notification),
         };
     }
 
@@ -68,5 +75,34 @@ class OpenNotification
         }
 
         return route('assessment.results.show', $attempt, absolute: false);
+    }
+
+    private function proposal(User $user, Notification $notification): ?string
+    {
+        $proposal = TopicProposal::query()->find($notification->data['topic_proposal_id'] ?? null);
+
+        if ($proposal === null || Gate::forUser($user)->denies('view', $proposal)) {
+            return null;
+        }
+
+        // A deleted activity is 404, also from an existing notification (SCOPE-027).
+        $activity = Activity::query()->find($proposal->topic_activity_id);
+
+        if ($activity === null || Gate::forUser($user)->denies('view', $activity)) {
+            return null;
+        }
+
+        return route('activities.proposals.show', $activity, absolute: false);
+    }
+
+    private function group(User $user, Notification $notification): ?string
+    {
+        $group = Group::query()->with('courseSpace')->find($notification->data['group_id'] ?? null);
+
+        if ($group === null || Gate::forUser($user)->denies('view', $group)) {
+            return null;
+        }
+
+        return route('courses.groups.show', [$group->courseSpace, $group], absolute: false);
     }
 }

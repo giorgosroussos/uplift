@@ -3,13 +3,17 @@
 namespace App\Modules\Notifications;
 
 use App\Modules\Activities\Events\ActivityPublished;
+use App\Modules\Activities\Events\TopicProposalDecided;
 use App\Modules\Assessment\Events\ResultChanged;
 use App\Modules\Assessment\Events\ResultReleased;
 use App\Modules\Courses\Events\AnnouncementPublished;
+use App\Modules\Courses\Events\GroupInvitationCreated;
 use App\Modules\Notifications\Http\Middleware\ShareNotifications;
 use App\Modules\Notifications\Listeners\SendActivityNotifications;
 use App\Modules\Notifications\Listeners\SendAnnouncementNotifications;
 use App\Modules\Notifications\Listeners\SendGradeNotification;
+use App\Modules\Notifications\Listeners\SendGroupInvitationNotification;
+use App\Modules\Notifications\Listeners\SendTopicProposalNotification;
 use App\Modules\Notifications\Models\Notification;
 use App\Modules\Notifications\Policies\NotificationPolicy;
 use App\Support\Modules\ModuleServiceProvider;
@@ -32,6 +36,8 @@ class NotificationsServiceProvider extends ModuleServiceProvider
         // DEC-003: grades are notified when released, not when graded.
         ResultReleased::class => [SendGradeNotification::class],
         ResultChanged::class => [SendGradeNotification::class],
+        TopicProposalDecided::class => [SendTopicProposalNotification::class],
+        GroupInvitationCreated::class => [SendGroupInvitationNotification::class],
     ];
 
     public function boot(): void

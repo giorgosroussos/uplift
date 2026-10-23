@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { groupByDay } from '@/lib/notificationGroups';
+import { notificationMessage } from '@/lib/notificationMessage';
 import { index, open, read, readAll, unread } from '@/routes/notifications';
 import { edit as settings } from '@/routes/notifications/settings';
 import type { Paginated } from '@/types/courses';
@@ -42,20 +43,6 @@ function time(value: string): string {
         document.documentElement.lang || undefined,
         { hour: '2-digit', minute: '2-digit' },
     );
-}
-
-/** The replacements of the entry's `notifications.centre.kinds` message. */
-function messageParams(notification: NotificationEntry): {
-    space: string;
-    title: string;
-} {
-    return {
-        space: notification.data.course_space_title,
-        title:
-            notification.kind === 'announcement_published'
-                ? notification.data.announcement_title
-                : notification.data.activity_title,
-    };
 }
 
 function post(target: { url: string }): void {
@@ -128,8 +115,8 @@ function post(target: { url: string }): void {
                         <span :class="{ 'font-medium': !notification.read }">
                             {{
                                 $t(
-                                    `notifications.centre.kinds.${notification.kind}`,
-                                    messageParams(notification),
+                                    notificationMessage(notification).key,
+                                    notificationMessage(notification).params,
                                 )
                             }}
                         </span>

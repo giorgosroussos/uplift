@@ -12,16 +12,24 @@ enum NotificationKind: string
     case ActivityPublished = 'activity_published';
     case GradeFinalised = 'grade_finalised';
     case GradeChanged = 'grade_changed';
+    case TopicProposalDecided = 'topic_proposal_decided';
+    case GroupInvitation = 'group_invitation';
 
     /**
      * Whether the kind is one of the DEC-001 notification emails (new
      * announcement, new activity in an enrolled course space, new or final
-     * grade, ...). Every other kind is in-app only (DEC-001).
+     * grade, topic approved or rejected, group invitation). Every other
+     * kind is in-app only (DEC-001).
      */
     public function sendsEmail(): bool
     {
         return match ($this) {
-            self::AnnouncementPublished, self::ActivityPublished, self::GradeFinalised, self::GradeChanged => true,
+            self::AnnouncementPublished,
+            self::ActivityPublished,
+            self::GradeFinalised,
+            self::GradeChanged,
+            self::TopicProposalDecided,
+            self::GroupInvitation => true,
         };
     }
 }
