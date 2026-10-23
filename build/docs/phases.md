@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v3.2.0 · source 626aadb4b16e_
+_Generated document · design v3.3.0 · source 7b74b682e4c4_
 
 
 ## Phase map
@@ -91,6 +91,7 @@ flowchart LR
 | UC-020 | Teacher dashboard | should | PHASE-7 |
 | UC-021 | Manage course space | must | PHASE-2 |
 | UC-022 | Create activity | must | PHASE-3 |
+| UC-040 | Delete activity | should | PHASE-4 |
 | UC-023 | Manage question bank | should | PHASE-3 |
 | UC-024 | Run live quiz | must | PHASE-5 |
 | UC-025 | Play live quiz | must | PHASE-5 |
@@ -263,7 +264,7 @@ Out of scope:
 
 ## PHASE-4 — The other four activity types and groups: polls, topic selection, topic proposals with approval, slot booking, group activities
 
-Depends on: PHASE-3 · use cases: UC-019, UC-013, UC-014, UC-015, UC-027, UC-016 · environment: development
+Depends on: PHASE-3 · use cases: UC-019, UC-013, UC-014, UC-015, UC-027, UC-016, UC-040 · environment: development
 
 | task | title | depends on | writes | migrations |
 |---|---|---|---|---|
@@ -274,6 +275,7 @@ Depends on: PHASE-3 · use cases: UC-019, UC-013, UC-014, UC-015, UC-027, UC-016
 | P4-T5 | Slot booking | P4-T1, P4-T4 | CMP-Activities | yes |
 | P4-T6 | Group quiz attempts | P4-T1 | CMP-Assessment | yes |
 | P4-T7 | Notifications for topic decisions and group invitations | P4-T1, P4-T4 | CMP-Notifications |  |
+| P4-T8 | Activity deletion | P4-T2, P4-T3, P4-T4, P4-T5, P4-T6 | CMP-Activities, CMP-Assessment, CMP-Audit |  |
 
 Task waves:
 
@@ -297,6 +299,10 @@ flowchart LR
     P4_T7["P4-T7"]
   end
   W3 --> W4
+  subgraph W5["Wave 5"]
+    P4_T8["P4-T8"]
+  end
+  W4 --> W5
 ```
 
 Out of scope:

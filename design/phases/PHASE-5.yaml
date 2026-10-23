@@ -18,8 +18,11 @@ tasks:
     touches: {writes: [CMP-Assessment]}
   - id: P5-T2
     title: Live session engine
-    description: "LiveSession state machine (lobby, cancelled, running, finished), scheduled start job, common end time, finish job, early finish when all submitted, scoring with partial credit, final ranks; LiveSessionFinished event"
+    description: "LiveSession state machine (lobby, cancelled, running, finished), scheduled start job, common end time, finish job, early finish when all submitted, scoring with partial credit, final ranks; LiveSessionFinished event; the quiz's hasSubmissions (SCOPE-027) also returns true once a live session of the quiz has started"
     depends_on: [P5-T1]
+    acceptance_criteria:
+      - "Given a live quiz whose session has started, When its teacher deletes the activity, Then it is refused (SCOPE-027)"
+      - "Given a live quiz whose session is still in the lobby or was cancelled before starting and has no attempts, When its teacher deletes the activity, Then it is soft-deleted"
     touches: {writes: [CMP-Live], reads: [CMP-Assessment], migrations: true}
   - id: P5-T3
     title: Real-time channels and reconnection

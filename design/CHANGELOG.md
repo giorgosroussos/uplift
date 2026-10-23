@@ -1,5 +1,9 @@
 # Design changelog
 
+## v3.3.0 — 2026-10-23
+
+- Activity deletion by the owning teacher while draft or without submissions (UC-040, SCOPE-027); new task P4-T8
+
 ## v3.2.0 — 2026-10-23
 
 - Poll limits, defaults, results visibility, closing, edit lock and erasure (SCOPE-026); P4-T2 scoped to poll entities (CR-P4-T2-1)

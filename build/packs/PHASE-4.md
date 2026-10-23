@@ -1,9 +1,9 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-4 — The other four activity types and groups: polls, topic selection, topic proposals with approval, slot booking, group activities
 
-_design v3.2.0 · 626aadb4b16e_
+_design v3.3.0 · 7b74b682e4c4_
 
-Depends on: PHASE-3 · environment: development · components: CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications
+Depends on: PHASE-3 · environment: development · components: CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Notifications, CMP-Audit
 
 ## Tasks
 
@@ -16,8 +16,9 @@ Depends on: PHASE-3 · environment: development · components: CMP-Courses, CMP-
 | P4-T5 | Slot booking | P4-T1, P4-T4 | CMP-Activities |
 | P4-T6 | Group quiz attempts | P4-T1 | CMP-Assessment |
 | P4-T7 | Notifications for topic decisions and group invitations | P4-T1, P4-T4 | CMP-Notifications |
+| P4-T8 | Activity deletion | P4-T2, P4-T3, P4-T4, P4-T5, P4-T6 | CMP-Activities, CMP-Assessment, CMP-Audit |
 
-Execution waves: [P4-T1, P4-T2] → [P4-T3, P4-T6] → [P4-T4] → [P4-T5, P4-T7]
+Execution waves: [P4-T1, P4-T2] → [P4-T3, P4-T6] → [P4-T4] → [P4-T5, P4-T7] → [P4-T8]
 
 ## Out of scope (do not build)
 
@@ -106,6 +107,19 @@ Main flow:
 Exceptions:
 - Slot full: booking refused
 - Deadline passed: change or cancel refused
+
+#### UC-040 — Delete activity (should)
+
+Actors: ACT-Teacher · Goal: Delete an activity of any type while it is a draft or has no submissions
+
+Main flow:
+1. The owning teacher chooses delete on a draft activity, or on a published or closed activity without submissions (SCOPE-027)
+2. Confirms in a dialog
+3. The activity is soft-deleted and disappears for everyone; nobody is notified
+
+Exceptions:
+- The activity has a submission (any attempt, also in progress, a started live session, vote, topic choice, proposal or booking, also cancelled): deletion is refused
+- Not the owning teacher: deletion is refused
 
 ## Entities
 
@@ -326,6 +340,13 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - MUST treat a poll as closed when its activity is closed or its deadline has passed, and refuse votes from then on  (SCOPE-026)
 - MUST refuse, once a vote exists, changes to max_choices and to the set or labels of options with 409 problem details  (SCOPE-026)
 - MUST delete a user's poll participations with the account and keep the anonymous votes  (SCOPE-026)
+- MUST allow deletion only by the owning teacher (OWN-004) and only for a draft or an activity for which hasSubmissions is false  (SCOPE-027)
+- MUST count any attempt (also in progress), a started live session, poll participation, topic choice, topic proposal or booking (also cancelled) as a submission  (SCOPE-027)
+- MUST decide hasSubmissions through the ActivityType contract, implemented by each type's module  (SCOPE-027)
+- MUST soft-delete the activity and provide no restore in the UI  (SCOPE-027)
+- MUST return 404 for a deleted activity, also when opened from an existing notification  (SCOPE-027)
+- MUST NOT send notifications on deletion nor delete existing notifications  (SCOPE-027)
+- MUST dispatch App\Modules\Activities\Events\ActivityDeleted(organizationId, activityId, actorId, type) after commit and audit it as activity.deleted  (SCOPE-027)
 - MUST NOT expose the list of participants of a poll to teachers or admins  (SEC-009)
 - MUST NOT store a user reference on poll choices  (DATA-006)
 - MUST record poll participation separately to prevent a second vote  (DATA-006)
@@ -342,6 +363,7 @@ Failure policy: timeout 10s, retries 5, exponential backoff via queue (1m, 5m, 1
 - CMP-Activities MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses
 - CMP-Assessment MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities
 - CMP-Notifications MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment
+- CMP-Audit MUST only depend on: CMP-Tenancy, CMP-Identity, CMP-Platform, CMP-Courses, CMP-Activities, CMP-Assessment
 - MUST access EXT-002 only through Laravel Mail / Notification mail channel in CMP-Notifications
 - MUST apply timeout 10s to every EXT-002 call; retries: 5, exponential backoff via queue (1m, 5m, 15m, 1h, 6h)
 
@@ -414,6 +436,15 @@ Standing constraints from deferred decisions (apply now):
 - [UC-016] Given a slot with capacity 2 holding 2 bookings, When a third student books it, Then it is refused
 - [UC-016] Given a student with a booking, When they book another slot of the same activity, Then the first booking is released (one booking per student or group)
 - [UC-016] Given two concurrent bookings for the last place of a slot, Then exactly one succeeds
+- [UC-040] Given a draft activity of each of the five types, When its owning teacher deletes it, Then it is soft-deleted and one ActivityDeleted is dispatched after commit
+- [UC-040] Given a published quiz with one in-progress attempt, When its teacher deletes it, Then it is refused and nothing changes
+- [UC-040] Given a published poll with one vote, a topic selection with one choice, a topic proposal activity with one proposal or a slot activity with one cancelled booking, When its teacher deletes it, Then it is refused
+- [UC-040] Given a published activity without submissions, When its teacher deletes it, Then it is soft-deleted and absent from the course space's activity lists for students and its teacher
+- [UC-040] Given a deleted activity, When a student opens it or an activity_published notification that points to it, Then they get 404 (not available)
+- [UC-040] Given a deleted activity, Then no notification is sent and its existing notifications stay
+- [UC-040] Given teacher A's activity, When teacher B, an org admin or a student tries to delete it, Then it is refused
+- [UC-040] Given an activity of organisation A, When a user of organisation B tries to delete it, Then it is not found
+- [UC-040] Given a deleted activity, Then there is no way to restore it in the UI
 - [OWN-005] Given a ROLE-Student user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only), Then access is denied and nothing changes
 - [OWN-005] Given a ROLE-Teacher user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only), Then access is denied and nothing changes
 - [OWN-005] Given a ROLE-OrgAdmin user, When they read or modify an ENT-GroupMembership record the rule does not grant them (A student sees memberships only of groups they belong to or are invited to; only members change a group (invite, withdraw) and only its owner renames, transfers or dissolves it; a teacher sees groups only of course spaces they own, read-only; an org admin sees groups of any course space of their organisation, read-only), Then access is denied and nothing changes

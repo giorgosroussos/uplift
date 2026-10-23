@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Actors and use cases
 
-_Generated document · design v3.2.0 · source 626aadb4b16e_
+_Generated document · design v3.3.0 · source 7b74b682e4c4_
 
 
 ## Actors
@@ -47,6 +47,7 @@ flowchart LR
     UC_020(["UC-020: Teacher dashboard"])
     UC_021(["UC-021: Manage course space"])
     UC_022(["UC-022: Create activity"])
+    UC_040(["UC-040: Delete activity"])
     UC_023(["UC-023: Manage question bank"])
     UC_024(["UC-024: Run live quiz"])
     UC_025(["UC-025: Play live quiz"])
@@ -98,6 +99,7 @@ flowchart LR
   ACT_Teacher --- UC_020
   ACT_Teacher --- UC_021
   ACT_Teacher --- UC_022
+  ACT_Teacher --- UC_040
   ACT_Teacher --- UC_023
   ACT_Teacher --- UC_024
   ACT_Student --- UC_025
@@ -524,6 +526,32 @@ Acceptance criteria:
 - Given a published quiz with 1 in-progress attempt and no submission, When the teacher removes a question or option, Then it is refused
 - Given a new quiz in the wizard, Then it has 1 attempt, score visible immediately, answers visible after the deadline, no time limit, no negative marking and no pass mark
 - Given a time limit of 0 or 1441 minutes or max_attempts of 0 or 101, When saved, Then it is refused
+
+#### UC-040 — Delete activity (should)
+
+Actors: ACT-Teacher · Goal: Delete an activity of any type while it is a draft or has no submissions
+
+Main flow:
+1. The owning teacher chooses delete on a draft activity, or on a published or closed activity without submissions (SCOPE-027)
+2. Confirms in a dialog
+3. The activity is soft-deleted and disappears for everyone; nobody is notified
+
+Exceptions:
+- The activity has a submission (any attempt, also in progress, a started live session, vote, topic choice, proposal or booking, also cancelled): deletion is refused
+- Not the owning teacher: deletion is refused
+
+Acceptance criteria:
+- Given a draft activity of each of the five types, When its owning teacher deletes it, Then it is soft-deleted and one ActivityDeleted is dispatched after commit
+- Given a published quiz with one in-progress attempt, When its teacher deletes it, Then it is refused and nothing changes
+- Given a published poll with one vote, a topic selection with one choice, a topic proposal activity with one proposal or a slot activity with one cancelled booking, When its teacher deletes it, Then it is refused
+- Given a published activity without submissions, When its teacher deletes it, Then it is soft-deleted and absent from the course space's activity lists for students and its teacher
+- Given a deleted activity, When a student opens it or an activity_published notification that points to it, Then they get 404 (not available)
+- Given a deleted activity, Then no notification is sent and its existing notifications stay
+- Given teacher A's activity, When teacher B, an org admin or a student tries to delete it, Then it is refused
+- Given an activity of organisation A, When a user of organisation B tries to delete it, Then it is not found
+- Given a deleted activity, Then there is no way to restore it in the UI
+
+> Engineer: “Add activity deletion: the owning teacher can delete an activity of any type while it is a draft or has no submissions. / 1 A, 2 A, 3 A, 4 A”
 
 #### UC-023 — Manage question bank (should)
 

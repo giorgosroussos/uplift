@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v3.2.0 · source 626aadb4b16e_
+_Generated document · design v3.3.0 · source 7b74b682e4c4_
 
 
 ## Scope
@@ -309,6 +309,25 @@ _affects UC-019, ENT-Group, ENT-GroupMembership, OWN-005, OWN-006, SCOPE-017, P4
 - `MUST delete a user's poll participations with the account and keep the anonymous votes`
 
 _affects UC-013, UC-028, ENT-Poll, ENT-PollOption, ENT-PollParticipation, OWN-011, SCOPE-013, SEC-009, P4-T2 · since v3.2.0_
+
+### SCOPE-027 — Activity deletion · decided
+
+> Engineer: “Add activity deletion: the owning teacher can delete an activity of any type while it is a draft or has no submissions. / 1 A, 2 A, 3 A, 4 A”
+
+**Decision:** The owning teacher may delete an activity of any type while it is a draft or has no submissions. A submission is any participation record: a quiz attempt in any status (also in progress), a started live session, a poll participation, a topic choice, a topic proposal or a booking (also cancelled). Each activity type answers through ActivityType::hasSubmissions(Activity) (ARCH-004). Deletion asks for confirmation, soft-deletes the activity (DATA-007) and has no restore in the UI; the deleted activity is absent for everyone and opening it, also from an earlier notification, returns 404. Nobody is notified and existing notifications are kept. Activities dispatches ActivityDeleted(organizationId, activityId, actorId, type) after commit, audited as activity.deleted
+
+**Why:** New requirement from the engineer; a deletion that never removes participation data keeps grades, votes and bookings intact
+
+**Constraints for implementation:**
+- `MUST allow deletion only by the owning teacher (OWN-004) and only for a draft or an activity for which hasSubmissions is false`
+- `MUST count any attempt (also in progress), a started live session, poll participation, topic choice, topic proposal or booking (also cancelled) as a submission`
+- `MUST decide hasSubmissions through the ActivityType contract, implemented by each type's module`
+- `MUST soft-delete the activity and provide no restore in the UI`
+- `MUST return 404 for a deleted activity, also when opened from an existing notification`
+- `MUST NOT send notifications on deletion nor delete existing notifications`
+- `MUST dispatch App\Modules\Activities\Events\ActivityDeleted(organizationId, activityId, actorId, type) after commit and audit it as activity.deleted`
+
+_affects UC-040, ENT-Activity, OWN-004, P4-T8, P5-T2 · since v3.3.0_
 
 ## External
 

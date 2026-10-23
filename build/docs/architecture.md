@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Architecture and stack
 
-_Generated document · design v3.2.0 · source 626aadb4b16e_
+_Generated document · design v3.3.0 · source 7b74b682e4c4_
 
 
 **Style:** modular-monolith · **database:** postgresql
@@ -126,7 +126,7 @@ flowchart TB
 | CMP-Identity | Users, roles, authentication, organisation registration with its first admin (through Tenancy actions), invitations, profile, MFA, data export/erasure | ENT-User, ENT-Invitation | UC-001, UC-003, UC-004, UC-005, UC-006, UC-032, UC-039 | CMP-Tenancy |
 | CMP-Platform | Platform admins and cross-tenant administration (separate guard, SEC-006) | ENT-PlatformAdmin | UC-035, UC-036 | CMP-Tenancy, CMP-Identity |
 | CMP-Courses | Course spaces, enrolment, announcements, groups | ENT-CourseSpace, ENT-Enrolment, ENT-Announcement, ENT-Group, ENT-GroupMembership | UC-008, UC-011, UC-019, UC-021 | CMP-Tenancy, CMP-Identity |
-| CMP-Activities | Activity base and lifecycle, creation wizard, submissions overview, polls, topics, proposals, slots; type-specific behaviour through an ActivityType contract that other modules register | ENT-Activity, ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote, ENT-TopicActivity, ENT-Topic, ENT-TopicChoice, ENT-TopicProposal, ENT-SlotActivity, ENT-Slot, ENT-Booking | UC-013, UC-014, UC-015, UC-016, UC-022, UC-027, UC-028 | CMP-Tenancy, CMP-Identity, CMP-Courses |
+| CMP-Activities | Activity base and lifecycle, creation wizard, submissions overview, polls, topics, proposals, slots; type-specific behaviour through an ActivityType contract that other modules register | ENT-Activity, ENT-Poll, ENT-PollOption, ENT-PollParticipation, ENT-PollVote, ENT-TopicActivity, ENT-Topic, ENT-TopicChoice, ENT-TopicProposal, ENT-SlotActivity, ENT-Slot, ENT-Booking | UC-013, UC-014, UC-015, UC-016, UC-022, UC-027, UC-028, UC-040 | CMP-Tenancy, CMP-Identity, CMP-Courses |
 | CMP-Assessment | Quizzes, question bank, CSV question import, self-paced attempts, auto and manual grading, results | ENT-Quiz, ENT-Question, ENT-ChoiceOption, ENT-MatchingPair, ENT-QuizQuestion, ENT-QuizAttempt, ENT-Answer, ENT-AnswerSelection, ENT-AnswerMatch | UC-012, UC-017, UC-023, UC-026, UC-030 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities |
 | CMP-Live | Live quiz sessions: state machine, server-side timers, broadcasting over Reverb, scoring, reconnection | ENT-LiveSession, ENT-LiveParticipant, ENT-LiveAnswer | UC-024, UC-025 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment |
 | CMP-Gamification | XP ledger, levels, badges, per-course-space leaderboards; reacts to domain events | ENT-XpEvent, ENT-Badge, ENT-UserBadge | UC-018, UC-037 | CMP-Tenancy, CMP-Identity, CMP-Courses, CMP-Activities, CMP-Assessment, CMP-Live |

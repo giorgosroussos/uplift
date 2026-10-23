@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Security and compliance
 
-_Generated document · design v3.2.0 · source 626aadb4b16e_
+_Generated document · design v3.3.0 · source 7b74b682e4c4_
 
 
 ## Trust boundaries
@@ -59,6 +59,7 @@ flowchart LR
 | UC-020 Teacher dashboard |  |  | ✓ |  |  |  |
 | UC-021 Manage course space |  |  | ✓ | ✓ |  |  |
 | UC-022 Create activity |  |  | ✓ |  |  |  |
+| UC-040 Delete activity |  |  | ✓ |  |  |  |
 | UC-023 Manage question bank |  |  | ✓ |  |  |  |
 | UC-024 Run live quiz |  |  | ✓ |  |  |  |
 | UC-025 Play live quiz |  | ✓ |  |  |  |  |
