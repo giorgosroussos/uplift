@@ -1,7 +1,9 @@
 <?php
 
+use App\Modules\Activities\Contracts\ActivityType;
 use App\Modules\Activities\Enums\ActivityKind;
 use App\Modules\Activities\Enums\ActivityStatus;
+use App\Modules\Activities\Enums\WizardStep;
 use App\Modules\Activities\Models\Activity;
 use App\Modules\Activities\Support\ActivityTypes;
 use App\Modules\Assessment\Actions\SaveQuizSettings;
@@ -15,7 +17,6 @@ use App\Modules\Assessment\Models\Question;
 use App\Modules\Assessment\Models\Quiz;
 use App\Modules\Assessment\Models\QuizAttempt;
 use App\Modules\Assessment\Models\QuizQuestion;
-use App\Modules\Assessment\Support\QuizType;
 use App\Modules\Courses\Models\CourseSpace;
 use App\Modules\Courses\Models\Enrolment;
 use App\Modules\Identity\Models\User;
@@ -172,7 +173,11 @@ function qwPrompts(Activity $activity): array
 
 describe('the quiz activity type', function () {
     it('is registered through the ActivityType contract and offered by the wizard', function () {
-        expect(app(ActivityTypes::class)->get(ActivityKind::Quiz))->toBeInstanceOf(QuizType::class);
+        // Live wraps the quiz type so a started live session counts as a submission (P5-T2).
+        $type = app(ActivityTypes::class)->get(ActivityKind::Quiz);
+        expect($type)->toBeInstanceOf(ActivityType::class)
+            ->and($type->kind())->toBe(ActivityKind::Quiz)
+            ->and($type->component(WizardStep::Settings))->toBe('Assessment/Quiz/Settings');
 
         $this->actingAs($this->teacher)
             ->get(qwUrl('activities/create'))
