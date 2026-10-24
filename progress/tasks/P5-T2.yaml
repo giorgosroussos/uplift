@@ -1,0 +1,9 @@
+id: P5-T2
+status: ready_to_merge
+commit: c18eae7
+handoff: |
+  Live: tables live_sessions/live_participants/live_answers (one non-cancelled session per quiz, partial unique index); models + factories (LiveSession ->running()/finished()/cancelled()); Enums/LiveSessionStatus state model; Policies LiveSession (open, host, join=enrolled student), LiveParticipant (OWN-012), LiveAnswer (OWN-013).
+  Actions: OpenLiveLobby, StartLiveSession (manual; begin() for scheduled), CancelLiveLobby, JoinLiveQuiz (scheduled quiz opens its lobby on first join), SaveLiveAnswer (option_ids | matches with LiveMatchingItems opaque right ids; 409 problem after end/submit), SubmitLiveParticipation (finishes when all submitted), FinishLiveSession (scores via Support/LiveScorer, competition ranks 1,1,3, LiveSessionFinished), StartScheduledLiveSessions + FinishDueLiveSessions run by `live:advance` every 5 s; Jobs/FinishLiveSessionJob queued for ends_at.
+  Reads for P5-T3..T5 (not routed yet): ShowLiveProgress (host: answered counts, submitted, ends_at, server_now), ShowLiveParticipation (own answers, remaining_seconds; correctness/score only after finish), ShowLiveResults (ranking/podium by publicProfile only if leaderboard_enabled; host scores + per-question answered/correct).
+  Routes (routes.php): POST live/quizzes/{activity}/lobby|join, POST live/sessions/{id}/start|cancel, PUT live/participants/{id}/answers/{quizQuestion} (JSON), POST live/participants/{id}/submit; lang/{en,el}/live.php.
+  Support/LiveQuizType wraps Assessment's QuizType (registered by LiveServiceProvider) so hasSubmissions is true once a session started. Tests: tests/Feature/Live/{LiveSessionEngineTest,LiveOwnershipTest}.php.
