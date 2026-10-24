@@ -5,13 +5,13 @@ namespace App\Modules\Live\Events;
 use App\Modules\Live\Broadcasting\LiveChannels;
 use App\Modules\Live\Models\LiveSession;
 use Carbon\CarbonImmutable;
-use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 
 /**
- * Broadcast to the session's presence channel when its status changes
+ * Broadcast to the session's private channel when its status changes
  * (started, cancelled, finished): the status, the common end time and
  * the server's clock at sending, so clients derive countdowns from the
  * server (ARCH-006). Carries no score, answer or correctness: on
@@ -43,11 +43,11 @@ final class LiveSessionChanged implements ShouldBroadcast, ShouldDispatchAfterCo
     }
 
     /**
-     * @return list<PresenceChannel>
+     * @return list<PrivateChannel>
      */
     public function broadcastOn(): array
     {
-        return [new PresenceChannel(LiveChannels::session($this->organizationId, $this->sessionId))];
+        return [new PrivateChannel(LiveChannels::session($this->organizationId, $this->sessionId))];
     }
 
     public function broadcastAs(): string

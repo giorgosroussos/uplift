@@ -6,7 +6,12 @@ import type Echo from 'laravel-echo';
  */
 export const LIVE_POLL_INTERVAL_MS = 2000;
 
-/** Broadcast names (Echo listens to them with a leading dot). */
+/**
+ * Broadcast names (Echo listens to them with a leading dot):
+ * sessionChanged on the private session channel (echo.private), for the
+ * host and joined students; progressUpdated on the host's presence
+ * channel (echo.join), for the host only.
+ */
 export const LIVE_EVENTS = {
     sessionChanged: '.live.session.changed',
     progressUpdated: '.live.progress.updated',

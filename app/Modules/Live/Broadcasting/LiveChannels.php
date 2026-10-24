@@ -6,11 +6,12 @@ namespace App\Modules\Live\Broadcasting;
  * Names of the live quiz broadcast channels (SEC-010: private or presence
  * only, with the organisation id in the name, authorised by the Policies):
  *
- * - session (presence): the host and the session's participants; members
- *   are known by nickname and avatar only. Carries status changes
- *   (started, cancelled, finished) with ends_at and server_now.
- * - host (private): the host teacher only. Carries each participant's
- *   progress (joined, answered count, submitted), never an answer.
+ * - session (private): the host and the session's participants, with no
+ *   member list, so students never see each other. Carries status
+ *   changes (started, cancelled, finished) with ends_at and server_now.
+ * - host (presence): the host teacher only, the sole member. Carries
+ *   each participant's progress (joined, answered count, submitted),
+ *   never an answer.
  *
  * Names are without the "presence-" / "private-" prefix, as Echo's join()
  * and private() and Laravel's channel routes expect them.

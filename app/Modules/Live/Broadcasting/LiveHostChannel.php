@@ -6,17 +6,23 @@ use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * Private channel of the host teacher of a live session
+ * Presence channel of the host teacher of a live session
  * (LiveChannels::HOST): only the host (LiveSessionPolicy::host) of the
- * channel's organisation receives participants' progress (OWN-012,
- * OWN-013).
+ * channel's organisation is let in, known by nickname and avatar only,
+ * and receives participants' progress: who joined, answered counts, who
+ * submitted (FLOW-001, OWN-012, OWN-013). No student is ever a member.
  */
 final class LiveHostChannel
 {
-    public function join(User $user, string $organizationId, string $sessionId): bool
+    /**
+     * @return array{id: string, nickname: string, avatar: string|null}|false
+     */
+    public function join(User $user, string $organizationId, string $sessionId): array|false
     {
         $session = LiveSessionChannel::session($user, $organizationId, $sessionId);
 
-        return $session !== null && Gate::forUser($user)->allows('host', $session);
+        return $session !== null && Gate::forUser($user)->allows('host', $session)
+            ? $user->publicProfile()
+            : false;
     }
 }

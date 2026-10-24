@@ -221,8 +221,8 @@ describe('channels (SEC-010)', function () {
 
         $this->quiz = rtQuiz();
         $this->session = rtRun($this->quiz, [$this->student]);
-        $this->presence = 'presence-'.LiveChannels::session($this->acme->id, $this->session->id);
-        $this->hostChannel = 'private-'.LiveChannels::host($this->acme->id, $this->session->id);
+        $this->sessionChannel = 'private-'.LiveChannels::session($this->acme->id, $this->session->id);
+        $this->hostChannel = 'presence-'.LiveChannels::host($this->acme->id, $this->session->id);
 
         rtSignChannels();
     });
@@ -234,29 +234,41 @@ describe('channels (SEC-010)', function () {
             ->toBe("organization.{$this->acme->id}.live-session.{$this->session->id}.host");
     });
 
-    it('lets the host and joined students into the presence channel, known by nickname and avatar only', function () {
+    it('lets the host and joined students into the private session channel, which has no member list', function () {
         foreach ([$this->teacher, $this->student] as $user) {
-            $response = rtSubscribe($user, $this->presence)->assertOk();
-            $member = json_decode((string) $response->json('channel_data'), true);
+            $response = rtSubscribe($user, $this->sessionChannel)->assertOk()->assertJsonStructure(['auth']);
 
-            expect($member['user_id'])->toBe($user->id)
-                ->and($member['user_info'])->toBe($user->publicProfile())
-                ->and(array_keys($member['user_info']))->toBe(['id', 'nickname', 'avatar'])
-                ->and($response->content())->not->toContain($user->email);
+            expect($response->json())->not->toHaveKey('channel_data');
         }
     });
 
-    it('keeps everyone else out of the presence channel', function () {
+    it('refuses the session channel as a presence channel, so students never see who else joined (OWN-012)', function () {
+        rtJoin($this->quiz, $this->classmate)->assertSessionHasNoErrors();
+        $presence = 'presence-'.LiveChannels::session($this->acme->id, $this->session->id);
+
+        foreach ([$this->student, $this->classmate, $this->teacher] as $user) {
+            rtSubscribe($user, $presence)->assertForbidden();
+        }
+    });
+
+    it('keeps everyone else out of the session channel', function () {
         // Enrolled but not joined, not enrolled, another teacher, the org admin.
         foreach ([$this->classmate, $this->outsider, $this->otherTeacher, $this->admin] as $user) {
-            rtSubscribe($user, $this->presence)->assertForbidden();
+            rtSubscribe($user, $this->sessionChannel)->assertForbidden();
         }
     });
 
-    it('lets only the host into the host channel', function () {
-        rtSubscribe($this->teacher, $this->hostChannel)->assertOk()->assertJsonStructure(['auth']);
+    it('lets only the host into the host presence channel, known by nickname and avatar only', function () {
+        $response = rtSubscribe($this->teacher, $this->hostChannel)->assertOk();
+        $member = json_decode((string) $response->json('channel_data'), true);
 
-        foreach ([$this->student, $this->classmate, $this->otherTeacher, $this->admin] as $user) {
+        expect($member['user_id'])->toBe($this->teacher->id)
+            ->and($member['user_info'])->toBe($this->teacher->publicProfile())
+            ->and(array_keys($member['user_info']))->toBe(['id', 'nickname', 'avatar'])
+            ->and($response->content())->not->toContain($this->teacher->email);
+
+        // No student is ever a member, joined or not.
+        foreach ([$this->student, $this->classmate, $this->outsider, $this->otherTeacher, $this->admin] as $user) {
             rtSubscribe($user, $this->hostChannel)->assertForbidden();
         }
     });
@@ -265,25 +277,29 @@ describe('channels (SEC-010)', function () {
         $globex = $this->createOrganization(['subdomain' => 'globex']);
 
         // The host's own session under another organisation's id.
-        rtSubscribe($this->teacher, 'presence-'.LiveChannels::session($globex->id, $this->session->id))->assertForbidden();
-        rtSubscribe($this->teacher, 'private-'.LiveChannels::host($globex->id, $this->session->id))->assertForbidden();
+        rtSubscribe($this->teacher, 'private-'.LiveChannels::session($globex->id, $this->session->id))->assertForbidden();
+        rtSubscribe($this->teacher, 'presence-'.LiveChannels::host($globex->id, $this->session->id))->assertForbidden();
 
         // A session of another organisation under its own id.
         $foreign = $this->asTenant($globex, fn () => LiveSession::factory()->running()->create());
-        rtSubscribe($this->teacher, 'presence-'.LiveChannels::session($globex->id, $foreign->id))->assertForbidden();
+        rtSubscribe($this->teacher, 'private-'.LiveChannels::session($globex->id, $foreign->id))->assertForbidden();
+        rtSubscribe($this->teacher, 'presence-'.LiveChannels::host($globex->id, $foreign->id))->assertForbidden();
 
         // Malformed and unknown sessions.
-        rtSubscribe($this->teacher, 'presence-'.LiveChannels::session($this->acme->id, 'not-a-uuid'))->assertForbidden();
-        rtSubscribe($this->teacher, 'presence-'.LiveChannels::session($this->acme->id, (string) Str::uuid()))->assertForbidden();
+        rtSubscribe($this->teacher, 'private-'.LiveChannels::session($this->acme->id, 'not-a-uuid'))->assertForbidden();
+        rtSubscribe($this->teacher, 'presence-'.LiveChannels::host($this->acme->id, (string) Str::uuid()))->assertForbidden();
     });
 
     it('refuses guests', function () {
         auth()->logout();
-        $this->post(rtUrl('broadcasting/auth'), ['socket_id' => '1234.5678', 'channel_name' => $this->presence])
-            ->assertForbidden();
+
+        foreach ([$this->sessionChannel, $this->hostChannel] as $channel) {
+            $this->post(rtUrl('broadcasting/auth'), ['socket_id' => '1234.5678', 'channel_name' => $channel])
+                ->assertForbidden();
+        }
     });
 
-    it('broadcasts only on private or presence channels named with the organisation id', function () {
+    it('broadcasts status to the private session channel and progress to the host presence channel only', function () {
         $events = [
             LiveSessionChanged::of($this->session),
             LiveProgressUpdated::of(rtParticipant($this->quiz), 0),
@@ -296,7 +312,11 @@ describe('channels (SEC-010)', function () {
             }
         }
 
-        expect($events[0]->broadcastOn()[0])->toBeInstanceOf(PresenceChannel::class)
+        expect($events[0]->broadcastOn())->toHaveCount(1)
+            ->and($events[0]->broadcastOn()[0])->not->toBeInstanceOf(PresenceChannel::class)
+            ->and($events[0]->broadcastOn()[0]->name)->toBe($this->sessionChannel)
+            ->and($events[1]->broadcastOn())->toHaveCount(1)
+            ->and($events[1]->broadcastOn()[0])->toBeInstanceOf(PresenceChannel::class)
             ->and($events[1]->broadcastOn()[0]->name)->toBe($this->hostChannel);
     });
 });
@@ -318,7 +338,7 @@ describe('broadcasts', function () {
                 && CarbonImmutable::parse((string) $data['started_at'])->utc()->toDateTimeString() === '2026-11-02 10:00:00'
                 && CarbonImmutable::parse((string) $data['ends_at'])->utc()->toDateTimeString() === '2026-11-02 10:15:00'
                 && CarbonImmutable::parse($data['server_now'])->utc()->toDateTimeString() === '2026-11-02 10:00:00'
-                && $e->broadcastOn()[0]->name === 'presence-'.LiveChannels::session(test()->acme->id, $session->id);
+                && $e->broadcastOn()[0]->name === 'private-'.LiveChannels::session(test()->acme->id, $session->id);
         });
 
         foreach ([$this->student, $this->classmate] as $student) {
@@ -371,7 +391,7 @@ describe('broadcasts', function () {
                 && $e->participant['answered'] === 1
                 && $e->participant['submitted'] === false
                 && $e->participant['student'] === test()->student->publicProfile()
-                && $e->broadcastOn()[0]->name === 'private-'.LiveChannels::host(test()->acme->id, $participant->live_session_id)
+                && $e->broadcastOn()[0]->name === 'presence-'.LiveChannels::host(test()->acme->id, $participant->live_session_id)
                 && ! str_contains($payload, 'option')
                 && ! str_contains($payload, 'is_correct')
                 && ! str_contains($payload, 'score')
@@ -675,7 +695,8 @@ describe('state snapshots (FLOW-002)', function () {
         rtHostState($session, $this->outsider)->assertForbidden();
 
         rtSignChannels();
-        rtSubscribe($this->outsider, 'presence-'.LiveChannels::session($this->acme->id, $session->id))->assertForbidden();
+        rtSubscribe($this->outsider, 'private-'.LiveChannels::session($this->acme->id, $session->id))->assertForbidden();
+        rtSubscribe($this->outsider, 'presence-'.LiveChannels::host($this->acme->id, $session->id))->assertForbidden();
     });
 
     it('answers unknown or foreign records with RFC 9457 problem details', function () {

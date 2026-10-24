@@ -25,7 +25,8 @@ use Throwable;
  * Live quizzes (UC-024, UC-025): the live session engine — lobby, manual
  * or scheduled start, one common end time, answers, early and timed
  * finish, scoring and final ranks (SCOPE-021, SCOPE-022) — and its
- * real-time side: presence and private channels (channels.php), broadcast
+ * real-time side: a private session channel and the host's presence
+ * channel (channels.php), broadcast
  * progress and status changes, and the state snapshot endpoints behind
  * the 2-second polling fallback (ARCH-006).
  */

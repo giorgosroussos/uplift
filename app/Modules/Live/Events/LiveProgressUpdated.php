@@ -5,14 +5,14 @@ namespace App\Modules\Live\Events;
 use App\Modules\Live\Actions\ShowLiveProgress;
 use App\Modules\Live\Broadcasting\LiveChannels;
 use App\Modules\Live\Models\LiveParticipant;
-use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 
 /**
  * UC-024 step 2 and 4: a participant joined, answered a question or
- * submitted. Broadcast to the host's private channel only (OWN-012,
+ * submitted. Broadcast to the host's presence channel only (OWN-012,
  * OWN-013) as the participant's progress row of ShowLiveProgress: the
  * student's nickname and avatar (SEC-010), how many questions they
  * answered and whether they submitted, never an answer or its
@@ -43,11 +43,11 @@ final class LiveProgressUpdated implements ShouldBroadcast, ShouldDispatchAfterC
     }
 
     /**
-     * @return list<PrivateChannel>
+     * @return list<PresenceChannel>
      */
     public function broadcastOn(): array
     {
-        return [new PrivateChannel(LiveChannels::host($this->organizationId, $this->sessionId))];
+        return [new PresenceChannel(LiveChannels::host($this->organizationId, $this->sessionId))];
     }
 
     public function broadcastAs(): string

@@ -9,19 +9,21 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 /**
- * Presence channel of a live session (LiveChannels::SESSION): the host
+ * Private channel of a live session (LiveChannels::SESSION): the host
  * teacher (LiveSessionPolicy::host) and the students who joined it
- * (LiveParticipantPolicy::play on their own participation). Members are
- * known by nickname and avatar only (SEC-008, SEC-010). Anyone else, and
+ * (LiveParticipantPolicy::play on their own participation). It has no
+ * member list: students never see who else joined (UC-025, OWN-012).
+ * Subscribing to it as a presence channel is refused. Anyone else, and
  * anyone of another organisation, is refused.
  */
 final class LiveSessionChannel
 {
-    /**
-     * @return array{id: string, nickname: string, avatar: string|null}|false
-     */
-    public function join(User $user, string $organizationId, string $sessionId): array|false
+    public function join(User $user, string $organizationId, string $sessionId): bool
     {
+        if (str_starts_with((string) request()->input('channel_name'), 'presence-')) {
+            return false;
+        }
+
         $session = self::session($user, $organizationId, $sessionId);
 
         if ($session === null) {
@@ -29,16 +31,12 @@ final class LiveSessionChannel
         }
 
         if (Gate::forUser($user)->allows('host', $session)) {
-            return $user->publicProfile();
+            return true;
         }
 
         $participant = ShowLiveResults::participationOf($session, $user);
 
-        if ($participant !== null && Gate::forUser($user)->allows('play', $participant)) {
-            return $user->publicProfile();
-        }
-
-        return false;
+        return $participant !== null && Gate::forUser($user)->allows('play', $participant);
     }
 
     /**
