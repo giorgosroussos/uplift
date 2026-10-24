@@ -13,13 +13,13 @@ enum QuizMode: string
     case Live = 'live';
 
     /**
-     * The modes the wizard offers in this phase (live quizzes: PHASE-5).
+     * The modes the wizard offers.
      *
      * @return list<string>
      */
     public static function offered(): array
     {
-        return [self::SelfPaced->value];
+        return [self::SelfPaced->value, self::Live->value];
     }
 
     public function allowsQuestionType(QuestionType $type): bool

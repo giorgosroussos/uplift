@@ -4,8 +4,11 @@ use App\Modules\Activities\Enums\ActivityKind;
 use App\Modules\Activities\Enums\ActivityStatus;
 use App\Modules\Activities\Models\Activity;
 use App\Modules\Activities\Support\ActivityTypes;
+use App\Modules\Assessment\Actions\SaveQuizSettings;
+use App\Modules\Assessment\Enums\LiveStartMode;
 use App\Modules\Assessment\Enums\QuestionType;
 use App\Modules\Assessment\Enums\QuizMode;
+use App\Modules\Assessment\Enums\ResultVisibility;
 use App\Modules\Assessment\Models\ChoiceOption;
 use App\Modules\Assessment\Models\MatchingPair;
 use App\Modules\Assessment\Models\Question;
@@ -16,6 +19,7 @@ use App\Modules\Assessment\Support\QuizType;
 use App\Modules\Courses\Models\CourseSpace;
 use App\Modules\Courses\Models\Enrolment;
 use App\Modules\Identity\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -210,10 +214,12 @@ describe('settings', function () {
             ->and($quiz->pass_mark_percentage)->toBe('50.50');
     });
 
-    it('offers only self-paced quizzes in this phase', function () {
+    it('offers self-paced and live quizzes', function () {
+        expect(QuizMode::offered())->toBe(['self_paced', 'live']);
+
         $activity = qwNewQuiz();
 
-        qwSave($this->teacher, $activity, 'settings', qwSettings(['mode' => 'live']))
+        qwSave($this->teacher, $activity, 'settings', qwSettings(['mode' => 'together']))
             ->assertStatus(422)
             ->assertJsonValidationErrors(['mode']);
 
@@ -437,6 +443,237 @@ describe('UC-022: Given a live quiz, When the teacher adds a free-text question,
     });
 });
 
+/**
+ * The settings of a live quiz as the wizard sends them.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function qwLiveSettings(array $overrides = []): array
+{
+    return qwSettings([
+        'mode' => 'live',
+        'time_limit_minutes' => 15,
+        'live_start_mode' => 'manual',
+        'live_scheduled_start_at' => null,
+        'negative_marking' => false,
+        'negative_mark_fraction' => null,
+        ...$overrides,
+    ]);
+}
+
+describe('P5-T1: live mode in the wizard (SCOPE-016, SCOPE-021)', function () {
+    afterEach(fn () => CarbonImmutable::setTestNow());
+
+    it('stores a manual-start live quiz with its duration and returns it to the wizard', function () {
+        $activity = qwNewQuiz();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings())->assertOk();
+
+        $quiz = Quiz::query()->sole();
+        expect($quiz->mode)->toBe(QuizMode::Live)
+            ->and($quiz->isLive())->toBeTrue()
+            ->and($quiz->time_limit)->toBe(900)
+            ->and($quiz->live_start_mode)->toBe(LiveStartMode::Manual)
+            ->and($quiz->live_scheduled_start_at)->toBeNull();
+
+        $this->actingAs($this->teacher)
+            ->get(qwUrl("activities/{$activity->id}/edit"))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('data.settings.mode', 'live')
+                ->where('data.settings.time_limit_minutes', 15)
+                ->where('data.settings.live_start_mode', 'manual')
+                ->where('data.settings.live_scheduled_start_at', null));
+    });
+
+    it('stores a scheduled live quiz with its start time in UTC', function () {
+        CarbonImmutable::setTestNow('2026-11-01T08:00:00Z');
+        $activity = qwNewQuiz();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings([
+            'live_start_mode' => 'scheduled',
+            'live_scheduled_start_at' => '2026-11-02T12:00:00+02:00',
+        ]))->assertOk();
+
+        $quiz = Quiz::query()->sole();
+        expect($quiz->live_start_mode)->toBe(LiveStartMode::Scheduled)
+            ->and($quiz->live_scheduled_start_at?->utc()->toIso8601String())->toBe('2026-11-02T10:00:00+00:00')
+            ->and(SaveQuizSettings::data($quiz)['live_scheduled_start_at'] ?? null)->toBe('2026-11-02T10:00:00+00:00');
+    });
+
+    it('requires a duration, a start mode and, when scheduled, a future start time', function (array $overrides, string $field) {
+        CarbonImmutable::setTestNow('2026-11-01T08:00:00Z');
+        $activity = qwNewQuiz();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings($overrides))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([$field]);
+
+        expect(Quiz::query()->count())->toBe(0);
+    })->with([
+        'no duration' => [['time_limit_minutes' => null], 'time_limit_minutes'],
+        'duration 0' => [['time_limit_minutes' => 0], 'time_limit_minutes'],
+        'duration 1441' => [['time_limit_minutes' => 1441], 'time_limit_minutes'],
+        'no start mode' => [['live_start_mode' => null], 'live_start_mode'],
+        'unknown start mode' => [['live_start_mode' => 'whenever'], 'live_start_mode'],
+        'scheduled without time' => [['live_start_mode' => 'scheduled'], 'live_scheduled_start_at'],
+        'scheduled with no date' => [['live_start_mode' => 'scheduled', 'live_scheduled_start_at' => 'soon'], 'live_scheduled_start_at'],
+        'scheduled in the past' => [['live_start_mode' => 'scheduled', 'live_scheduled_start_at' => '2026-11-01T07:59:00Z'], 'live_scheduled_start_at'],
+    ]);
+
+    it('keeps a scheduled start that has passed when other settings are saved again', function () {
+        CarbonImmutable::setTestNow('2026-11-01T08:00:00Z');
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings([
+            'live_start_mode' => 'scheduled',
+            'live_scheduled_start_at' => '2026-11-01T09:00:00Z',
+        ]))->assertOk();
+
+        CarbonImmutable::setTestNow('2026-11-01T10:00:00Z');
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings([
+            'time_limit_minutes' => 20,
+            'live_start_mode' => 'scheduled',
+            'live_scheduled_start_at' => '2026-11-01T09:00:00+00:00',
+        ]))->assertOk();
+
+        expect(Quiz::query()->sole()->time_limit)->toBe(1200);
+    });
+
+    it('ignores a scheduled time of a manual-start live quiz', function () {
+        $activity = qwNewQuiz();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings(['live_scheduled_start_at' => 'soon']))->assertOk();
+
+        expect(Quiz::query()->sole()->live_scheduled_start_at)->toBeNull();
+    });
+
+    // SCOPE-022: MUST NOT apply negative marking in live quizzes.
+    it('refuses negative marking in a live quiz and stores nothing', function () {
+        $activity = qwNewQuiz();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings(['negative_marking' => true, 'negative_mark_fraction' => '25']))
+            ->assertStatus(422)
+            ->assertJsonPath('errors.negative_marking.0', 'A live quiz has no negative marking.');
+
+        expect(Quiz::query()->count())->toBe(0);
+    });
+
+    it('stores a live quiz with one run, no negative marking, no pass mark and results shown when it finishes', function () {
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwSettings())->assertOk();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings([
+            'max_attempts' => 5,
+            'pass_mark_percentage' => '50',
+            'score_visibility' => 'hidden',
+            'answers_visibility' => 'hidden',
+        ]))->assertOk();
+
+        $quiz = Quiz::query()->sole();
+        expect($quiz->max_attempts)->toBe(1)
+            ->and($quiz->negative_marking)->toBeFalse()
+            ->and($quiz->negative_mark_fraction)->toBeNull()
+            ->and($quiz->pass_mark_percentage)->toBeNull()
+            ->and($quiz->score_visibility)->toBe(ResultVisibility::Immediate)
+            ->and($quiz->answers_visibility)->toBe(ResultVisibility::Immediate);
+    });
+
+    it('drops the live start when a live quiz becomes self-paced', function () {
+        CarbonImmutable::setTestNow('2026-11-01T08:00:00Z');
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings([
+            'live_start_mode' => 'scheduled',
+            'live_scheduled_start_at' => '2026-11-02T10:00:00Z',
+        ]))->assertOk();
+
+        qwSave($this->teacher, $activity, 'settings', qwSettings([
+            'live_start_mode' => 'scheduled',
+            'live_scheduled_start_at' => '2026-11-02T10:00:00Z',
+        ]))->assertOk();
+
+        $quiz = Quiz::query()->sole();
+        expect($quiz->mode)->toBe(QuizMode::SelfPaced)
+            ->and($quiz->live_start_mode)->toBeNull()
+            ->and($quiz->live_scheduled_start_at)->toBeNull()
+            ->and($quiz->max_attempts)->toBe(2);
+    });
+
+    // SCOPE-019: MUST reject free-text questions in a live quiz.
+    it('refuses to make a quiz with a free-text question live and changes nothing', function () {
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwSettings())->assertOk();
+        qwSave($this->teacher, $activity, 'content', ['questions' => [qwChoice((string) Str::uuid()), qwFreeText((string) Str::uuid())]])->assertOk();
+        $before = qwSnapshot();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings())
+            ->assertStatus(422)
+            ->assertJsonPath('errors.mode.0', 'This quiz has free-text questions; remove them before making it live.');
+
+        expect(qwSnapshot())->toBe($before)
+            ->and(Quiz::query()->sole()->mode)->toBe(QuizMode::SelfPaced);
+    });
+
+    it('makes a quiz without free-text questions live', function () {
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwSettings())->assertOk();
+        qwSave($this->teacher, $activity, 'content', ['questions' => [qwChoice((string) Str::uuid()), qwMatching((string) Str::uuid())]])->assertOk();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings())->assertOk();
+
+        expect(Quiz::query()->sole()->mode)->toBe(QuizMode::Live);
+    });
+
+    it('refuses free-text questions after the quiz was made live in the wizard', function () {
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings())->assertOk();
+
+        qwSave($this->teacher, $activity, 'content', ['questions' => [qwFreeText((string) Str::uuid())]])
+            ->assertStatus(422)
+            ->assertJsonPath('errors', fn (array $errors) => ($errors['questions.0.type'][0] ?? null) === 'A live quiz cannot have free-text questions.');
+
+        expect(qwPrompts($activity))->toBe([]);
+    });
+
+    it('publishes a live quiz with questions', function () {
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings())->assertOk();
+        qwSave($this->teacher, $activity, 'content', ['questions' => [qwChoice((string) Str::uuid())]])->assertOk();
+
+        $this->actingAs($this->teacher)
+            ->post(qwUrl("activities/{$activity->id}/publish"))
+            ->assertSessionHasNoErrors();
+
+        expect($activity->refresh()->status)->toBe(ActivityStatus::Published);
+    });
+
+    it('refuses to change the mode once the quiz has an attempt', function () {
+        $activity = qwNewQuiz();
+        qwSave($this->teacher, $activity, 'settings', qwSettings(['negative_marking' => false]))->assertOk();
+        qwSave($this->teacher, $activity, 'content', ['questions' => [qwChoice((string) Str::uuid())]])->assertOk();
+        $this->actingAs($this->teacher)->post(qwUrl("activities/{$activity->id}/publish"))->assertSessionHasNoErrors();
+        QuizAttempt::factory()
+            ->for(Quiz::query()->findOrFail($activity->id), 'quiz')
+            ->for($this->student, 'student')
+            ->create();
+        $before = qwSnapshot();
+
+        qwSave($this->teacher, $activity, 'settings', qwLiveSettings(['pass_mark_percentage' => '50.5']))
+            ->assertStatus(409);
+
+        expect(qwSnapshot())->toBe($before);
+    });
+
+    it('lets only the owning teacher set live mode', function () {
+        $activity = qwNewQuiz();
+
+        expect(qwSave($this->otherTeacher, $activity, 'settings', qwLiveSettings())->status())->toBeIn([403, 404])
+            ->and(qwSave($this->student, $activity, 'settings', qwLiveSettings())->status())->toBeIn([403, 404]);
+
+        expect(Quiz::query()->count())->toBe(0);
+    });
+});
+
 describe('UC-022: Given a draft activity, Then no student can see it', function () {
     it('keeps a draft quiz with settings and questions hidden from every student', function () {
         $activity = qwNewQuiz();
@@ -474,6 +711,8 @@ describe('UC-022: Given a teacher who leaves the wizard at step 3, When they ret
                 ->where('data.settings', [
                     'mode' => 'self_paced',
                     'time_limit_minutes' => 30,
+                    'live_start_mode' => null,
+                    'live_scheduled_start_at' => null,
                     'max_attempts' => 2,
                     'negative_marking' => true,
                     'negative_mark_fraction' => '25.00',

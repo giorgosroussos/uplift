@@ -22,7 +22,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * activity id. Written by the quiz's ActivityType (Support/QuizType) from
  * the wizard's settings step; its questions are ordered quiz copies
  * (ENT-QuizQuestion, DATA-008). Percentages are exact decimal strings
- * from 0 to 100 (DATA-003); the time limit is in seconds.
+ * from 0 to 100 (DATA-003); the time limit is in seconds. A live quiz
+ * (SCOPE-021) uses the time limit as its duration and starts manually from
+ * a lobby or at its scheduled start time (UTC).
  *
  * @property string $activity_id
  * @property string $organization_id
@@ -62,6 +64,8 @@ class Quiz extends Model
     protected $fillable = [
         'mode',
         'time_limit',
+        'live_start_mode',
+        'live_scheduled_start_at',
         'max_attempts',
         'negative_marking',
         'negative_mark_fraction',
@@ -78,6 +82,11 @@ class Quiz extends Model
     public function isSelfPaced(): bool
     {
         return $this->mode === QuizMode::SelfPaced;
+    }
+
+    public function isLive(): bool
+    {
+        return $this->mode === QuizMode::Live;
     }
 
     /**

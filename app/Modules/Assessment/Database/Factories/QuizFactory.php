@@ -3,18 +3,21 @@
 namespace App\Modules\Assessment\Database\Factories;
 
 use App\Modules\Activities\Models\Activity;
+use App\Modules\Assessment\Enums\LiveStartMode;
 use App\Modules\Assessment\Enums\QuizMode;
 use App\Modules\Assessment\Enums\ResultVisibility;
 use App\Modules\Assessment\Models\Question;
 use App\Modules\Assessment\Models\Quiz;
 use App\Modules\Assessment\Models\QuizQuestion;
 use App\Modules\Courses\Models\CourseSpace;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Self-paced quizzes (the subtype row) of a new draft quiz activity unless
- * ->for($activity, 'activity') is given; ->withQuestions() places quiz
- * copies owned by the course space's teacher.
+ * ->for($activity, 'activity') is given; ->live() and ->scheduled() make
+ * live ones; ->withQuestions() places quiz copies owned by the course
+ * space's teacher.
  *
  * @extends Factory<Quiz>
  */
@@ -44,9 +47,28 @@ class QuizFactory extends Factory
         ];
     }
 
+    /**
+     * A live quiz of 15 minutes started manually from a lobby.
+     */
     public function live(): static
     {
-        return $this->state(['mode' => QuizMode::Live]);
+        return $this->state([
+            'mode' => QuizMode::Live,
+            'time_limit' => 900,
+            'live_start_mode' => LiveStartMode::Manual,
+            'live_scheduled_start_at' => null,
+        ]);
+    }
+
+    /**
+     * A live quiz that starts by itself at the given time.
+     */
+    public function scheduled(DateTimeInterface $startsAt): static
+    {
+        return $this->live()->state([
+            'live_start_mode' => LiveStartMode::Scheduled,
+            'live_scheduled_start_at' => $startsAt,
+        ]);
     }
 
     /**

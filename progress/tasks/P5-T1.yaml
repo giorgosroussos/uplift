@@ -1,0 +1,9 @@
+id: P5-T1
+status: ready_to_merge
+commit: 66ea1a7
+handoff: |
+  Assessment: QuizMode::offered() = self_paced, live; Actions/SaveQuizSettings stores a live quiz with time_limit (seconds, required, the duration), live_start_mode manual|scheduled and live_scheduled_start_at (UTC, must be future when set or moved); live forces max_attempts 1, no negative marking (true is refused, SCOPE-022), no pass mark, visibilities immediate. Self-paced clears the live fields.
+  SCOPE-019: making a quiz with free-text questions live is refused on field "mode"; SaveQuizQuestions already refuses free text in a live quiz. GradingFingerprint::settings includes mode, so the mode is locked once the quiz has attempts (P5-T2's hasSubmissions extends this to started sessions).
+  Quiz model: live fields fillable, isLive(); QuizFactory ->live() (15 min, manual) and ->scheduled($at). Wizard step data adds live_start_mode and live_scheduled_start_at.
+  Vue: pages/Assessment/Quiz/Settings.vue mode select (data-test quiz-mode), start radios (quiz-live-start-manual|scheduled), datetime (quiz-live-start-at), duration reuses quiz-time-limit; lib/quizForm settingsPayload(); lang assessment.quiz.settings.{mode_hints,duration*,live_start_mode*,live_scheduled_start_at}, errors.live_{has_free_text,negative_marking,start_in_past}.
+  Tests: tests/Feature/Assessment/QuizWizardTest.php (P5-T1 block), tests/Browser/QuizWizardTest.php (live), resources/js/lib/quizForm.test.ts.
