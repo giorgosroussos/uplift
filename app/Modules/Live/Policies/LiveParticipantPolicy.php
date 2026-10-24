@@ -40,6 +40,16 @@ class LiveParticipantPolicy
             && $participant->isOf($actor);
     }
 
+    /**
+     * The student themself playing: their own state snapshot (with their
+     * answers, OWN-013) and the session's presence channel. Not the host,
+     * who sees progress through ShowLiveProgress instead.
+     */
+    public function play(User $actor, LiveParticipant $participant): bool
+    {
+        return $this->update($actor, $participant);
+    }
+
     private function sameOrganization(User $actor, LiveParticipant $participant): bool
     {
         return $actor->canAct() && $actor->organization_id === $participant->organization_id;

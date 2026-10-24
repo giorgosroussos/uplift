@@ -6,6 +6,7 @@ use App\Modules\Assessment\Models\ChoiceOption;
 use App\Modules\Assessment\Models\MatchingPair;
 use App\Modules\Assessment\Models\Question;
 use App\Modules\Assessment\Models\QuizQuestion;
+use App\Modules\Live\Events\LiveProgressUpdated;
 use App\Modules\Live\Exceptions\LiveSessionClosed;
 use App\Modules\Live\Models\LiveAnswer;
 use App\Modules\Live\Models\LiveParticipant;
@@ -76,6 +77,10 @@ class SaveLiveAnswer
             };
             $answer->answered_at = $now;
             $answer->save();
+
+            // The host sees the new answered count (UC-024 step 4).
+            $answered = LiveAnswer::query()->where('live_participant_id', $locked->id)->count();
+            event(LiveProgressUpdated::of($locked, $answered));
 
             return $answer;
         });

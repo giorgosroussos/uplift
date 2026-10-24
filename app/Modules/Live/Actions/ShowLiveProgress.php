@@ -14,13 +14,16 @@ use Carbon\CarbonImmutable;
  * or its correctness. Read straight from PostgreSQL, so every saved
  * answer shows on the next read. Countdowns derive from ends_at and
  * server_now (ARCH-006). The caller authorises (LiveSessionPolicy::host).
+ * The same participant row is broadcast to the host (LiveProgressUpdated).
+ *
+ * @phpstan-type ProgressRow array{id: string, student: array{id: string, nickname: string, avatar: string|null}, joined_at: string, answered: int, submitted: bool}
  */
 class ShowLiveProgress
 {
     /**
      * @return array{
      *     session: array{id: string, quiz_id: string, status: string, started_at: string|null, ends_at: string|null, server_now: string, question_count: int},
-     *     participants: list<array{id: string, student: array{id: string, nickname: string, avatar: string|null}, joined_at: string, answered: int, submitted: bool}>
+     *     participants: list<ProgressRow>
      * }
      */
     public function handle(LiveSession $session): array
@@ -32,13 +35,7 @@ class ShowLiveProgress
             ->orderBy('joined_at')
             ->orderBy('id')
             ->get()
-            ->map(fn (LiveParticipant $p): array => [
-                'id' => $p->id,
-                'student' => $p->student->publicProfile(),
-                'joined_at' => $p->joined_at->toIso8601String(),
-                'answered' => (int) $p->getAttribute('answers_count'),
-                'submitted' => $p->hasSubmitted(),
-            ])
+            ->map(fn (LiveParticipant $p): array => self::row($p, (int) $p->getAttribute('answers_count')))
             ->values()
             ->all();
 
@@ -53,6 +50,23 @@ class ShowLiveProgress
                 'question_count' => QuizQuestion::query()->where('quiz_id', $session->quiz_id)->count(),
             ],
             'participants' => $participants,
+        ];
+    }
+
+    /**
+     * One participant's progress: nickname and avatar only (SEC-008), the
+     * number of questions answered and whether they submitted.
+     *
+     * @return ProgressRow
+     */
+    public static function row(LiveParticipant $participant, int $answered): array
+    {
+        return [
+            'id' => $participant->id,
+            'student' => $participant->student->publicProfile(),
+            'joined_at' => $participant->joined_at->toIso8601String(),
+            'answered' => $answered,
+            'submitted' => $participant->hasSubmitted(),
         ];
     }
 }

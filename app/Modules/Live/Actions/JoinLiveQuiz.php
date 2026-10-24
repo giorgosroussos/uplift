@@ -6,6 +6,7 @@ use App\Modules\Activities\Models\Activity;
 use App\Modules\Assessment\Enums\LiveStartMode;
 use App\Modules\Assessment\Models\Quiz;
 use App\Modules\Identity\Models\User;
+use App\Modules\Live\Events\LiveProgressUpdated;
 use App\Modules\Live\Models\LiveParticipant;
 use App\Modules\Live\Models\LiveSession;
 use Carbon\CarbonImmutable;
@@ -55,6 +56,8 @@ class JoinLiveQuiz
             $participant->student_id = (string) $student->getKey();
             $participant->joined_at = CarbonImmutable::now();
             $participant->save();
+
+            event(LiveProgressUpdated::of($participant, 0));
 
             return $participant;
         });
