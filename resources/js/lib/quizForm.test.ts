@@ -7,6 +7,7 @@ import {
     questionsFrom,
     quizPayload,
     settingsFrom,
+    settingsPayload,
     uuid,
 } from '@/lib/quizForm';
 import type { BankQuestion } from '@/types/assessment';
@@ -43,6 +44,8 @@ describe('settingsFrom', () => {
         expect(settingsFrom(null)).toEqual({
             mode: 'self_paced',
             time_limit_minutes: null,
+            live_start_mode: null,
+            live_scheduled_start_at: null,
             max_attempts: 1,
             negative_marking: false,
             negative_mark_fraction: null,
@@ -56,6 +59,59 @@ describe('settingsFrom', () => {
         expect(
             settingsFrom({ max_attempts: 3, score_visibility: 'hidden' }),
         ).toMatchObject({ max_attempts: 3, score_visibility: 'hidden' });
+    });
+});
+
+describe('settingsPayload', () => {
+    it('drops the deduction of a self-paced quiz without negative marking and any live start', () => {
+        expect(
+            settingsPayload({
+                ...settingsFrom(null),
+                negative_mark_fraction: '25',
+                live_start_mode: 'scheduled',
+                live_scheduled_start_at: '2026-11-01T10:00:00+00:00',
+            }),
+        ).toMatchObject({
+            mode: 'self_paced',
+            negative_mark_fraction: null,
+            live_start_mode: null,
+            live_scheduled_start_at: null,
+        });
+    });
+
+    // SCOPE-022: no negative marking in live quizzes.
+    it('sends a live quiz without negative marking, starting manually by default', () => {
+        expect(
+            settingsPayload({
+                ...settingsFrom(null),
+                mode: 'live',
+                time_limit_minutes: 15,
+                negative_marking: true,
+                negative_mark_fraction: '25',
+                live_scheduled_start_at: '2026-11-01T10:00:00+00:00',
+            }),
+        ).toMatchObject({
+            mode: 'live',
+            time_limit_minutes: 15,
+            live_start_mode: 'manual',
+            live_scheduled_start_at: null,
+            negative_marking: false,
+            negative_mark_fraction: null,
+        });
+    });
+
+    it('keeps the start time of a scheduled live quiz', () => {
+        expect(
+            settingsPayload({
+                ...settingsFrom(null),
+                mode: 'live',
+                live_start_mode: 'scheduled',
+                live_scheduled_start_at: '2026-11-01T10:00:00+00:00',
+            }),
+        ).toMatchObject({
+            live_start_mode: 'scheduled',
+            live_scheduled_start_at: '2026-11-01T10:00:00+00:00',
+        });
     });
 });
 

@@ -4,7 +4,14 @@ import type {
     QuestionType,
 } from '@/types/assessment';
 
-export type QuizMode = 'self_paced' | 'live';
+export const QUIZ_MODES = ['self_paced', 'live'] as const;
+
+export type QuizMode = (typeof QUIZ_MODES)[number];
+
+export const LIVE_START_MODES = ['manual', 'scheduled'] as const;
+
+/** How a live quiz starts (SCOPE-021). */
+export type LiveStartMode = (typeof LIVE_START_MODES)[number];
 
 export const RESULT_VISIBILITIES = [
     'immediate',
@@ -14,10 +21,16 @@ export const RESULT_VISIBILITIES = [
 
 export type ResultVisibility = (typeof RESULT_VISIBILITIES)[number];
 
-/** The settings step of a quiz (UC-022); percentages from 0 to 100. */
+/**
+ * The settings step of a quiz (UC-022); percentages from 0 to 100. A live
+ * quiz uses time_limit_minutes as its duration; its scheduled start is a
+ * UTC ISO timestamp.
+ */
 export type QuizSettings = {
     mode: QuizMode;
     time_limit_minutes: number | null;
+    live_start_mode: LiveStartMode | null;
+    live_scheduled_start_at: string | null;
     max_attempts: number;
     negative_marking: boolean;
     negative_mark_fraction: string | null;

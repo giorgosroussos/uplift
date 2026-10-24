@@ -61,7 +61,7 @@ final class QuizType implements ActivityType
     {
         return match ($step) {
             WizardStep::Settings => array_fill_keys([
-                'mode', 'time_limit_minutes', 'max_attempts', 'negative_marking',
+                'mode', 'time_limit_minutes', 'live_start_mode', 'live_scheduled_start_at', 'max_attempts', 'negative_marking',
                 'negative_mark_fraction', 'pass_mark_percentage', 'score_visibility', 'answers_visibility',
             ], ['nullable']),
             WizardStep::Content => [
@@ -82,7 +82,8 @@ final class QuizType implements ActivityType
     }
 
     /**
-     * Grading changes with negative marking or the pass mark (settings) and
+     * Grading changes with the mode (self-paced attempts or a live run,
+     * SCOPE-016), negative marking or the pass mark (settings) and
      * with the set of questions, their type and points, and which options
      * and pairs they have and which options are correct (content). Order,
      * prompts and item texts do not change grading.

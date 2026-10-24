@@ -214,6 +214,19 @@ return [
             'pass_mark_hint' => 'Optional; from 0 to 100.',
             'score_visibility' => 'Students see their score',
             'answers_visibility' => 'Students see the correct answers',
+            // SCOPE-021: live quizzes.
+            'mode_hints' => [
+                'self_paced' => 'Students take the quiz in attempts, each at their own time.',
+                'live' => 'All enrolled students take the quiz at the same time and finish at one common end time. Live quizzes have no free-text questions, no negative marking and run once.',
+            ],
+            'duration' => 'Duration (minutes)',
+            'duration_hint' => 'The quiz ends this many minutes after it starts; students who join late have only the time left.',
+            'live_start_mode' => 'Start',
+            'live_start_modes' => [
+                'manual' => 'Manually: students wait in a lobby until you press Start',
+                'scheduled' => 'Automatically at a set date and time',
+            ],
+            'live_scheduled_start_at' => 'Start date and time',
         ],
         'questions' => [
             'hint' => 'Write new questions or copy them from your question bank, and drag them to change their order.',
@@ -240,6 +253,9 @@ return [
             'settings_missing' => 'The quiz settings are missing.',
             'no_questions' => 'A quiz needs at least one question.',
             'live_free_text' => 'A live quiz cannot have free-text questions.',
+            'live_has_free_text' => 'This quiz has free-text questions; remove them before making it live.',
+            'live_negative_marking' => 'A live quiz has no negative marking.',
+            'live_start_in_past' => 'The start time must be in the future.',
             'duplicate_question' => 'This question appears twice.',
             'foreign_id' => 'This item does not belong to this quiz.',
         ],

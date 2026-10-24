@@ -42,6 +42,8 @@ export function defaultSettings(): QuizSettings {
     return {
         mode: 'self_paced',
         time_limit_minutes: null,
+        live_start_mode: null,
+        live_scheduled_start_at: null,
         max_attempts: 1,
         negative_marking: false,
         negative_mark_fraction: null,
@@ -56,6 +58,37 @@ export function defaultSettings(): QuizSettings {
  */
 export function settingsFrom(data: StepData | null): QuizSettings {
     return { ...defaultSettings(), ...((data ?? {}) as Partial<QuizSettings>) };
+}
+
+/**
+ * What the settings step saves. A live quiz (SCOPE-021) starts manually
+ * unless scheduled, has a scheduled time only when scheduled and never has
+ * negative marking (SCOPE-022); a self-paced quiz has no live start.
+ */
+export function settingsPayload(settings: QuizSettings): QuizSettings {
+    if (settings.mode === 'live') {
+        const startMode = settings.live_start_mode ?? 'manual';
+
+        return {
+            ...settings,
+            live_start_mode: startMode,
+            live_scheduled_start_at:
+                startMode === 'scheduled'
+                    ? settings.live_scheduled_start_at
+                    : null,
+            negative_marking: false,
+            negative_mark_fraction: null,
+        };
+    }
+
+    return {
+        ...settings,
+        live_start_mode: null,
+        live_scheduled_start_at: null,
+        negative_mark_fraction: settings.negative_marking
+            ? settings.negative_mark_fraction
+            : null,
+    };
 }
 
 function withKeys(question: QuizQuestionPayload): QuizQuestionForm {

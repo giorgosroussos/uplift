@@ -11,7 +11,8 @@ namespace App\Modules\Assessment\Support;
 final class GradingFingerprint
 {
     /**
-     * Negative marking with its percentage, and the pass mark.
+     * The mode (how the quiz is taken, SCOPE-016), negative marking with
+     * its percentage, and the pass mark.
      *
      * @param  array<string, mixed>  $settings
      * @return array<string, mixed>
@@ -21,6 +22,7 @@ final class GradingFingerprint
         $negative = filter_var($settings['negative_marking'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         return [
+            'mode' => $settings['mode'] ?? null,
             'negative_marking' => $negative,
             'negative_mark_fraction' => $negative ? self::number($settings['negative_mark_fraction'] ?? null) : null,
             'pass_mark_percentage' => self::number($settings['pass_mark_percentage'] ?? null),

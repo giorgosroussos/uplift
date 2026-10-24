@@ -2,6 +2,8 @@
 
 use App\Modules\Activities\Enums\ActivityStatus;
 use App\Modules\Activities\Models\Activity;
+use App\Modules\Assessment\Enums\LiveStartMode;
+use App\Modules\Assessment\Enums\QuizMode;
 use App\Modules\Assessment\Models\Question;
 use App\Modules\Assessment\Models\Quiz;
 use App\Modules\Assessment\Models\QuizQuestion;
@@ -13,7 +15,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 | Browser flow of UC-022 with the real quiz type: the teacher enters the
 | basics, the quiz settings, writes a question, copies one from the bank,
 | orders them by drag and drop and publishes; returning to the wizard
-| restores every step.
+| restores every step. A live quiz (P5-T1) has a duration and a start mode
+| instead of attempts and negative marking.
 |
 | The browser test server always answers as http://127.0.0.1:<port>, so the
 | organisation "127" on the apex domain "0.0.1" stands in for a subdomain.
@@ -42,7 +45,7 @@ it('builds a quiz from settings, a new and a copied question, and publishes it',
         ->fill('@wizard-title', 'Sorting quiz')
         ->click('@wizard-next')
         ->assertVisible('@quiz-settings')
-        ->assertSee('Self-paced')
+        ->assertValue('@quiz-mode', 'self_paced')
         ->fill('@quiz-max-attempts', '3')
         ->fill('@quiz-time-limit', '20')
         ->click('@wizard-next')
@@ -103,4 +106,42 @@ it('refuses to publish a quiz without questions', function () {
         ->assertNoJavaScriptErrors();
 
     expect(Activity::query()->sole()->status)->toBe(ActivityStatus::Draft);
+});
+
+it('makes a quiz live with a duration and a manual start', function () {
+    $this->actingAs($this->teacher);
+
+    visit('/activities/create')
+        ->select('@wizard-course-space', $this->space->id)
+        ->select('@wizard-type', 'quiz')
+        ->fill('@wizard-title', 'Live sorting quiz')
+        ->click('@wizard-next')
+        ->assertVisible('@quiz-settings')
+        ->assertVisible('@quiz-max-attempts')
+        ->select('@quiz-mode', 'live')
+        ->assertMissing('@quiz-max-attempts')
+        ->assertMissing('@quiz-negative-marking')
+        ->assertSee('Duration (minutes)')
+        ->assertChecked('@quiz-live-start-manual')
+        ->assertMissing('@quiz-live-start-at')
+        ->click('@quiz-live-start-scheduled')
+        ->assertVisible('@quiz-live-start-at')
+        ->click('@quiz-live-start-manual')
+        ->fill('@quiz-time-limit', '15')
+        ->click('@wizard-next')
+        ->assertVisible('@quiz-questions')
+        ->assertNoJavaScriptErrors();
+
+    $quiz = Quiz::query()->sole();
+
+    expect($quiz->mode)->toBe(QuizMode::Live)
+        ->and($quiz->time_limit)->toBe(900)
+        ->and($quiz->live_start_mode)->toBe(LiveStartMode::Manual)
+        ->and($quiz->negative_marking)->toBeFalse();
+
+    visit("/activities/{$quiz->activity_id}/edit?step=settings")
+        ->assertValue('@quiz-mode', 'live')
+        ->assertValue('@quiz-time-limit', '15')
+        ->assertChecked('@quiz-live-start-manual')
+        ->assertNoJavaScriptErrors();
 });
