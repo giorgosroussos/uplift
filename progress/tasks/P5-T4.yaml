@@ -1,0 +1,8 @@
+id: P5-T4
+status: ready_to_merge
+commit: a0bc676
+handoff: |
+  Monitor: GET live/quizzes/{activity} (live.monitor, Actions/ShowLiveMonitor, LiveSessionController::monitor) renders pages/Live/Monitor.vue with components/live/HostSession.vue (lobby, start/close, progress, results), lib/liveMonitor.ts, types/live.ts; strings live.monitor.*, live.actions.*.
+  ARCH-009: Activities/Contracts/ProvidesActivityActions::actions(Activity, User): list<Support/ActivityAction {key, href, label}>; ShowActivity passes 'actions', Activities/Show.vue renders them (data-test activity-action-<key>) and no longer holds a quiz route.
+  LiveQuizType implements it: open_live_quiz -> live.monitor (owning teacher, published live quiz); open_quiz -> assessment.quizzes.show (QuizAttemptPolicy::take, self-paced only). P5-T5 adds join_live_quiz there.
+  Tests: tests/Feature/Live/LiveMonitorTest.php, LiveActivityActionsTest.php, tests/Browser/LiveMonitorTest.php (enters via the activity page), resources/js/lib/liveMonitor.test.ts; TakeQuizTest uses @activity-action-open_quiz.
