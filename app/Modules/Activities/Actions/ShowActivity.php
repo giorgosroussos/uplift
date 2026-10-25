@@ -2,7 +2,9 @@
 
 namespace App\Modules\Activities\Actions;
 
+use App\Modules\Activities\Contracts\ProvidesActivityActions;
 use App\Modules\Activities\Models\Activity;
+use App\Modules\Activities\Support\ActivityAction;
 use App\Modules\Activities\Support\ActivityTypes;
 use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -10,8 +12,9 @@ use Illuminate\Support\Facades\Gate;
 /**
  * What a user sees of an activity they may view: its basics and status,
  * for the owning teacher the links to edit, close, review submissions and
- * delete it (while it may be deleted), and for an enrolled student whether
- * they take part.
+ * delete it (while it may be deleted), for an enrolled student whether
+ * they take part, and the actions the activity's type adds for the user
+ * (ARCH-009, e.g. opening a quiz).
  */
 class ShowActivity
 {
@@ -47,7 +50,25 @@ class ShowActivity
                 // An enrolled student of an active space takes part (e.g. opens the quiz).
                 'participate' => ! $activity->isDraft() && $gate->allows('participate', $activity->courseSpace),
             ],
+            'actions' => $this->actions($user, $activity),
         ];
+    }
+
+    /**
+     * ARCH-009: the buttons the activity's type contributes, if it
+     * implements ProvidesActivityActions.
+     *
+     * @return list<array{key: string, href: string, label: string}>
+     */
+    private function actions(User $user, Activity $activity): array
+    {
+        $type = $this->types->has($activity->type) ? $this->types->for($activity) : null;
+
+        if (! $type instanceof ProvidesActivityActions) {
+            return [];
+        }
+
+        return array_map(fn (ActivityAction $action): array => $action->toArray(), $type->actions($activity, $user));
     }
 
     private function hasSubmissions(Activity $activity): bool

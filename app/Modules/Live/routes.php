@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
-    // UC-024: the host teacher runs the live quiz.
+    // UC-024: the host teacher runs the live quiz from its monitor page.
+    Route::get('live/quizzes/{activity}', [LiveSessionController::class, 'monitor'])->whereUuid('activity')->name('live.monitor');
     Route::post('live/quizzes/{activity}/lobby', [LiveSessionController::class, 'open'])->whereUuid('activity')->name('live.sessions.open');
     Route::post('live/sessions/{liveSession}/start', [LiveSessionController::class, 'start'])->whereUuid('liveSession')->name('live.sessions.start');
     Route::post('live/sessions/{liveSession}/cancel', [LiveSessionController::class, 'cancel'])->whereUuid('liveSession')->name('live.sessions.cancel');

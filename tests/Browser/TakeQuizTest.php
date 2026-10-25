@@ -43,7 +43,7 @@ it('takes a quiz, autosaves the answers, submits and shows the score', function 
     $this->actingAs($this->student);
 
     $page = visit("/activities/{$this->activity->id}")
-        ->click('@activity-open-quiz')
+        ->click('@activity-action-open_quiz')
         ->assertSee('Capitals quiz')
         ->click('@attempt-start')
         ->assertVisible('@attempt-timer')

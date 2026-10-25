@@ -24,8 +24,7 @@ import { show as showPoll } from '@/routes/activities/polls';
 import { show as showProposals } from '@/routes/activities/proposals';
 import { show as showSlots } from '@/routes/activities/slots';
 import { show as showTopics } from '@/routes/activities/topics';
-import { show as showQuiz } from '@/routes/assessment/quizzes';
-import type { ActivityDetails } from '@/types/activities';
+import type { ActivityAction, ActivityDetails } from '@/types/activities';
 
 defineOptions({
     layout: {
@@ -43,6 +42,8 @@ const props = defineProps<{
         participate: boolean;
         delete: boolean;
     };
+    /** Contributed by the activity's type, already authorised (ARCH-009). */
+    actions: ActivityAction[];
 }>();
 
 const page = usePage();
@@ -108,15 +109,12 @@ function deleteActivity(): void {
                         {{ $t('activities.show.edit') }}
                     </Link>
                 </Button>
-                <Button
-                    v-if="can.participate && activity.type === 'quiz'"
-                    as-child
-                >
+                <Button v-for="action in actions" :key="action.key" as-child>
                     <Link
-                        :href="showQuiz(activity.id)"
-                        data-test="activity-open-quiz"
+                        :href="action.href"
+                        :data-test="`activity-action-${action.key}`"
                     >
-                        {{ $t('activities.show.open_quiz') }}
+                        {{ $t(action.label) }}
                     </Link>
                 </Button>
                 <Button

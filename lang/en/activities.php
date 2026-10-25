@@ -46,7 +46,6 @@ return [
         'publish' => 'Publish',
         'close' => 'Close activity',
         'submissions' => 'Submissions',
-        'open_quiz' => 'Open quiz',
         'open_poll' => 'Open poll',
         'open_topics' => 'Open topics',
         'open_proposals' => 'Open proposals',
