@@ -1,0 +1,39 @@
+id: CR-P5-T4-2
+raised_by: implementation-agent
+task: P5-T4
+status: open
+problem: >
+  Acceptance criterion 3 of P5-T4 ("Given a published self-paced quiz, When
+  its owning teacher opens the activity page, Then it shows the self-paced
+  'Open quiz' link and no 'Open live quiz' link") contradicts the built
+  behaviour. The self-paced 'Open quiz' link (Activities/Show.vue,
+  data-test activity-open-quiz) is shown only to enrolled students
+  (can.participate; CourseSpacePolicy::participate requires ROLE-Student),
+  and its target assessment.quizzes.show is authorised by
+  QuizAttemptPolicy::take, which allows only students. Meeting the
+  criterion as written means either showing the owning teacher a link that
+  answers 403, or letting teachers open the student quiz page (a
+  CMP-Assessment change outside P5-T4's writes and a new product
+  behaviour: what would a teacher see there, could they start an attempt?).
+  Related, for confirmation: hiding 'Open quiz' for live quizzes while
+  CMP-Activities must not reference Assessment routes (ARCH-009) is only
+  possible if the self-paced 'Open quiz' link itself becomes an action
+  contributed through ProvidesActivityActions (by LiveQuizType, which wraps
+  Assessment's QuizType), so its data-test would become
+  activity-action-open_quiz (tests/Browser/TakeQuizTest.php uses
+  @activity-open-quiz).
+affects:
+  - "P5-T4 acceptance criterion 3"
+  - "UC-024 (teacher entry to a quiz), ARCH-009"
+  - "CMP-Activities: pages/Activities/Show.vue; CMP-Live: Support/LiveQuizType; CMP-Assessment: QuizAttemptPolicy::take (only under option b)"
+proposal: >
+  (a, recommended) Reword criterion 3 to: "Given a published self-paced
+  quiz, When an enrolled student opens the activity page, Then it shows the
+  self-paced 'Open quiz' link; When its owning teacher opens it, Then no
+  'Open live quiz' link is shown" - the teacher's view of a self-paced quiz
+  stays as today (edit, submissions). And confirm that the self-paced 'Open
+  quiz' link moves into ProvidesActivityActions (LiveQuizType returns it for
+  a published non-live quiz to an enrolled student; key open_quiz), so
+  CMP-Activities no longer references the Assessment route.
+  (b) Keep the criterion: specify a teacher preview of the self-paced quiz
+  page and let P5-T4 write CMP-Assessment to allow it.

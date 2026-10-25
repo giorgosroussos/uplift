@@ -1,0 +1,6 @@
+id: P5-T4
+status: blocked
+commit: 08d19c8
+handoff: |
+  Blocked on CR-P5-T4-2: criterion 3 asks the owning teacher to see the self-paced 'Open quiz' link, which is student-only and whose page (QuizAttemptPolicy::take) refuses teachers.
+  The monitor implementation from the previous attempt is on origin/P5-T4-attempt1 (65b27df) and can be reused once the CR is resolved.
