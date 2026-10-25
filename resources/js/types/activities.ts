@@ -22,6 +22,14 @@ export type ActivityDetails = ActivitySummary & {
     description: string | null;
 };
 
+/** A button an activity type adds to the activity page (ARCH-009). */
+export type ActivityAction = {
+    key: string;
+    href: string;
+    /** Translation key of the button label. */
+    label: string;
+};
+
 export type WizardActivity = {
     id: string;
     type: ActivityKind;
