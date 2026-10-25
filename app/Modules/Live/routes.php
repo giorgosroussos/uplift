@@ -2,6 +2,7 @@
 
 use App\Modules\Live\Http\Controllers\LiveParticipationController;
 use App\Modules\Live\Http\Controllers\LiveSessionController;
+use App\Modules\Live\Http\Controllers\LiveStateController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,4 +26,9 @@ Route::middleware(['tenant', 'auth', 'verified'])->group(function () {
         ->whereUuid(['liveParticipant', 'quizQuestion'])
         ->name('live.answers.update');
     Route::post('live/participants/{liveParticipant}/submit', [LiveParticipationController::class, 'submit'])->whereUuid('liveParticipant')->name('live.submit');
+
+    // FLOW-002: JSON state snapshots (RFC 9457 errors), fetched on load,
+    // after a reconnection and every 2 seconds while the websocket is down.
+    Route::get('live/sessions/{liveSession}/state', [LiveStateController::class, 'host'])->whereUuid('liveSession')->name('live.sessions.state');
+    Route::get('live/participants/{liveParticipant}/state', [LiveStateController::class, 'participant'])->whereUuid('liveParticipant')->name('live.participants.state');
 });

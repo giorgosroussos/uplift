@@ -1,0 +1,9 @@
+id: P5-T3
+status: ready_to_merge
+commit: b7755c1
+handoff: |
+  Live channels (app/Modules/Live/channels.php, Broadcasting/): private organization.{org}.live-session.{id} (host + joined students, no member list; presence subscription refused) and presence ...{id}.host (host the only member, publicProfile); names via Broadcasting/LiveChannels.
+  Broadcasts (Events/, queued after commit, plain values): LiveSessionChanged '.live.session.changed' {session: id,status,started_at,ends_at,server_now} on the private session channel; LiveProgressUpdated '.live.progress.updated' {session_id, participant: ShowLiveProgress::row} on the host presence channel (join, answer, submit). No answers/scores broadcast: on finished, fetch the snapshot.
+  Snapshots (JSON, RFC 9457): GET live/sessions/{id}/state (live.sessions.state, host: channels, progress, results) and GET live/participants/{id}/state (live.participants.state, LiveParticipantPolicy::play: channels, participation, results).
+  Frontend: resources/js/lib/liveSync.ts (createLiveSync 2 s polling while socket down + catch-up on reconnect, echoConnection, fetchLiveState, LIVE_EVENTS) and composables/useLiveSync.ts for P5-T4/T5.
+  Tests: tests/Feature/Live/LiveRealtimeTest.php, resources/js/lib/liveSync.test.ts.

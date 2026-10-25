@@ -24,14 +24,18 @@ use Throwable;
 /**
  * Live quizzes (UC-024, UC-025): the live session engine — lobby, manual
  * or scheduled start, one common end time, answers, early and timed
- * finish, scoring and final ranks (SCOPE-021, SCOPE-022).
+ * finish, scoring and final ranks (SCOPE-021, SCOPE-022) — and its
+ * real-time side: a private session channel and the host's presence
+ * channel (channels.php), broadcast
+ * progress and status changes, and the state snapshot endpoints behind
+ * the 2-second polling fallback (ARCH-006).
  */
 class LiveServiceProvider extends ModuleServiceProvider
 {
     /**
      * JSON routes whose errors are RFC 9457 problem details.
      */
-    public const array PROBLEM_ROUTES = ['live.answers.update'];
+    public const array PROBLEM_ROUTES = ['live.answers.update', 'live.sessions.state', 'live.participants.state'];
 
     public const string PROBLEM_CLOSED = 'urn:uplift:problem:live-closed';
 

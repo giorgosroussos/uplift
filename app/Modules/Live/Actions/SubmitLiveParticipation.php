@@ -2,6 +2,8 @@
 
 namespace App\Modules\Live\Actions;
 
+use App\Modules\Live\Events\LiveProgressUpdated;
+use App\Modules\Live\Models\LiveAnswer;
 use App\Modules\Live\Models\LiveParticipant;
 use App\Modules\Live\Models\LiveSession;
 use Carbon\CarbonImmutable;
@@ -35,6 +37,9 @@ class SubmitLiveParticipation
 
             $locked->submitted_at = $now;
             $locked->save();
+
+            $answered = LiveAnswer::query()->where('live_participant_id', $locked->id)->count();
+            event(LiveProgressUpdated::of($locked, $answered));
 
             return $locked;
         });

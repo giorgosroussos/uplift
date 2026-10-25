@@ -6,6 +6,7 @@ use App\Modules\Activities\Models\Activity;
 use App\Modules\Assessment\Enums\LiveStartMode;
 use App\Modules\Assessment\Models\Quiz;
 use App\Modules\Live\Enums\LiveSessionStatus;
+use App\Modules\Live\Events\LiveSessionChanged;
 use App\Modules\Live\Events\LiveSessionStarted;
 use App\Modules\Live\Jobs\FinishLiveSessionJob;
 use App\Modules\Live\Models\LiveSession;
@@ -64,6 +65,7 @@ class StartLiveSession
             $locked->save();
 
             LiveSessionStarted::dispatch($locked->organization_id, $locked->id, $locked->quiz_id);
+            event(LiveSessionChanged::of($locked));
 
             return $locked;
         });

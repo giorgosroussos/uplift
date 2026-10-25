@@ -6,6 +6,7 @@ use App\Modules\Assessment\Models\Question;
 use App\Modules\Assessment\Models\QuizQuestion;
 use App\Modules\Assessment\Support\Points;
 use App\Modules\Live\Enums\LiveSessionStatus;
+use App\Modules\Live\Events\LiveSessionChanged;
 use App\Modules\Live\Events\LiveSessionFinished;
 use App\Modules\Live\Models\LiveAnswer;
 use App\Modules\Live\Models\LiveParticipant;
@@ -56,6 +57,7 @@ class FinishLiveSession
             $locked->save();
 
             LiveSessionFinished::dispatch($locked->organization_id, $locked->id, $locked->quiz_id);
+            event(LiveSessionChanged::of($locked));
 
             return true;
         });

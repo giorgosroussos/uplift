@@ -3,6 +3,7 @@
 namespace App\Modules\Live\Actions;
 
 use App\Modules\Live\Enums\LiveSessionStatus;
+use App\Modules\Live\Events\LiveSessionChanged;
 use App\Modules\Live\Models\LiveSession;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,6 +29,8 @@ class CancelLiveLobby
 
             $locked->transitionTo(LiveSessionStatus::Cancelled);
             $locked->save();
+
+            event(LiveSessionChanged::of($locked));
 
             return $locked;
         });
