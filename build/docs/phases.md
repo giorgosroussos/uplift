@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Implementation phases
 
-_Generated document · design v3.4.0 · source f327e6c4cf53_
+_Generated document · design v3.5.0 · source 174b6708ecea_
 
 
 ## Phase map
@@ -319,8 +319,8 @@ Depends on: PHASE-4 · use cases: UC-024, UC-025 · environment: development
 | P5-T1 | Live mode in the wizard | — | CMP-Assessment |  |
 | P5-T2 | Live session engine | P5-T1 | CMP-Live | yes |
 | P5-T3 | Real-time channels and reconnection | P5-T2 | CMP-Live |  |
-| P5-T4 | Teacher monitor UI | P5-T3 | CMP-Live |  |
-| P5-T5 | Student player UI (mobile-first) | P5-T3 | CMP-Live |  |
+| P5-T4 | Teacher monitor UI | P5-T3 | CMP-Live, CMP-Activities |  |
+| P5-T5 | Student player UI (mobile-first) | P5-T3, P5-T4 | CMP-Live, CMP-Activities |  |
 | P5-T6 | Live quiz load browser test | P5-T4, P5-T5 | CMP-Live |  |
 
 Task waves:
@@ -351,9 +351,6 @@ flowchart LR
   end
   W5 --> W6
 ```
-
-Serialised:
-- P5-T5 serialised after P5-T4 (writes CMP-Live)
 
 Out of scope:
 - XP awarding (PHASE-6 listens to LiveSessionFinished)

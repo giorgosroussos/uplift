@@ -1,5 +1,9 @@
 # Design changelog
 
+## v3.5.0 — 2026-10-25
+
+- activity page actions contributed by activity types (ARCH-009): entry links to the live monitor and player; P5-T4/P5-T5 write CMP-Activities, P5-T5 depends on P5-T4 (CR-P5-T4-1)
+
 ## v3.4.0 — 2026-10-23
 
 - Slot booking rules (SCOPE-028); activity deletion counts only current bookings (SCOPE-029 supersedes SCOPE-027) (CR-P4-T5-1)

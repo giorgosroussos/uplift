@@ -1,0 +1,40 @@
+id: CR-P5-T4-1
+raised_by: implementation-agent
+task: P5-T4
+status: accepted
+problem: >
+  The teacher monitor page has no way in. P5-T4 may write only CMP-Live, so
+  it adds the page at GET live/quizzes/{activity} (route live.monitor,
+  pages/Live/Monitor.vue), but nothing links to it: the teacher reaches a
+  quiz through the activity page (Activities/Show.vue, ShowActivity), which
+  belongs to CMP-Activities. Adding the link there is not only outside the
+  task's touches; it also needs a design choice, because CMP-Activities may
+  not depend on CMP-Assessment or CMP-Live (may_depend_on: Tenancy,
+  Identity, Courses), so the activity page cannot itself tell whether a quiz
+  is live or link to a Live route. The same gap will hit P5-T5 (a student
+  must reach the live player; today "Open quiz" goes to the self-paced
+  Assessment page, which refuses attempts on a live quiz, SCOPE-016).
+affects:
+  - P5-T4 and P5-T5 touches (CMP-Activities would be written)
+  - "CMP-Activities: ActivityType contract (or a new optional contract), ShowActivity, pages/Activities/Show.vue"
+  - "CMP-Live: Support/LiveQuizType (already wraps Assessment's QuizType)"
+  - UC-024 step 1-2, UC-025 step 1 (how the teacher/student reaches the live quiz)
+proposal: >
+  Add an optional contract in CMP-Activities, e.g.
+  Contracts/ProvidesActivityActions::actions(Activity, User): list of
+  {key, href, label translation key}, which ShowActivity asks the
+  registered type for and Activities/Show.vue renders as extra buttons
+  (data-test activity-action-<key>). Live's LiveQuizType (which already
+  decorates the quiz type) implements it: for a published live quiz, the
+  owning teacher gets "Open live quiz" -> live.monitor; an enrolled
+  student gets "Join live quiz" -> the P5-T5 player (and the self-paced
+  "Open quiz" button is hidden for live quizzes). Let P5-T4 (teacher link)
+  and P5-T5 (student link) write CMP-Activities for this. Alternative: no
+  link change now; the engineer accepts the monitor being reachable only
+  by URL until a later task adds the entry point.
+resolution: >
+  Accepted as proposed in design v3.5.0 (ARCH-009): optional
+  ProvidesActivityActions contract in CMP-Activities, implemented by
+  LiveQuizType; the self-paced 'Open quiz' link is hidden for live quizzes.
+  P5-T4 (contract, rendering, teacher link) and P5-T5 (student link) now
+  also write CMP-Activities; P5-T5 depends on P5-T4.

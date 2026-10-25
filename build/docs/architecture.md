@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Architecture and stack
 
-_Generated document · design v3.4.0 · source f327e6c4cf53_
+_Generated document · design v3.5.0 · source 174b6708ecea_
 
 
 **Style:** modular-monolith · **database:** postgresql
@@ -210,3 +210,4 @@ flowchart TB
 | ARCH-006 | Real-time and integration policies | decided (default) | Live answers go over HTTP, never websocket client events; the server alone decides time; Reverb outage falls back to HTTP polling every 2 seconds for students and teacher; integration logs carry ids only; email is queued with 5 retries |
 | ARCH-007 | Starter kit dependencies and dev tooling | decided | Keep the official Vue starter kit and shadcn-vue and approve their runtime packages (tinker, wayfinder, reka-ui, lucide, vueuse, class-variance-authority, clsx, tailwind-merge, tw-animate-css, vue-sonner, vue-input-otp); remove the kit's passkeys and chisel; use vitest ^4 to match the kit's vite 8; lint and format with ESLint and Prettier instead of the kit's vite-plus; during phase 1 dev-only packages may be added without a decision |
 | ARCH-008 | Organisation authorisation through a Tenancy contract | decided (inferred) | CMP-Tenancy defines App\Modules\Tenancy\Contracts\OrganizationMember (organizationId(): string, administersOrganization(): bool) and authorises organisation actions in its own OrganizationPolicy against that contract only; Identity's User implements it (administersOrganization() is role === org_admin) |
+| ARCH-009 | Activity page actions contributed by activity types | decided | CMP-Activities defines an optional contract App\Modules\Activities\Contracts\ProvidesActivityActions (actions(Activity, User): list of {key, href, label translation key}) that a registered ActivityType may also implement; ShowActivity asks the type for its actions and the activity page renders them as extra buttons (data-test activity-action-<key>). Live's LiveQuizType implements it: for a published live quiz the owning teacher gets 'Open live quiz' to the monitor (live.monitor), an enrolled student gets 'Join live quiz' to the player, and the self-paced 'Open quiz' link is not shown |

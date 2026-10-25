@@ -1,7 +1,7 @@
 <!-- GENERATED — do not edit -->
 # Pack PHASE-5 — Live quiz end to end: lobby or scheduled start, common time window, live monitoring, reconnection, final ranking
 
-_design v3.4.0 · f327e6c4cf53_
+_design v3.5.0 · 174b6708ecea_
 
 Depends on: PHASE-4 · environment: development · components: CMP-Live, CMP-Assessment
 
@@ -12,8 +12,8 @@ Depends on: PHASE-4 · environment: development · components: CMP-Live, CMP-Ass
 | P5-T1 | Live mode in the wizard | — | CMP-Assessment |
 | P5-T2 | Live session engine | P5-T1 | CMP-Live |
 | P5-T3 | Real-time channels and reconnection | P5-T2 | CMP-Live |
-| P5-T4 | Teacher monitor UI | P5-T3 | CMP-Live |
-| P5-T5 | Student player UI (mobile-first) | P5-T3 | CMP-Live |
+| P5-T4 | Teacher monitor UI | P5-T3 | CMP-Live, CMP-Activities |
+| P5-T5 | Student player UI (mobile-first) | P5-T3, P5-T4 | CMP-Live, CMP-Activities |
 | P5-T6 | Live quiz load browser test | P5-T4, P5-T5 | CMP-Live |
 
 Execution waves: [P5-T1] → [P5-T2] → [P5-T3] → [P5-T4] → [P5-T5] → [P5-T6]
@@ -130,6 +130,9 @@ Owned by CMP-Live · retention: As ENT-LiveParticipant · audit: no
 
 ## Constraints
 
+- MUST let activity types add activity page actions only through the optional ProvidesActivityActions contract; MUST NOT reference Assessment or Live classes or routes from CMP-Activities  (ARCH-009)
+- MUST NOT show the self-paced 'Open quiz' link on the activity page of a live quiz  (ARCH-009)
+- MUST offer 'Open live quiz' only to the owning teacher and 'Join live quiz' only to a student enrolled in the activity's course space, and only while the live quiz is published  (ARCH-009)
 - MUST reject free-text questions in a live quiz  (SCOPE-019)
 - MUST NOT start a second live session for the same quiz  (SCOPE-019)
 - MUST fix one common end time for a live session at its start and enforce it on the server  (SCOPE-021)

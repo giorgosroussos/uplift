@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v3.4.0 · source f327e6c4cf53_
+_Generated document · design v3.5.0 · source 174b6708ecea_
 
 
 ## Scope
@@ -908,6 +908,25 @@ _affects P1-T1 · since v1.1.0_
 - `MUST allow updating an organisation's settings only to a user who implements OrganizationMember, belongs to that organisation and administers it`
 
 _affects UC-033, P2-T3 · since v1.4.0_
+
+### ARCH-009 — Activity page actions contributed by activity types · decided
+
+> Engineer: “Optional contract (Recommended)”
+
+**Decision:** CMP-Activities defines an optional contract App\Modules\Activities\Contracts\ProvidesActivityActions (actions(Activity, User): list of {key, href, label translation key}) that a registered ActivityType may also implement; ShowActivity asks the type for its actions and the activity page renders them as extra buttons (data-test activity-action-<key>). Live's LiveQuizType implements it: for a published live quiz the owning teacher gets 'Open live quiz' to the monitor (live.monitor), an enrolled student gets 'Join live quiz' to the player, and the self-paced 'Open quiz' link is not shown
+
+**Why:** The activity page belongs to CMP-Activities, which may not depend on CMP-Assessment or CMP-Live, so it cannot tell a quiz is live nor link to a Live route itself; the self-paced quiz page refuses live quizzes, so without this the monitor and player are reachable only by URL (CR-P5-T4-1)
+
+**Rejected:**
+- No entry link until a later task: monitor and player reachable only by typing the URL
+- Link from Assessment's quiz page: needs Assessment -> Live, the reverse of the allowed direction
+
+**Constraints for implementation:**
+- `MUST let activity types add activity page actions only through the optional ProvidesActivityActions contract; MUST NOT reference Assessment or Live classes or routes from CMP-Activities`
+- `MUST NOT show the self-paced 'Open quiz' link on the activity page of a live quiz`
+- `MUST offer 'Open live quiz' only to the owning teacher and 'Join live quiz' only to a student enrolled in the activity's course space, and only while the live quiz is published`
+
+_affects UC-024, UC-025, P5-T4, P5-T5 · since v3.5.0_
 
 ## Operations
 

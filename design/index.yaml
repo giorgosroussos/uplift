@@ -1,5 +1,5 @@
 schema_version: 1
-design_version: 3.4.0
+design_version: 3.5.0
 baseline: {version: 1.0.0, date: '2026-10-19'}
 
 project:
