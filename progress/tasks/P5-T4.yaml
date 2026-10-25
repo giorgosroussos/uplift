@@ -1,0 +1,9 @@
+id: P5-T4
+status: blocked
+commit: 65b27df
+handoff: |
+  Monitor page GET live/quizzes/{activity} (live.monitor, LiveSessionPolicy::open, 404 unless live): Actions/ShowLiveMonitor -> pages/Live/Monitor.vue (quiz, ordered questions, current session, host snapshot only for the host).
+  components/live/HostSession.vue (keyed per session, useLiveSync): lobby with joined students + Start (manual) / Close lobby; progress table updated from '.live.progress.updated' at once, countdown from ends_at/server_now; results (podium/ranking only with leaderboards), per-question counts.
+  lib/liveMonitor.ts (monotonic row merge, snapshot/broadcast apply, server-clock countdown), types/live.ts, components/live/LiveAvatar.vue; lang live.monitor.* en/el.
+  Tests: tests/Feature/Live/LiveMonitorTest.php, tests/Browser/LiveMonitorTest.php, resources/js/lib/liveMonitor.test.ts.
+  Blocked on CR-P5-T4-1: no link to the monitor from the activity page (CMP-Activities, cannot know a quiz is live).
