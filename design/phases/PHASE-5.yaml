@@ -31,14 +31,14 @@ tasks:
     touches: {writes: [CMP-Live]}
   - id: P5-T4
     title: Teacher monitor UI
-    description: "Monitor page; the optional ProvidesActivityActions contract in Activities rendered on the activity page; LiveQuizType implements it with the teacher's 'Open live quiz' link and hides the self-paced 'Open quiz' link for live quizzes (ARCH-009)"
+    description: "Monitor page; the optional ProvidesActivityActions contract in Activities rendered on the activity page; LiveQuizType implements it with the teacher's 'Open live quiz' link and with the self-paced 'Open quiz' link (key open_quiz, enrolled students, non-live quizzes only), which moves out of Activities/Show.vue; update tests/Browser/TakeQuizTest.php to the new selector (ARCH-009)"
     depends_on: [P5-T3]
     use_cases: [UC-024]
     decisions: [ARCH-009]
     acceptance_criteria:
       - "Given a published live quiz, When its owning teacher opens the activity page, Then it shows 'Open live quiz' linking to the monitor and no self-paced 'Open quiz' link"
       - "Given a published live quiz, When another teacher of the organisation opens the activity page, Then no 'Open live quiz' link is shown"
-      - "Given a published self-paced quiz, When its owning teacher opens the activity page, Then it shows the self-paced 'Open quiz' link and no 'Open live quiz' link"
+      - "Given a published self-paced quiz, When an enrolled student opens the activity page, Then it shows the self-paced 'Open quiz' link (activity action open_quiz); When its owning teacher opens it, Then no 'Open live quiz' link is shown"
     touches: {writes: [CMP-Live, CMP-Activities]}
   - id: P5-T5
     title: Student player UI (mobile-first)

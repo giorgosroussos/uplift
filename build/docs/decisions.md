@@ -1,7 +1,7 @@
 <!-- GENERATED from design/ — do not edit. Rebuild with tools/design/build.py -->
 # Decision record
 
-_Generated document · design v3.5.0 · source 174b6708ecea_
+_Generated document · design v3.5.1 · source 1b77671cb19c_
 
 
 ## Scope
@@ -913,9 +913,9 @@ _affects UC-033, P2-T3 · since v1.4.0_
 
 > Engineer: “Optional contract (Recommended)”
 
-**Decision:** CMP-Activities defines an optional contract App\Modules\Activities\Contracts\ProvidesActivityActions (actions(Activity, User): list of {key, href, label translation key}) that a registered ActivityType may also implement; ShowActivity asks the type for its actions and the activity page renders them as extra buttons (data-test activity-action-<key>). Live's LiveQuizType implements it: for a published live quiz the owning teacher gets 'Open live quiz' to the monitor (live.monitor), an enrolled student gets 'Join live quiz' to the player, and the self-paced 'Open quiz' link is not shown
+**Decision:** CMP-Activities defines an optional contract App\Modules\Activities\Contracts\ProvidesActivityActions (actions(Activity, User): list of {key, href, label translation key}) that a registered ActivityType may also implement; ShowActivity asks the type for its actions and the activity page renders them as extra buttons (data-test activity-action-<key>). Live's LiveQuizType implements it: for a published live quiz the owning teacher gets 'Open live quiz' to the monitor (live.monitor), an enrolled student gets 'Join live quiz' to the player, and the self-paced 'Open quiz' link is not shown. The self-paced 'Open quiz' link (enrolled students, published non-live quiz) is itself an action contributed by LiveQuizType (key open_quiz), so the activity page holds no quiz route
 
-**Why:** The activity page belongs to CMP-Activities, which may not depend on CMP-Assessment or CMP-Live, so it cannot tell a quiz is live nor link to a Live route itself; the self-paced quiz page refuses live quizzes, so without this the monitor and player are reachable only by URL (CR-P5-T4-1)
+**Why:** The activity page belongs to CMP-Activities, which may not depend on CMP-Assessment or CMP-Live, so it cannot tell a quiz is live nor link to a Live route itself; the self-paced quiz page refuses live quizzes, so without this the monitor and player are reachable only by URL (CR-P5-T4-1). Moving 'Open quiz' into the contract keeps Assessment's route out of Activities; it was always for enrolled students only (CR-P5-T4-2)
 
 **Rejected:**
 - No entry link until a later task: monitor and player reachable only by typing the URL

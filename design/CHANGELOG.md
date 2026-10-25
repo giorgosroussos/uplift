@@ -1,5 +1,9 @@
 # Design changelog
 
+## v3.5.1 — 2026-10-25
+
+- P5-T4 criterion 3 corrected (self-paced 'Open quiz' is for enrolled students); 'Open quiz' becomes an action contributed by LiveQuizType (ARCH-009) (CR-P5-T4-2)
+
 ## v3.5.0 — 2026-10-25
 
 - activity page actions contributed by activity types (ARCH-009): entry links to the live monitor and player; P5-T4/P5-T5 write CMP-Activities, P5-T5 depends on P5-T4 (CR-P5-T4-1)
